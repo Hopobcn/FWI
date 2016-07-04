@@ -1,0 +1,51 @@
+#!/bin/bash
+#BSUB -W "0:05"
+#BSUB -J "test.intel64"
+#BSUB -o "%J.out"
+#BSUB -e "%J.err"
+#BUSB -x
+#BSUB -n "4"
+#BSUB -R "span[ptile=1]"
+#BSUB -q bsc_debug
+
+# Resource requirements
+# SN : number of slave nodes
+# PPN_SN : number of processes per slave node
+# WN : number of worker nodes
+# PPN_WN: number of processes per worker node
+# Total amount of resources: max(sn) + max(wn) + 1
+
+
+export SN=2
+export PPN_SN=1
+export WN=2
+export PPN_WN=1
+
+source environment_mn3.sh
+
+mkdir -p .tmpdir
+
+export NX_OFFL_HOSTFILE=".tmpdir/slave.hosts.$LSB_JOBID"
+export OFFL_NX_OFFL_HOSTFILE=".tmpdir/worker.hosts.$LSB_JOBID"
+# Dump hosts 1 to SN into slave hostfile and the rest to worker hostfile
+$( uniq $LSB_DJOB_HOSTFILE | tee >(sed "${SN}q" > $NX_OFFL_HOSTFILE) >(sed "1,${SN}d" > $OFFL_NX_OFFL_HOSTFILE) )
+
+# copy generated host files to local directory
+cp $NX_OFFL_HOSTFILE .
+cp $OFFL_NX_OFFL_HOSTFILE .
+
+export NX_SMP_WORKERS=1
+export OFFL_NX_SMP_WORKERS=1
+
+# Unset BOOTSTRAP=lsf. LSF does not support dynamic process execution completely.
+export I_MPI_DEBUG=0
+export I_MPI_HYDRA_BOOTSTRAP=ssh
+export I_MPI_HYDRA_IFACE="ib0"
+export I_MPI_FABRICS="shm:dapl"
+export I_MPI_DAPL_UD=enable
+export I_MPI_DAPL_PROVIDER=ofa-v2-mlx4_0-1u
+
+bin=fwi.intel64
+
+#mpiexec.hydra -hostlist $(hostname) -np 1 ./$bin ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+mpiexec.hydra -hostlist $(hostname) -np 1 ./$bin fwi_schedule.txt
