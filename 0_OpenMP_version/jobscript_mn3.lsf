@@ -1,0 +1,19 @@
+#!/bin/bash
+##16+1
+#BSUB -n 1
+#BSUB -oo output.out
+#BSUB -eo output.err
+#BSUB -R "span[ptile=16]"
+#BSUB -x
+#BSUB -W 00:10
+#BSUB -q mic
+#BSUB -J fwi.ompss
+ulimit -c unlimited
+
+date
+source environment_mn3.sh
+export OMP_NUM_THREADS=16
+
+./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+
+date
