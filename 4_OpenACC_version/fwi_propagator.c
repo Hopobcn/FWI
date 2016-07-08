@@ -9,7 +9,7 @@ inline integer IDX(const integer z,
     return (y*dimmx*dimmz) + (x*dimmz) + (z);
 };
 
-real stencil_Z( const offset_t off,
+real stencil_Z( const integer off,
                 const real* restrict ptr,
                 const real    dzi,
                 const integer z,
@@ -28,7 +28,7 @@ real stencil_Z( const offset_t off,
                       ptr[IDX(z-4+off,x,y,dimmz,dimmx)])) * dzi );
 };
 
-real stencil_X( const offset_t off,
+real stencil_X( const integer off,
                 real* restrict ptr,
                 const real dxi,
                 const integer z,
@@ -47,7 +47,7 @@ real stencil_X( const offset_t off,
                       ptr[IDX(z,x-4+off,y,dimmz,dimmx)])) * dxi );
 };
 
-real stencil_Y( const offset_t off,
+real stencil_Y( const integer off,
                 real* restrict ptr,
                 const real dyi,
                 const integer z,
@@ -238,7 +238,6 @@ void compute_component_vcell_BR (real* restrict  vptr,
     real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
-
     for(integer y=ny0; y < nyf; y++)
     {
         for(integer x=nx0; x < nxf; x++)
@@ -282,7 +281,6 @@ void compute_component_vcell_BL (real* restrict  vptr,
     real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
     real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
-
 
     for(integer y=ny0; y < nyf; y++)
     {
@@ -498,6 +496,7 @@ void compute_component_scell_TR ( s_t             s,
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
     
+    #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -589,6 +588,7 @@ void compute_component_scell_TL ( s_t             s,
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
     
+    #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -681,6 +681,7 @@ void compute_component_scell_BR ( s_t             s,
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
     
+    #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -710,7 +711,7 @@ void compute_component_scell_BR ( s_t             s,
                 const real c46 = cell_coeff_ARTM_BR (coeffs.c46, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_BR (coeffs.c56, z, x, y, dimmz, dimmx);
                 
-                        const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
+                const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
                 
@@ -773,6 +774,7 @@ void compute_component_scell_BL ( s_t             s,
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
     
+    #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)

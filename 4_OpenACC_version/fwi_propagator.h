@@ -42,13 +42,14 @@ typedef struct {
 
 typedef enum {back_offset, forw_offset} offset_t;
 
-
+#pragma acc routine seq
 inline integer IDX (const integer z, 
-										const integer x, 
-										const integer y, 
-										const integer dimmz, 
-										const integer dimmx);
+                    const integer x, 
+                    const integer y, 
+                    const integer dimmz, 
+                    const integer dimmx);
 
+#pragma acc routine seq
 real stencil_Z(const offset_t off,
                real* restrict ptr,
                const real    dzi,
@@ -58,7 +59,8 @@ real stencil_Z(const offset_t off,
                const integer dimmz,
                const integer dimmx);
 
-real stencil_X(const offset_t off,
+#pragma acc routine seq
+real stencil_X(const integer off,
                real* restrict ptr,
                const real dxi,
                const integer z,
@@ -67,7 +69,8 @@ real stencil_X(const offset_t off,
                const integer dimmz,
                const integer dimmx);
 
-real stencil_Y(const offset_t off,
+#pragma acc routine seq
+real stencil_Y(const integer off,
                real* restrict ptr,
                const real dyi,
                const integer z,
@@ -225,6 +228,7 @@ void velocity_propagator(v_t       v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
+#pragma acc routine seq
 void stress_update( real* restrict sptr,
                     const real       c1,
                     const real       c2,
@@ -265,54 +269,63 @@ void stress_propagator( s_t           s,
                         const integer dimmz,
                         const integer dimmx );
 
-real cell_coeff_BR (  real* restrict ptr, 
-											const integer z, 
-											const integer x, 
-											const integer y, 
-											const integer dimmz, 
-											const integer dimmx );
-real cell_coeff_TL (  real* restrict ptr, 
-											const integer z, 
-											const integer x, 
-											const integer y, 
-											const integer dimmz, 
-											const integer dimmx );
-real cell_coeff_BL (  real* restrict ptr, 
-											const integer z, 
-											const integer x, 
-											const integer y, 
-											const integer dimmz, 
-											const integer dimmx );
-real cell_coeff_TR (  real* restrict ptr, 
-											const integer z, 
-											const integer x, 
-											const integer y, 
-											const integer dimmz, 
-											const integer dimmx );
+#pragma acc routine seq
+real cell_coeff_BR ( real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx );
+#pragma acc routine seq
+real cell_coeff_TL ( real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx );
+#pragma acc routine seq
+real cell_coeff_BL ( real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx );
+#pragma acc routine seq
+real cell_coeff_TR ( real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx );
+
+#pragma acc routine seq
 real cell_coeff_ARTM_BR ( real* restrict ptr, 
-													const integer z, 
-													const integer x, 
-													const integer y, 
-													const integer dimmz, 
-													const integer dimmx);
+                          const integer z, 
+                          const integer x, 
+                          const integer y, 
+                          const integer dimmz, 
+                          const integer dimmx);
+#pragma acc routine seq
 real cell_coeff_ARTM_TL ( real* restrict ptr, 
-													const integer z, 
-													const integer x, 
-													const integer y, 
-													const integer dimmz, 
-													const integer dimmx);
+                          const integer z, 
+                          const integer x, 
+                          const integer y, 
+                          const integer dimmz, 
+                          const integer dimmx);
+#pragma acc routine seq
 real cell_coeff_ARTM_BL ( real* restrict ptr, 
-													const integer z, 
-													const integer x, 
-													const integer y, 
-													const integer dimmz, 
-													const integer dimmx);
+                          const integer z, 
+                          const integer x, 
+                          const integer y, 
+                          const integer dimmz, 
+                          const integer dimmx);
+#pragma acc routine seq
 real cell_coeff_ARTM_TR ( real* restrict ptr, 
-													const integer z, 
-													const integer x, 
-													const integer y, 
-													const integer dimmz, 
-													const integer dimmx);
+                          const integer z, 
+                          const integer x, 
+                          const integer y, 
+                          const integer dimmz, 
+                          const integer dimmx);
 
 void compute_component_scell_TR ( s_t             s,
                                  point_v_t       vnode_z,
