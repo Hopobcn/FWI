@@ -1,0 +1,7 @@
+#ignore output files & executables
+*.o
+fwi.intel64
+ModelGenerator
+
+#ignore output folders
+1/
