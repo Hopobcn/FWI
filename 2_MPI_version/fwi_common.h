@@ -24,6 +24,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
