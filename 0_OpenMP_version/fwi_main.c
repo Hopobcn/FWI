@@ -214,7 +214,7 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
 
 	end_t = dtime();
 
-	fprintf(stderr, "Gatering process for preconditioner %s \ 
+	fprintf(stderr, "Gatering process for preconditioner %s \
 									 completed in: %lf seconds\n",          \
 									 precondfilename, end_t - start_t  );
 
@@ -254,7 +254,7 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
 
 	end_t = dtime();
 
-	fprintf(stderr, "Gatering process for gradient %s       \ 
+	fprintf(stderr, "Gatering process for gradient %s       \
 									 completed in: %lf seconds\n",          \
 									 precondfilename, end_t - start_t  );
 
