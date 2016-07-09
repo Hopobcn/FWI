@@ -109,10 +109,10 @@ real rho_TL ( real* restrict rho,
 };
 
 
-void compute_component_vcell_TL (real* restrict _vptr,
-                                 real* restrict _szptr,
-                                 real* restrict _sxptr,
-                                 real* restrict _syptr,
+void compute_component_vcell_TL (real* restrict vptr,
+                                 real* restrict szptr,
+                                 real* restrict sxptr,
+                                 real* restrict syptr,
                                  real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
@@ -138,11 +138,10 @@ void compute_component_vcell_TL (real* restrict _vptr,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 
-	__assume_aligned ( _vptr , 64);
-	__assume_aligned ( _szptr, 64);
-	__assume_aligned ( _sxptr, 64);
-	__assume_aligned ( _syptr, 64);
-
+    real* restrict _vptr  __attribute__ ((aligned (64))) = vptr;
+    real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+    real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+    real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
 	#pragma omp parallel for
   for(integer y=ny0; y < nyf; y++)
@@ -162,10 +161,10 @@ void compute_component_vcell_TL (real* restrict _vptr,
 		}
 };
 
-void compute_component_vcell_TR (real* restrict _vptr,
-                                 real* restrict _szptr,
-                                 real* restrict _sxptr,
-                                 real* restrict _syptr,
+void compute_component_vcell_TR (real* restrict vptr,
+                                 real* restrict szptr,
+                                 real* restrict sxptr,
+                                 real* restrict syptr,
                                  real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
@@ -191,11 +190,10 @@ void compute_component_vcell_TR (real* restrict _vptr,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 	
-	__assume_aligned ( _vptr , 64);
-	__assume_aligned ( _szptr, 64);
-	__assume_aligned ( _sxptr, 64);
-	__assume_aligned ( _syptr, 64);
-
+	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+	real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+	real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
 	#pragma omp parallel for
   for(integer y=ny0; y < nyf; y++)
@@ -215,10 +213,10 @@ void compute_component_vcell_TR (real* restrict _vptr,
 			}
 };
 
-void compute_component_vcell_BR (real* restrict  _vptr,
-                                 real* restrict  _szptr,
-                                 real* restrict  _sxptr,
-                                 real* restrict  _syptr,
+void compute_component_vcell_BR (real* restrict  vptr,
+                                 real* restrict  szptr,
+                                 real* restrict  sxptr,
+                                 real* restrict  syptr,
                                  real* restrict  rho,
                                  const real     dt,
                                  const real     dzi,
@@ -244,11 +242,10 @@ void compute_component_vcell_BR (real* restrict  _vptr,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 	
-	__assume_aligned ( _vptr , 64);
-	__assume_aligned ( _szptr, 64);
-	__assume_aligned ( _sxptr, 64);
-	__assume_aligned ( _syptr, 64);
-
+	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+	real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+	real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
 	#pragma omp parallel for
   for(integer y=ny0; y < nyf; y++)
@@ -268,10 +265,10 @@ void compute_component_vcell_BR (real* restrict  _vptr,
 		}
 };
 
-void compute_component_vcell_BL (real* restrict  _vptr,
-                                 real* restrict  _szptr,
-                                 real* restrict  _sxptr,
-                                 real* restrict  _syptr,
+void compute_component_vcell_BL (real* restrict  vptr,
+                                 real* restrict  szptr,
+                                 real* restrict  sxptr,
+                                 real* restrict  syptr,
                                  real* restrict  rho,
                                  const real     dt,
                                  const real     dzi,
@@ -296,11 +293,11 @@ void compute_component_vcell_BL (real* restrict  _vptr,
 	__assume( nzf % ASSUMED_DISTANCE == 0);
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
-	__assume_aligned ( _vptr , 64);
-	__assume_aligned ( _szptr, 64);
-	__assume_aligned ( _sxptr, 64);
-	__assume_aligned ( _syptr, 64);
-
+	
+	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+	real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+	real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
 	#pragma omp parallel for
   for(integer y=ny0; y < nyf; y++)
@@ -509,25 +506,7 @@ void compute_component_scell_TR ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-  real* restrict sxxptr = s.tr.xx;
-  real* restrict syyptr = s.tr.yy;
-  real* restrict szzptr = s.tr.zz;
-  real* restrict syzptr = s.tr.yz;
-  real* restrict sxzptr = s.tr.xz;
-  real* restrict sxyptr = s.tr.xy;
-  
-  real* restrict vxu    = vnode_x.u;
-  real* restrict vxv    = vnode_x.v;
-  real* restrict vxw    = vnode_x.w;
-  
-  real* restrict vyu    = vnode_y.u;
-  real* restrict vyv    = vnode_y.v;
-  real* restrict vyw    = vnode_y.w;
-  real* restrict vzu    = vnode_z.u;
-  real* restrict vzv    = vnode_z.v;
-  real* restrict vzw    = vnode_z.w;
- 
-	__assume( nz0 % ASSUMED_DISTANCE == 0);
+    __assume( nz0 % ASSUMED_DISTANCE == 0);
 	__assume( nx0 % ASSUMED_DISTANCE == 0);
 	__assume( ny0 % ASSUMED_DISTANCE == 0);
 	
@@ -535,25 +514,45 @@ void compute_component_scell_TR ( s_t             s,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 
-	__assume_aligned( sxxptr, 64);
-  __assume_aligned( syyptr, 64);
-  __assume_aligned( szzptr, 64);
-  __assume_aligned( syzptr, 64);
-  __assume_aligned( sxzptr, 64);
-  __assume_aligned( sxyptr, 64);
-  
-	__assume_aligned( vxu   , 64);
-  __assume_aligned( vxv   , 64);
-  __assume_aligned( vxw   , 64);
-  __assume_aligned( vyu   , 64);
-  __assume_aligned( vyv   , 64);
-  __assume_aligned( vyw   , 64);
-  
-	__assume_aligned( vzu   , 64);
-  __assume_aligned( vzv   , 64);
-  __assume_aligned( vzw   , 64);
+    real* restrict sxxptr __attribute__ ((aligned (64))) = s.tr.xx;
+    real* restrict syyptr __attribute__ ((aligned (64))) = s.tr.yy;
+    real* restrict szzptr __attribute__ ((aligned (64))) = s.tr.zz;
+    real* restrict syzptr __attribute__ ((aligned (64))) = s.tr.yz;
+    real* restrict sxzptr __attribute__ ((aligned (64))) = s.tr.xz;
+    real* restrict sxyptr __attribute__ ((aligned (64))) = s.tr.xy;
+    
+    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    
+    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
 
-	#pragma omp parallel for
+#ifdef __INTEL_COMPILER 
+	__assume_aligned( sxxptr, 64);
+    __assume_aligned( syyptr, 64);
+    __assume_aligned( szzptr, 64);
+    __assume_aligned( syzptr, 64);
+    __assume_aligned( sxzptr, 64);
+    __assume_aligned( sxyptr, 64);
+    
+    __assume_aligned( vzu   , 64);
+    __assume_aligned( vzv   , 64);
+    __assume_aligned( vzw   , 64);
+
+    __assume_aligned( vxu   , 64);
+    __assume_aligned( vxv   , 64);
+    __assume_aligned( vxw   , 64);
+    __assume_aligned( vyu   , 64);
+    __assume_aligned( vyv   , 64);
+    __assume_aligned( vyw   , 64);
+#endif
+
+   	#pragma omp parallel for
   for (integer y = ny0; y < nyf; y++)
   	for (integer x = nx0; x < nxf; x++)
 		{
@@ -625,26 +624,7 @@ void compute_component_scell_TL ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-  real* restrict sxxptr = s.tl.xx;
-  real* restrict syyptr = s.tl.yy;
-  real* restrict szzptr = s.tl.zz;
-  real* restrict syzptr = s.tl.yz;
-  real* restrict sxzptr = s.tl.xz;
-  real* restrict sxyptr = s.tl.xy;
-  
-  real* restrict vxu    = vnode_x.u;
-  real* restrict vxv    = vnode_x.v;
-  real* restrict vxw    = vnode_x.w;
-  
-  real* restrict vyu    = vnode_y.u;
-  real* restrict vyv    = vnode_y.v;
-  real* restrict vyw    = vnode_y.w;
-  
-  real* restrict vzu    = vnode_z.u;
-  real* restrict vzv    = vnode_z.v;
-  real* restrict vzw    = vnode_z.w;
-	
-	__assume( nz0 % ASSUMED_DISTANCE == 0);
+    __assume( nz0 % ASSUMED_DISTANCE == 0);
 	__assume( nx0 % ASSUMED_DISTANCE == 0);
 	__assume( ny0 % ASSUMED_DISTANCE == 0);
 	
@@ -652,23 +632,45 @@ void compute_component_scell_TL ( s_t             s,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 
-	__assume_aligned( sxxptr, 64);
-  __assume_aligned( syyptr, 64);
-  __assume_aligned( szzptr, 64);
-  __assume_aligned( syzptr, 64);
-  __assume_aligned( sxzptr, 64);
-  __assume_aligned( sxyptr, 64);
-  
-	__assume_aligned( vxu   , 64);
-  __assume_aligned( vxv   , 64);
-  __assume_aligned( vxw   , 64);
-  __assume_aligned( vyu   , 64);
-  __assume_aligned( vyv   , 64);
-  __assume_aligned( vyw   , 64);
-  
-	__assume_aligned( vzu   , 64);
-  __assume_aligned( vzv   , 64);
-  __assume_aligned( vzw   , 64);
+    real* restrict sxxptr __attribute__ ((aligned (64))) = s.tl.xx;
+    real* restrict syyptr __attribute__ ((aligned (64))) = s.tl.yy;
+    real* restrict szzptr __attribute__ ((aligned (64))) = s.tl.zz;
+    real* restrict syzptr __attribute__ ((aligned (64))) = s.tl.yz;
+    real* restrict sxzptr __attribute__ ((aligned (64))) = s.tl.xz;
+    real* restrict sxyptr __attribute__ ((aligned (64))) = s.tl.xy;
+    
+    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    
+    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    
+    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+
+#ifdef __INTEL_COMPILER
+    __assume_aligned( sxxptr, 64);
+    __assume_aligned( syyptr, 64);
+    __assume_aligned( szzptr, 64);
+    __assume_aligned( syzptr, 64);
+    __assume_aligned( sxzptr, 64);
+    __assume_aligned( sxyptr, 64);
+    
+    __assume_aligned( vxu   , 64);
+    __assume_aligned( vxv   , 64);
+    __assume_aligned( vxw   , 64);
+    
+    __assume_aligned( vyu   , 64);
+    __assume_aligned( vyv   , 64);
+    __assume_aligned( vyw   , 64);
+    
+    __assume_aligned( vzu   , 64);
+    __assume_aligned( vzv   , 64);
+    __assume_aligned( vzw   , 64);
+#endif
 
 	#pragma omp parallel for
   for (integer y = ny0; y < nyf; y++)
@@ -743,26 +745,7 @@ void compute_component_scell_BR ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	real* restrict sxxptr = s.br.xx;
-  real* restrict syyptr = s.br.yy;
-  real* restrict szzptr = s.br.zz;
-  real* restrict syzptr = s.br.yz;
-  real* restrict sxzptr = s.br.xz;
-  real* restrict sxyptr = s.br.xy;
-  
-  real* restrict vxu    = vnode_x.u;
-  real* restrict vxv    = vnode_x.v;
-  real* restrict vxw    = vnode_x.w;
-  
-  real* restrict vyu    = vnode_y.u;
-  real* restrict vyv    = vnode_y.v;
-  real* restrict vyw    = vnode_y.w;
-  
-  real* restrict vzu    = vnode_z.u;
-  real* restrict vzv    = vnode_z.v;
-  real* restrict vzw    = vnode_z.w;
-    
-	__assume( nz0 % ASSUMED_DISTANCE == 0);
+    __assume( nz0 % ASSUMED_DISTANCE == 0);
 	__assume( nx0 % ASSUMED_DISTANCE == 0);
 	__assume( ny0 % ASSUMED_DISTANCE == 0);
 	
@@ -770,23 +753,44 @@ void compute_component_scell_BR ( s_t             s,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 
-	__assume_aligned( sxxptr, 64);
-  __assume_aligned( syyptr, 64);
-  __assume_aligned( szzptr, 64);
-  __assume_aligned( syzptr, 64);
-  __assume_aligned( sxzptr, 64);
-  __assume_aligned( sxyptr, 64);
-  
-	__assume_aligned( vxu   , 64);
-  __assume_aligned( vxv   , 64);
-  __assume_aligned( vxw   , 64);
-  __assume_aligned( vyu   , 64);
-  __assume_aligned( vyv   , 64);
-  __assume_aligned( vyw   , 64);
-  
-	__assume_aligned( vzu   , 64);
-  __assume_aligned( vzv   , 64);
-  __assume_aligned( vzw   , 64);
+    real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
+    real* restrict syyptr __attribute__ ((aligned (64))) = s.br.yy;
+    real* restrict szzptr __attribute__ ((aligned (64))) = s.br.zz;
+    real* restrict syzptr __attribute__ ((aligned (64))) = s.br.yz;
+    real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
+    real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
+    
+    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    
+    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    
+    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+
+#ifdef __INTEL_COMPILER 
+    __assume_aligned( sxxptr, 64);
+    __assume_aligned( syyptr, 64);
+    __assume_aligned( szzptr, 64);
+    __assume_aligned( syzptr, 64);
+    __assume_aligned( sxzptr, 64);
+    __assume_aligned( sxyptr, 64);
+    
+    __assume_aligned( vxu   , 64);
+    __assume_aligned( vxv   , 64);
+    __assume_aligned( vxw   , 64);
+    __assume_aligned( vyu   , 64);
+    __assume_aligned( vyv   , 64);
+    __assume_aligned( vyw   , 64);
+    
+    __assume_aligned( vzu   , 64);
+    __assume_aligned( vzv   , 64);
+    __assume_aligned( vzw   , 64);
+#endif
 
 	#pragma omp parallel for
   for (integer y = ny0; y < nyf; y++)
@@ -861,25 +865,6 @@ void compute_component_scell_BL ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-  real *sxxptr = s.bl.xx;
-  real *syyptr = s.bl.yy;
-  real *szzptr = s.bl.zz;
-  real *syzptr = s.bl.yz;
-  real *sxzptr = s.bl.xz;
-  real *sxyptr = s.bl.xy;
-  
-  real *vxu    = vnode_x.u;
-  real *vxv    = vnode_x.v;
-  real *vxw    = vnode_x.w;
-  
-  real *vyu    = vnode_y.u;
-  real *vyv    = vnode_y.v;
-  real *vyw    = vnode_y.w;
-  
-  real *vzu    = vnode_z.u;
-  real *vzv    = vnode_z.v;
-  real *vzw    = vnode_z.w;
-
 	__assume( nz0 % ASSUMED_DISTANCE == 0);
 	__assume( nx0 % ASSUMED_DISTANCE == 0);
 	__assume( ny0 % ASSUMED_DISTANCE == 0);
@@ -888,23 +873,44 @@ void compute_component_scell_BL ( s_t             s,
 	__assume( nxf % ASSUMED_DISTANCE == 0);
 	__assume( nyf % ASSUMED_DISTANCE == 0);
 
-	__assume_aligned( sxxptr, 64);
-  __assume_aligned( syyptr, 64);
-  __assume_aligned( szzptr, 64);
-  __assume_aligned( syzptr, 64);
-  __assume_aligned( sxzptr, 64);
-  __assume_aligned( sxyptr, 64);
-  
-	__assume_aligned( vxu   , 64);
-  __assume_aligned( vxv   , 64);
-  __assume_aligned( vxw   , 64);
-  __assume_aligned( vyu   , 64);
-  __assume_aligned( vyv   , 64);
-  __assume_aligned( vyw   , 64);
-  
-	__assume_aligned( vzu   , 64);
-  __assume_aligned( vzv   , 64);
-  __assume_aligned( vzw   , 64);
+    real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
+    real* restrict syyptr __attribute__ ((aligned (64))) = s.br.yy;
+    real* restrict szzptr __attribute__ ((aligned (64))) = s.br.zz;
+    real* restrict syzptr __attribute__ ((aligned (64))) = s.br.yz;
+    real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
+    real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
+    
+    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    
+    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    
+    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+
+#ifdef __INTEL_COMPILER
+    __assume_aligned( sxxptr, 64);
+    __assume_aligned( syyptr, 64);
+    __assume_aligned( szzptr, 64);
+    __assume_aligned( syzptr, 64);
+    __assume_aligned( sxzptr, 64);
+    __assume_aligned( sxyptr, 64);
+    
+    __assume_aligned( vxu   , 64);
+    __assume_aligned( vxv   , 64);
+    __assume_aligned( vxw   , 64);
+    __assume_aligned( vyu   , 64);
+    __assume_aligned( vyv   , 64);
+    __assume_aligned( vyw   , 64);
+    
+    __assume_aligned( vzu   , 64);
+    __assume_aligned( vzv   , 64);
+    __assume_aligned( vzw   , 64);
+#endif
 
 	#pragma omp parallel for
   for (integer y = ny0; y < nyf; y++)
