@@ -1,7 +1,7 @@
 CC      = mpicc
 CFLAGS  = -std=c99 -O3
 INCS    =
-LIBS    =
+LIBS    = -lm
 DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG
 LDFLAGS =
 
