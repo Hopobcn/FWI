@@ -127,13 +127,13 @@ void read_fwi_parameters (const char *fname,
 
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
     
-    fscanf( fp, "%f\n", (real*) lenz   );
-    fscanf( fp, "%f\n", (real*) lenx   );
-    fscanf( fp, "%f\n", (real*) leny   );
-    fscanf( fp, "%f\n", (real*) vmin   );
-    fscanf( fp, "%f\n", (real*) srclen );
-    fscanf( fp, "%f\n", (real*) rcvlen );
-    fscanf( fp, "%s\n",  outputfolder  );
+    CHECK( fscanf( fp, "%f\n", (real*) lenz   ) );
+    CHECK( fscanf( fp, "%f\n", (real*) lenx   ) );
+    CHECK( fscanf( fp, "%f\n", (real*) leny   ) );
+    CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
+    CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
+    CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
+    CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
     
     fclose(fp);
 
@@ -296,16 +296,16 @@ void load_shot_parameters( int    shotid,
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
     
-    fscanf(fp, "%f\n",  (real*   ) dz     );
-    fscanf(fp, "%f\n",  (real*   ) dx     );
-    fscanf(fp, "%f\n",  (real*   ) dy     );
-    fscanf(fp,  I"\n", (integer*) dimmz  );
-    fscanf(fp,  I"\n", (integer*) dimmx  );
-    fscanf(fp,  I"\n", (integer*) dimmy  );
-    fscanf(fp, "%d\n",  (int*    ) nt_fwd );
-    fscanf(fp, "%d\n",  (int*    ) nt_bwd );
-    fscanf(fp, "%f\n",  (real*   ) dt     );
-    fscanf(fp, "%d\n",  (int*    ) stacki );
+    CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
+    CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
+    CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
+    CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
+    CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
+    CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
+    CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
+    CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
+    CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
+    CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
     
     safe_fclose( name, fp, __FILE__, __LINE__);
 };

@@ -68,6 +68,15 @@ extern FILE* logfile;
 	 	#define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
+#define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
+inline void checkErrors(const integer error, const char *filename, int line)
+{
+    if ( (error) < 0 ) {                      \
+        fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
+        exit(-1);
+    }
+};
+
 FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
 void  safe_fwrite ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
