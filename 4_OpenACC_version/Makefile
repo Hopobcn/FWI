@@ -4,9 +4,11 @@ INCS     =
 LIBS     = -lm
 DEFINES  += -DDO_NOT_PERFOM_IO
 
-ifeq ($(CC),gcc)
-	CFLAGS += -Wno-unused-result
-endif
+
+
+
+
+
 
 TARGET=fwi.intel64 ModelGenerator
 
