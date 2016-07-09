@@ -23,6 +23,7 @@
 // http://stackoverflow.com/questions/32438554/warning-implicit-declaration-of-posix-memalign
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
