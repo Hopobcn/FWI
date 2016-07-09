@@ -61,6 +61,11 @@ extern FILE* logfile;
 
 #define TOGB(bytes) (bytes / (1024.f * 1024.f * 1024.f))
 
+/*  Compiler compatiblity macros */
+#ifdef __GNUC__
+	/* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
+	 	#define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
+#endif
 
 FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
