@@ -3,7 +3,7 @@ MPICC   = mpicc
 CFLAGS  = -std=c99 -O3
 INCS    =
 LIBS    = -lm
-DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG -DDEBUG_TO_STDERR
+DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG -DDEBUG_MPI -DDEBUG_TO_STDERR
 LDFLAGS = 
 
 ifeq ($(CC), gcc)
@@ -18,6 +18,8 @@ ifeq ($(CC), mcc)
 endif
 endif
 endif
+
+NCPUS ?= 2
 
 TARGET=fwi.intel64 ModelGenerator
 
@@ -57,7 +59,7 @@ run: fwi.intel64
 	bsub < jobscript.sh
 
 irun: fwi.intel64
-	mpirun -np 2 ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+	mpirun -np $(NCPUS) ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 
 debug: fwi.intel64

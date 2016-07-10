@@ -79,7 +79,7 @@ extern FILE* logfile;
 #define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 inline void checkErrors(const integer error, const char *filename, int line)
 {
-    if ( (error) < 0 ) {                      \
+    if ( error < 0 ) {                     
         fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
         exit(-1);
     }

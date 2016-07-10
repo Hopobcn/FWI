@@ -27,29 +27,29 @@ void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-											  real    **rho);
+                        real    **rho);
 
 void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-											 real    **rho);
+                       real    **rho);
 
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-												real    *rho);
+                        real    *rho);
 
 /* --------------- I/O RELATED FUNCTIONS -------------------------------------- */
 
 void load_initial_model ( const real    waveletFreq,
-													const integer dimmz,
-													const integer dimmx,
-													const integer dimmy,
-                         	coeff_t *c,
-                         	s_t     *s,
-                         	v_t     *v,
-                         	real    *rho);
+                          const integer dimmz,
+                          const integer dimmx,
+                          const integer dimmy,
+                          coeff_t *c,
+                          s_t     *s,
+                          v_t     *v,
+                          real    *rho);
 
 void write_snapshot ( char          *folder,
                       const int     suffix,
@@ -108,25 +108,52 @@ ny0                 (in) intial plane to be exchanged
 RETURN none
 */
 
-inline integer exchange_buffer ( real* _bufferA, real* _bufferB, integer _torank, uint64_t message_size)
+#define EXCHANGE(sendbuf, recvbuf, dst, src, count) {                             \
+    exchange_buffer((sendbuf),(recvbuf),(dst),(src),(count), __FILE__, __LINE__); \
+}                                                                                 
+inline integer exchange_buffer (const real*   sendbuf, 
+                                      real*   recvbuf, 
+                                const integer dst, 
+                                const integer src, 
+                                const integer message_size,
+                                const char*   file,
+                                const integer line)
 {
-	MPI_Status stat;
-	int tag = 100;
+    int tag = 100;
+#if defined(DEBUG) && defined(DEBUG_MPI)
+    log_info( "         [BEFORE]MPI sendrecv [count:%d][dst:%d][src:%d] %s : %d", message_size,  dst, src, file, line);
+#endif
 
-	MPI_Sendrecv( &_bufferA, message_size, MPI_FLOAT, _torank, tag,
-                &_bufferB, message_size, MPI_FLOAT, _torank, tag,
-               	MPI_COMM_WORLD, &stat);
+#if 0
+    MPI_Status status;
+    //MPI_Sendrecv may deadlock in some MPI implementations!!!!
+    //            --> (1) order communications or (2) use non-blocking calls
+    MPI_Sendrecv( sendbuf, message_size, MPI_FLOAT, dst, tag,
+                  recvbuf, message_size, MPI_FLOAT, src, tag,
+                  MPI_COMM_WORLD, &status);
+#else
+    MPI_Status  statuses[2];
+    MPI_Request requests[2];
+    
+    MPI_Irecv( recvbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[0] );
+    MPI_Isend( sendbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[1] );
+    MPI_Waitall(2, requests, statuses);
+#endif
+
+#if defined(DEBUG) && defined(DEBUG_MPI)
+    log_info( "         [AFTER ]MPI sendrecv                          %s : %d", file, line);
+#endif
 };
 
 void exchange_velocity_boundaries ( v_t *v, 
-																		integer numberOfCells, 
-																		integer nyf, 
-																		integer ny0 );
+                                    integer numberOfCells, 
+                                    integer nyf, 
+                                    integer ny0 );
 
 void exchange_stress_boundaries ( s_t *s, 
-																	integer numberOfCells, 
-																	integer nyf, 
-																	integer ny0 );
+                                  integer numberOfCells, 
+                                  integer nyf, 
+                                  integer ny0 );
 
 
 #endif /* end of _FWI_KERNEL_H_ definition */

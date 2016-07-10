@@ -532,9 +532,9 @@ ny0                 (in) intial plane to be exchanged
 RETURN none
 */
 void exchange_velocity_boundaries ( v_t *v, 
-                                                            integer nCells, 
-                                                            integer nyf, 
-                                                            integer ny0 )
+                                    integer nCells, 
+                                    integer nyf, 
+                                    integer ny0 )
 {
     log_info ("Exchanging velocity boundaries. Number of cells " I "", nCells);
 
@@ -545,13 +545,13 @@ void exchange_velocity_boundaries ( v_t *v,
     int rank, ranksize;
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
     MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
-    MPI_Status stat;
 
     log_info ("         Rank %d out of rank %d", rank, ranksize );
 
     if ( rank != 0 )  //task to exchange velocities boundaries
     {
-        MPI_Sendrecv( &v->tl.u[0], nCells, MPI_FLOAT, rank-1, 100, &v->tl.u[0], nCells, MPI_FLOAT, rank, 100, MPI_COMM_WORLD, &stat);
+        EXCHANGE( &v->tl.u[0], &v->tl.u[0], rank-1, rank, nCells );
+    
         /*
         //v tl u v w
         exchange_buffer ( &v->tl.u[0], &v->tl.u[0], rank-1, numberOfCells);
@@ -577,7 +577,8 @@ void exchange_velocity_boundaries ( v_t *v,
 
     if ( rank != ranksize -1 )  //task to exchange stress boundaries
     {
-        MPI_Sendrecv( &v->tl.u[0], nCells, MPI_FLOAT, rank+1, 100, &v->tl.u[0], nCells, MPI_FLOAT, rank, 100, MPI_COMM_WORLD, &stat);
+        EXCHANGE( &v->tl.u[0], &v->tl.u[0], rank+1, rank, nCells );
+  
         /*
         //v tl u v w
         exchange_buffer ( &v->tl.u[0], &v->tl.u[0], rank+1, numberOfCells);
@@ -617,9 +618,9 @@ ny0                 (in) intial plane to be exchanged
 RETURN none
 */
 void exchange_stress_boundaries ( s_t *s, 
-                                                                            integer nCells, 
-                                                                            integer nyf, 
-                                                                            integer ny0 )
+                                  integer nCells, 
+                                  integer nyf, 
+                                  integer ny0 )
 {
     log_info ("Exchanging stress boundaries");
  
@@ -628,7 +629,6 @@ void exchange_stress_boundaries ( s_t *s,
     const uint64_t UNUSED(idxC) = ny0       * nCells;
 
     int rank, ranksize;
-    MPI_Status stat;
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
     MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
 
@@ -636,7 +636,8 @@ void exchange_stress_boundaries ( s_t *s,
   
     if ( rank != 0 ) //task to exchange velocities boundaries
     {
-        MPI_Sendrecv( &s->tl.zz[0], nCells, MPI_FLOAT, rank-1, 100, &s->tl.zz[0], nCells, MPI_FLOAT, rank, 100, MPI_COMM_WORLD, &stat);
+        EXCHANGE( &s->tl.zz[0], &s->tl.zz[0], rank-1, rank, nCells );
+
         /* 
         //s tl zz xz yz xx xy yy
         exchange_buffer ( &s->tl.zz[0], &s->tl.zz[0], rank-1, numberOfCells);
@@ -674,7 +675,8 @@ void exchange_stress_boundaries ( s_t *s,
 
     if ( rank != ranksize -1 )  //task to exchange stress boundaries
     {
-        MPI_Sendrecv( &s->tl.zz[0], nCells, MPI_FLOAT, rank+1, 100, &s->tl.zz[0], nCells, MPI_FLOAT, rank, 100, MPI_COMM_WORLD, &stat);
+        EXCHANGE( &s->tl.zz[0], &s->tl.zz[0], rank+1, rank, nCells );
+
         /* 
         //s tl zz xz yz xx xy yy
         exchange_buffer ( &s->tl.zz[0], &s->tl.zz[0], rank+1, numberOfCells);
