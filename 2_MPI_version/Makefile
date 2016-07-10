@@ -3,11 +3,11 @@ MPICC   = mpicc
 CFLAGS  = -std=c99 -O3
 INCS    =
 LIBS    = -lm
-DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG
+DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG -DDEBUG_TO_STDERR
 LDFLAGS = 
 
 ifeq ($(CC), gcc)
-    CFLAGS += -fopenmp -march=native
+    CFLAGS += -fopenmp -march=native -fopt-info #-fopt-info-vec-missed
 else
 ifeq ($(CC), icc)
     CFLAGS += -openmp -mavx -qopt-report=2
@@ -57,7 +57,7 @@ run: fwi.intel64
 	bsub < jobscript.sh
 
 irun: fwi.intel64
-	NX_ARGS="--summary" ./trace.sh ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+	mpirun -np 2 ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 
 debug: fwi.intel64

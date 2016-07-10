@@ -33,68 +33,73 @@ extern FILE* logfile = NULL;
 void log_info (const char *fmt, ...) 
 {
 #ifdef DEBUG
-		/* locate myself into the MPI world */
-		int mpi_rank;
-		MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    /* locate myself into the MPI world */
+    int mpi_rank;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    
+#ifndef DEBUG_TO_STDERR
+    /* build log file name */
+    char logname[50];
+    sprintf( logname, "mpi_%02d.log", mpi_rank);
+    FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
+#else
+    FILE* flog = stderr;
+#endif
 
-		/* build log file name */
-		char logname[50];
-		sprintf( logname, "mpi_%02d.log", mpi_rank);
-		FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-	
-		/* create the string from variadic input arguments */
-		char str[1000];
+    /* create the string from variadic input arguments */
+    char str[1000];
     va_list args;
     va_start(args, fmt);
     vsprintf(str, fmt, args);
     va_end(args);
-
-		/* create time string */
-		char timestr[20];
+    
+    /* create time string */
+    char timestr[20];
     struct tm *sTm;
     time_t now = time (0);
     sTm = gmtime (&now);
     strftime ( timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", sTm);
-
-		/* print actual line to log file  */
-   	fprintf( flog, "%s: %s\n", timestr, str);
-
-		/*  close file  */
-		safe_fclose( logname, flog, __FILE__, __LINE__ );
+    
+    /* print actual line to log file  */
+    fprintf( flog, "%s: %s\n", timestr, str);
+   
+#ifndef DEBUG_TO_STDERR
+    /*  close file  */
+    safe_fclose( logname, flog, __FILE__, __LINE__ );
+#endif
 #endif
 };
 
 void log_error (const char *fmt, ...) 
-{
-
-		/* locate myself into the MPI world */
-		int mpi_rank;
-		MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
-
-		/* build log file name */
-		char logname[50];
-		sprintf( logname, "mpi_%02d.log", mpi_rank);
-		FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-	
-		/* create the string from variadic input arguments */
-		char str[1000];
+{ 
+    /* locate myself into the MPI world */
+    int mpi_rank;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    
+    /* build log file name */
+    char logname[50];
+    sprintf( logname, "mpi_%02d.log", mpi_rank);
+    FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
+    
+    /* create the string from variadic input arguments */
+    char str[1000];
     va_list args;
     va_start(args, fmt);
     vsprintf(str, fmt, args);
     va_end(args);
 
-		/* create time string */
-		char timestr[20];
+    /* create time string */
+    char timestr[20];
     struct tm *sTm;
     time_t now = time (0);
     sTm = gmtime (&now);
     strftime ( timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", sTm);
 
-		/* print actual line to log file  */
-   	fprintf( flog, "-----> ERROR :: %s: %s\n", timestr, str);
+    /* print actual line to log file  */
+    fprintf( flog, "-----> ERROR :: %s: %s\n", timestr, str);
 
-		/*  close file  */
-		safe_fclose( logname, flog, __FILE__, __LINE__ );
+    /*  close file  */
+    safe_fclose( logname, flog, __FILE__, __LINE__ );
 };
 
 
@@ -107,11 +112,11 @@ int max_int( int a, int b)
 
 double dtime(void)
 {
-	double tseconds = 0.0;
-	struct timeval mytime;
-	gettimeofday( &mytime, (struct timezone*) 0);
-	tseconds = (double) (mytime.tv_sec + mytime.tv_usec * 1.0e-6);
-	return (tseconds);
+    double tseconds = 0.0;
+    struct timeval mytime;
+    gettimeofday( &mytime, (struct timezone*) 0);
+    tseconds = (double) (mytime.tv_sec + mytime.tv_usec * 1.0e-6);
+    return (tseconds);
 };
 
 void read_fwi_parameters (const char *fname,
@@ -122,8 +127,8 @@ void read_fwi_parameters (const char *fname,
                           real *srclen,
                           real *rcvlen,
                           char *outputfolder)
-{	
-		log_info("Loading simulation parameters");
+{   
+    log_info("Loading simulation parameters");
 
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
     
@@ -137,7 +142,7 @@ void read_fwi_parameters (const char *fname,
     
     fclose(fp);
 
-		log_info("Simulation parameters loaded successfully");
+    log_info("Simulation parameters loaded successfully");
 };
 
 /*
@@ -180,7 +185,7 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
     safe_fclose( fnamePrecond , fPrecond , __FILE__, __LINE__ );
 #endif
 
-		log_info ("Output volumes created correctly");
+    log_info ("Output volumes created correctly");
 }
 
 /*
@@ -219,7 +224,7 @@ int mkdir_p(const char *dir)
     if(tmp[len - 1] == '/')
         tmp[len - 1] = 0;
     
-    for(p = tmp + 1; *p; p++)
+    for(p = tmp + 1; *p; p++) {
         if(*p == '/') {
             *p = 0;
             int rc = mkdir(tmp, S_IRWXU);
@@ -230,6 +235,7 @@ int mkdir_p(const char *dir)
             
             *p = '/';
         }
+    }
     
     int rc = mkdir(tmp, S_IRWXU);
     if (rc != 0 && errno != EEXIST) {
@@ -273,7 +279,7 @@ void store_shot_parameters( int     shotid,
     
     safe_fclose( name,  fp, __FILE__, __LINE__ );
     
-		log_info ( "Shot parameters stored correctly" );
+    log_info ( "Shot parameters stored correctly" );
 };
 
 void load_shot_parameters( int    shotid,
@@ -312,82 +318,81 @@ void load_shot_parameters( int    shotid,
 
 void load_freqlist( const char* filename, int *nfreqs, real **freqlist ) 
 {
-	int count  = 0;
-	real freq;
-	
-	FILE *freqfile = safe_fopen( filename, "r", __FILE__, __LINE__);
+    int count  = 0;
+    real freq;
+    
+    FILE *freqfile = safe_fopen( filename, "r", __FILE__, __LINE__);
 
-	while( 1 )
-	{
-		int n = fscanf( freqfile, "%f", &freq);
+    while( 1 )
+    {
+        int n = fscanf( freqfile, "%f", &freq);
 
-		if ( n == 1 )
-		{
-			count += 1;
-		}
-	 	else if (errno != 0)
-		{
-			log_error ( "Error while reading freqlist file"); 
-			break;
-		}	
-		else if ( n == EOF )
-		{
-			break;
-		}
-	}
-
-
-	/* Allocate memory for frequencies */
-	*freqlist = (real*) __malloc( ALIGN_REAL, count * sizeof(real));
-
-	/* return to initial position */
-	fseek( freqfile, 0, SEEK_SET);
-	count = 0;
+        if ( n == 1 )
+        {
+            count += 1;
+        }
+        else if (errno != 0)
+        {
+            log_error ( "Error while reading freqlist file"); 
+            break;
+        }   
+        else if ( n == EOF )
+        {
+            break;
+        }
+    }
 
 
+    /* Allocate memory for frequencies */
+    *freqlist = (real*) __malloc( ALIGN_REAL, count * sizeof(real));
 
-	/* read again the file, storing the wavelet frequencies this time */
-	while( 1 )
-	{
-		int n = fscanf( freqfile, "%f", &freq);
+    /* return to initial position */
+    fseek( freqfile, 0, SEEK_SET);
+    count = 0;
 
-		if ( n == 1 )
-		{
-			(*freqlist)[count++] = freq;
-		}
-	 	else if (errno != 0)
-		{
-			log_error ("Error while reading freqlist file"); 
-			break;
-		}	
-		else if ( n == EOF )
-		{
-			break;
-		}
-	}
-	fclose( freqfile ); 
 
-	*nfreqs = count;
 
-	log_info ( "There are %d wavelet frequencies to process)", *nfreqs );
+    /* read again the file, storing the wavelet frequencies this time */
+    while( 1 )
+    {
+        int n = fscanf( freqfile, "%f", &freq);
 
-	for( int i=0; i<count; i++)
-		log_info ("     %.2f Hz", (*freqlist)[i] );
+        if ( n == 1 )
+        {
+            (*freqlist)[count++] = freq;
+        }
+        else if (errno != 0)
+        {
+            log_error ("Error while reading freqlist file"); 
+            break;
+        }   
+        else if ( n == EOF )
+        {
+            break;
+        }
+    }
+    fclose( freqfile ); 
 
+    *nfreqs = count;
+
+    log_info ( "There are %d wavelet frequencies to process)", *nfreqs );
+
+    for( int i=0; i<count; i++)
+        log_info ("     %.2f Hz", (*freqlist)[i] );
 };
 
 void* __malloc( size_t alignment, const integer size)
 {
-  void *buffer;
-  int error;
-
-  if( (error=posix_memalign( &buffer, alignment, size)) != 0) 
-  {
-        log_error ( "Cant allocate buffer correctly");
-    abort();
-  }
+    void *buffer;
+    int error;
     
-  return (buffer);
+    if( (error=posix_memalign( &buffer, alignment, size)) != 0) 
+    {
+        log_error ( "Cant allocate buffer correctly");
+        abort();
+    }
+      
+    return (buffer);
 };
 
 void __free ( void* ptr)
@@ -425,25 +430,25 @@ void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int li
 void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
 #ifndef DO_NOT_PERFORM_IO
-	size_t res = fwrite( ptr, size, nmemb, stream);
+    size_t res = fwrite( ptr, size, nmemb, stream);
 
-	if( res != nmemb )
-	{
-		log_error ( "%s:%d: Error while fwrite", srcfilename, linenumber );
-		abort();
-	}
+    if( res != nmemb )
+    {
+        log_error ( "%s:%d: Error while fwrite", srcfilename, linenumber );
+        abort();
+    }
 #endif
 };
 
 void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
 #ifndef DO_NOT_PERFORM_IO
-	size_t res = fread( ptr, size, nmemb, stream);
-	
-	if( res != nmemb )
-	{
-		log_error ( "%s:%d: Error while fread", srcfilename, linenumber);
-		abort();
-	}
+    size_t res = fread( ptr, size, nmemb, stream);
+    
+    if( res != nmemb )
+    {
+        log_error ( "%s:%d: Error while fread", srcfilename, linenumber);
+        abort();
+    }
 #endif
 };
