@@ -354,8 +354,10 @@ void velocity_propagator(v_t       v,
                          const integer   dimmx)
 {
     log_info ( "Integration limits for the velocity propagator are ("I"-"I","I"-"I","I"-"I")", nz0,nzf,nx0,nxf,ny0,ny0+HALO);
- 
+
+#ifdef __INTEL_COMPILER
     #pragma forceinline recursive
+#endif
     {
         compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx);
         compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx);
@@ -434,7 +436,9 @@ void stress_propagator(s_t           s,
 {
     log_info ( "Integration limits for the stress propagator are ("I"-"I","I"-"I","I"-"I")", nz0,nzf,nx0,nxf,ny0,ny0+HALO);
     
+#ifdef __INTEL_COMPILER
     #pragma forceinline recursive
+#endif
     {
         compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx);
         compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx);
