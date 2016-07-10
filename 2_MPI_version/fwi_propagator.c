@@ -151,7 +151,9 @@ void compute_component_vcell_TL (real* restrict vptr,
     {
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
@@ -205,7 +207,9 @@ void compute_component_vcell_TR (real* restrict vptr,
     {
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma simd  
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif  
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho, z, x, y, dimmz, dimmx);
@@ -259,7 +263,9 @@ void compute_component_vcell_BR (real* restrict  vptr,
     {
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
@@ -313,7 +319,9 @@ void compute_component_vcell_BL (real* restrict  vptr,
     {
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
@@ -567,7 +575,9 @@ void compute_component_scell_TR (s_t             s,
     {
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_TR      ( coeffs.c11, z, x, y, dimmz, dimmx);
@@ -689,7 +699,9 @@ void compute_component_scell_TL (s_t             s,
     {
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_TL      ( coeffs.c11, z, x, y, dimmz, dimmx);
@@ -811,7 +823,9 @@ void compute_component_scell_BR (s_t             s,
     {
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_BR      ( coeffs.c11, z, x, y, dimmz, dimmx);
@@ -933,7 +947,9 @@ void compute_component_scell_BL (s_t             s,
     {
         for (integer x = nx0; x < nxf; x++)
         {       
-            #pragma simd
+#ifdef __INTEL_COMPILER 
+            #pragma simd 
+#endif
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_BL      ( coeffs.c11, z, x, y, dimmz, dimmx);
