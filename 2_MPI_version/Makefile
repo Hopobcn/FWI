@@ -1,9 +1,10 @@
-CC      = mpicc
+CC      = gcc
+MPICC   = mpicc
 CFLAGS  = -std=c99 -O3
 INCS    =
 LIBS    = -lm
 DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG
-LDFLAGS =
+LDFLAGS = 
 
 ifeq ($(CC), gcc)
     CFLAGS += -fopenmp -march=native
@@ -23,25 +24,25 @@ TARGET=fwi.intel64 ModelGenerator
 all:$(TARGET)
 
 fwi.intel64:fwi_main.o fwi_common.o fwi_kernel.o fwi_propagator.o
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
 
 ModelGenerator:fwi_generatemodel.o fwi_common.o fwi_kernel.o fwi_propagator.o
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
 
 fwi_generatemodel.o:fwi_generatemodel.c 
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
 
 fwi_main.o:fwi_main.c 
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
 
 fwi_common.o:fwi_common.c
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
 
 fwi_kernel.o:fwi_kernel.c
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
 
 fwi_propagator.o:fwi_propagator.c
-	$(CC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
 
 
 .PHONY:all clean run debug memcheck input

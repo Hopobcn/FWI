@@ -68,6 +68,14 @@ extern FILE* logfile;
 	 	#define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
+/*  Compiler macro to suppress unused variable warnings */
+#ifdef UNUSED
+#elif defined(__GNUC__)
+    #define UNUSED(x) (x) __attribute__((unused))
+#else
+    #define UNUSED(x) x
+#endif
+
 #define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 inline void checkErrors(const integer error, const char *filename, int line)
 {

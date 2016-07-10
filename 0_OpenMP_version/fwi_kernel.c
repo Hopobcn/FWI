@@ -66,7 +66,7 @@ void check_memory_shot( const integer numberOfCells,
 		value = c->c44[i];
 		value = c->c45[i];
 		value = c->c46[i];
-		value =
+		
 		value = c->c55[i];
 		value = c->c56[i];
 		value = c->c66[i];
@@ -82,7 +82,7 @@ void check_memory_shot( const integer numberOfCells,
 		value = v->bl.u[i];
 		value = v->bl.v[i];
 		value = v->bl.w[i];
-		value =
+		
 		value = v->br.u[i];
 		value = v->br.v[i];
 		value = v->br.w[i];
