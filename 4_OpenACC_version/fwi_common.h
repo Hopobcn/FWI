@@ -57,9 +57,26 @@ extern const size_t ALIGN_REAL;
 
 /*  Compiler compatiblity macros */
 #ifdef __GNUC__
-	/* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
-	 	#define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
+    /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
+        #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
+
+/*  Compiler macro to suppress unused variable warnings */
+#ifdef UNUSED
+#elif defined(__GNUC__)
+    #define UNUSED(x) (x) __attribute__((unused))
+#else
+    #define UNUSED(x) x
+#endif
+
+#define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
+static inline void checkErrors(const integer error, const char *filename, int line)
+{
+    if ( error < 0 ) {                     
+        fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
+        exit(-1);
+    }
+};
 
 FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
@@ -106,9 +123,9 @@ void load_shot_parameters( int     shotid,
                           integer *dimmy,
                           char    *outputfolder);
 
-void load_freqlist (  const char* filename,
-											int *nfreqs,
-											real **freqlist );
+void load_freqlist (  const char*  filename,
+                            int*   nfreqs,
+                            real** freqlist );
 
 void* __malloc ( const size_t alignment, const integer size);
 void  __free   ( void *ptr );

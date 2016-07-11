@@ -1,31 +1,28 @@
 #include "fwi_propagator.h"
 
-inline integer IDX(const integer z, 
-                        const integer x, 
-                        const integer y, 
-                        const integer dimmz, 
-                        const integer dimmx)
+integer IDX (const integer z, 
+             const integer x, 
+             const integer y, 
+             const integer dimmz, 
+             const integer dimmx)
 {
     return (y*dimmx*dimmz) + (x*dimmz) + (z);
 };
 
-real stencil_Z( const integer off,
-                const real* restrict ptr,
-                const real    dzi,
-                const integer z,
-                const integer x,
-                const integer y,
-                const int dimmz,
-                const int dimmx)
+
+real stencil_Z ( const integer off,
+                 const real* restrict ptr,
+                 const real    dzi,
+                 const integer z,
+                 const integer x,
+                 const integer y,
+                 const int dimmz,
+                 const int dimmx)
 {
-    return  ((C0 * (  ptr[IDX(z  +off,x,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z-1+off,x,y,dimmz,dimmx)]) +
-              C1 * (  ptr[IDX(z+1+off,x,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z-2+off,x,y,dimmz,dimmx)]) +
-              C2 * (  ptr[IDX(z+2+off,x,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z-3+off,x,y,dimmz,dimmx)]) +
-              C3 * (  ptr[IDX(z+3+off,x,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z-4+off,x,y,dimmz,dimmx)])) * dzi );
+    return  ((C0 * ( ptr[IDX(z  +off,x,y,dimmz,dimmx)] - ptr[IDX(z-1+off,x,y,dimmz,dimmx)]) +
+              C1 * ( ptr[IDX(z+1+off,x,y,dimmz,dimmx)] - ptr[IDX(z-2+off,x,y,dimmz,dimmx)]) +
+              C2 * ( ptr[IDX(z+2+off,x,y,dimmz,dimmx)] - ptr[IDX(z-3+off,x,y,dimmz,dimmx)]) +
+              C3 * ( ptr[IDX(z+3+off,x,y,dimmz,dimmx)] - ptr[IDX(z-4+off,x,y,dimmz,dimmx)])) * dzi );
 };
 
 real stencil_X( const integer off,
@@ -37,14 +34,10 @@ real stencil_X( const integer off,
                 const integer dimmz,
                 const integer dimmx)
 {
-    return ( (C0 * (  ptr[IDX(z,x  +off,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z,x-1+off,y,dimmz,dimmx)]) +
-              C1 * (  ptr[IDX(z,x+1+off,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z,x-2+off,y,dimmz,dimmx)]) +
-              C2 * (  ptr[IDX(z,x+2+off,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z,x-3+off,y,dimmz,dimmx)]) +
-              C3 * (  ptr[IDX(z,x+3+off,y,dimmz,dimmx)]  - 
-                      ptr[IDX(z,x-4+off,y,dimmz,dimmx)])) * dxi );
+    return ((C0 * ( ptr[IDX(z,x  +off,y,dimmz,dimmx)] - ptr[IDX(z,x-1+off,y,dimmz,dimmx)]) +
+             C1 * ( ptr[IDX(z,x+1+off,y,dimmz,dimmx)] - ptr[IDX(z,x-2+off,y,dimmz,dimmx)]) +
+             C2 * ( ptr[IDX(z,x+2+off,y,dimmz,dimmx)] - ptr[IDX(z,x-3+off,y,dimmz,dimmx)]) +
+             C3 * ( ptr[IDX(z,x+3+off,y,dimmz,dimmx)] - ptr[IDX(z,x-4+off,y,dimmz,dimmx)])) * dxi );
 };
 
 real stencil_Y( const integer off,
@@ -56,14 +49,10 @@ real stencil_Y( const integer off,
                 const integer dimmz,
                 const integer dimmx)
 {
-    return ( (C0 * ( ptr[IDX(z,x,y  +off,dimmz,dimmx)]  -
-                     ptr[IDX(z,x,y-1+off,dimmz,dimmx)]) +
-              C1 * ( ptr[IDX(z,x,y+1+off,dimmz,dimmx)]  -
-                     ptr[IDX(z,x,y-2+off,dimmz,dimmx)]) +
-              C2 * ( ptr[IDX(z,x,y+2+off,dimmz,dimmx)]  -
-                     ptr[IDX(z,x,y-3+off,dimmz,dimmx)]) +
-              C3 * ( ptr[IDX(z,x,y+3+off,dimmz,dimmx)]  - 
-                     ptr[IDX(z,x,y-4+off,dimmz,dimmx)])) * dyi );
+    return ((C0 * ( ptr[IDX(z,x,y  +off,dimmz,dimmx)] - ptr[IDX(z,x,y-1+off,dimmz,dimmx)]) +
+             C1 * ( ptr[IDX(z,x,y+1+off,dimmz,dimmx)] - ptr[IDX(z,x,y-2+off,dimmz,dimmx)]) +
+             C2 * ( ptr[IDX(z,x,y+2+off,dimmz,dimmx)] - ptr[IDX(z,x,y-3+off,dimmz,dimmx)]) +
+             C3 * ( ptr[IDX(z,x,y+3+off,dimmz,dimmx)] - ptr[IDX(z,x,y-4+off,dimmz,dimmx)])) * dyi );
 };
 
 /* -------------------------------------------------------------------- */
@@ -78,8 +67,7 @@ real rho_BL ( real* restrict rho,
               const integer dimmz,
               const integer dimmx)
 {
-    return (2.0f / (rho[IDX(z  ,x,y,dimmz,dimmx)] + 
-                    rho[IDX(z+1,x,y,dimmz,dimmx)]));
+    return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z+1,x,y,dimmz,dimmx)]));
 };
 
 inline
@@ -90,8 +78,7 @@ real rho_TR ( real* restrict rho,
               const integer dimmz,
               const integer dimmx)
 {
-    return (2.0f/ (rho[IDX(z,x,y,dimmz,dimmx)] +  
-                   rho[IDX(z,x+1,y,dimmz,dimmx)]) );
+    return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x+1,y,dimmz,dimmx)]));
 };
 
 inline
@@ -120,8 +107,7 @@ real rho_TL ( real* restrict rho,
               const integer dimmz,
               const integer dimmx)
 {
-    return (2.0f/ (rho[IDX(z,x,y,dimmz,dimmx)] + 
-                   rho[IDX(z,x,y+1,dimmz,dimmx)]));
+    return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x,y+1,dimmz,dimmx)]));
 };
 
 void compute_component_vcell_TL (real* restrict vptr,
@@ -157,11 +143,11 @@ void compute_component_vcell_TL (real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
-
+                
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx);
-
+                
                 _vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -201,11 +187,11 @@ void compute_component_vcell_TR (real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho, z, x, y, dimmz, dimmx);
-
+                
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx);
-
+                
                 _vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -245,11 +231,11 @@ void compute_component_vcell_BR (real* restrict  vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
-
+                
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx );
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx );
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx );
-
+                
                 _vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -289,11 +275,11 @@ void compute_component_vcell_BL (real* restrict  vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
-
+                
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx);
-
+                
                 _vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -345,13 +331,13 @@ void velocity_propagator(v_t       v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-void stress_update( real* restrict sptr,
-                   const real          c1,
-                   const real          c2,
-                   const real          c3,
-                   const real          c4,
-                   const real          c5,
-                   const real          c6,
+void stress_update(real* restrict sptr,
+                   const real       c1,
+                   const real       c2,
+                   const real       c3,
+                   const real       c4,
+                   const real       c5,
+                   const real       c6,
                    const integer z,
                    const integer x,
                    const integer y,
@@ -376,7 +362,7 @@ void stress_update( real* restrict sptr,
     sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c6 * (v_x + u_y);
 };
 
-void stress_propagator( s_t          s,
+void stress_propagator(s_t           s,
                        v_t           v,
                        coeff_t       coeffs,
                        real          *rho,
@@ -457,7 +443,7 @@ real cell_coeff_ARTM_TR( real* restrict ptr, const integer z, const integer x, c
              1.0f / ptr[IDX(z,x+1,y+1,dimmz,dimmx)]) * 0.25f);
 };
 
-void compute_component_scell_TR ( s_t             s,
+void compute_component_scell_TR (s_t             s,
                                  point_v_t       vnode_z,
                                  point_v_t       vnode_x,
                                  point_v_t       vnode_y,
@@ -495,7 +481,7 @@ void compute_component_scell_TR ( s_t             s,
     real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
-    
+
     #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
@@ -524,19 +510,19 @@ void compute_component_scell_TR ( s_t             s,
                 const real c55 = cell_coeff_TR      (coeffs.c55, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_TR (coeffs.c56, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_TR      (coeffs.c66, z, x, y, dimmz, dimmx);
-        
+                
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-        
+                
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-        
+                
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-        
+                
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
@@ -548,7 +534,7 @@ void compute_component_scell_TR ( s_t             s,
     }
 };
 
-void compute_component_scell_TL ( s_t             s,
+void compute_component_scell_TL (s_t             s,
                                  point_v_t       vnode_z,
                                  point_v_t       vnode_x,
                                  point_v_t       vnode_y,
@@ -587,7 +573,7 @@ void compute_component_scell_TL ( s_t             s,
     real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
-    
+
     #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
@@ -641,7 +627,7 @@ void compute_component_scell_TL ( s_t             s,
 };
 
 
-void compute_component_scell_BR ( s_t             s,
+void compute_component_scell_BR (s_t             s,
                                  point_v_t       vnode_z,
                                  point_v_t       vnode_x,
                                  point_v_t       vnode_y,
@@ -680,7 +666,7 @@ void compute_component_scell_BR ( s_t             s,
     real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
-    
+
     #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
@@ -734,7 +720,7 @@ void compute_component_scell_BR ( s_t             s,
     }
 };
 
-void compute_component_scell_BL ( s_t             s,
+void compute_component_scell_BL (s_t             s,
                                  point_v_t       vnode_z,
                                  point_v_t       vnode_x,
                                  point_v_t       vnode_y,
@@ -773,7 +759,7 @@ void compute_component_scell_BL ( s_t             s,
     real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
     real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
     real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
-    
+
     #pragma acc kernels
     for (integer y = ny0; y < nyf; y++)
     {
@@ -802,19 +788,19 @@ void compute_component_scell_BL ( s_t             s,
                 const real c55 = cell_coeff_BL      (coeffs.c55, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_BL (coeffs.c56, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_BL      (coeffs.c66, z, x, y, dimmz, dimmx);
-            
+                
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-            
+                
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-            
+                
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-            
+                
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
