@@ -563,7 +563,7 @@ void propagate_shot ( time_d        direction,
                             dimmz, dimmx);
         
         /* Phase 1. Computation of the right-most planes of the domain */
-              stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+        stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                             nz0 +   HALO,
                             nzf -   HALO,
                             nx0 +   HALO,
@@ -576,7 +576,7 @@ void propagate_shot ( time_d        direction,
         // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
 
         /* Phase 2 computation. Central planes of the domain */
-              stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+        stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                             nz0 +   HALO,
                             nzf -   HALO,
                             nx0 +   HALO,
