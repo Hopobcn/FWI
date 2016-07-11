@@ -107,7 +107,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
         fprintf(stderr, "Backward propagation finished in %lf seconds\n", \
 												end_t - start_t );
 
-        #ifdef DO_NOT_PERFOM_IO
+        #ifdef DO_NOT_PERFORM_IO
           fprintf(stderr, "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
       	  
 				#else
@@ -170,7 +170,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
 void gather_shots( char* outputfolder, const int nshots, const int numberOfCells )
 {
-#ifdef DO_NOT_PERFOM_IO
+#ifdef DO_NOT_PERFORM_IO
   fprintf(stderr, "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
 
 #else

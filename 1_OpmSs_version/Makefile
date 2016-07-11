@@ -4,7 +4,7 @@ CFLAGS = --ompss --instrument --Wn,-xHost
 LDFLAGS = -ldl -lrt -lpthread
 #DEFINES = -DDEBUG -DDO_NOT_PERFORM_IO
 
-#DEFINESS += -DDO_NOT_PERFOM_IO 
+#DEFINESS += -DDO_NOT_PERFORM_IO 
 
 TARGET=fwi.intel64 ModelGenerator
 

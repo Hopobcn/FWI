@@ -111,14 +111,15 @@ RETURN none
 #define EXCHANGE(sendbuf, recvbuf, dst, src, count) {                             \
     exchange_buffer((sendbuf),(recvbuf),(dst),(src),(count), __FILE__, __LINE__); \
 }                                                                                 
-inline integer exchange_buffer (const real*   sendbuf, 
-                                      real*   recvbuf, 
-                                const integer dst, 
-                                const integer src, 
-                                const integer message_size,
-                                const char*   file,
-                                const integer line)
+static inline integer exchange_buffer (const real*   sendbuf, 
+                                             real*   recvbuf, 
+                                       const integer dst, 
+                                       const integer src, 
+                                       const integer message_size,
+                                       const char*   file,
+                                       const integer line)
 {
+    int err;
     int tag = 100;
 #if defined(DEBUG) && defined(DEBUG_MPI)
     log_info( "         [BEFORE]MPI sendrecv [count:%d][dst:%d][src:%d] %s : %d", message_size,  dst, src, file, line);
@@ -128,21 +129,22 @@ inline integer exchange_buffer (const real*   sendbuf,
     MPI_Status status;
     //MPI_Sendrecv may deadlock in some MPI implementations!!!!
     //            --> (1) order communications or (2) use non-blocking calls
-    MPI_Sendrecv( sendbuf, message_size, MPI_FLOAT, dst, tag,
-                  recvbuf, message_size, MPI_FLOAT, src, tag,
-                  MPI_COMM_WORLD, &status);
+    err = MPI_Sendrecv( sendbuf, message_size, MPI_FLOAT, dst, tag,
+                        recvbuf, message_size, MPI_FLOAT, src, tag,
+                        MPI_COMM_WORLD, &status);
 #else
     MPI_Status  statuses[2];
     MPI_Request requests[2];
     
     MPI_Irecv( recvbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[0] );
     MPI_Isend( sendbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[1] );
-    MPI_Waitall(2, requests, statuses);
+    err = MPI_Waitall(2, requests, statuses);
 #endif
 
 #if defined(DEBUG) && defined(DEBUG_MPI)
     log_info( "         [AFTER ]MPI sendrecv                          %s : %d", file, line);
 #endif
+    return err;
 };
 
 void exchange_velocity_boundaries ( v_t *v, 

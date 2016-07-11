@@ -24,7 +24,7 @@
  */
 
 void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder)
-{   
+{
     /* find ourselves into the MPI space */
     int localRank, Subdomains;
     MPI_Comm_size( MPI_COMM_WORLD, &Subdomains);
@@ -35,7 +35,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     real dt,dz,dx,dy;
     integer dimmz, dimmx, dimmy;
     int forw_steps, back_steps;
-  
+
     /* load simulation configuration parameters */  
     char shotfolder[200];
     sprintf( shotfolder, "%s/shot.%05d", outputfolder, shotid);
@@ -52,13 +52,13 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     coeff_t coeffs;
 
     log_info( "Computing " I " planes, and " I " cells", planesPerSubdomain, numberOfCells );
-  
+
     /* allocate shot memory */
     alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
-  
+
     /* load initial model from a binary file */
     load_initial_model ( waveletFreq, dimmz, dimmx, dimmy, &coeffs, &s, &v, rho);
-  
+
     /* reservamos memoria para el buffer de I/O */
     real* io_buffer = (real*) __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
 
@@ -69,16 +69,18 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     log_info ( "We have to compute from y=" I " to=" I ". Planes per subdomain " I " ", y0, yF, planesPerSubdomain);
 
 
-    log_info ("Starting wave propagation");
-  
+    //log_info ("Starting wave propagation");
+ 
+    /* some variables for timming */
+    double start_t, end_t;
+
     switch( propagator )
     {
     case( RTM_KERNEL ):
     {
-        double time_forward_b, time_forward_e, time_backward_b, time_backward_e;
+        start_t = dtime();
 
-        time_forward_b = dtime();
-        propagate_shot ( FORWARD, 
+        propagate_shot ( FORWARD,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1, // ?? limits ??
                          dt,dz,dx,dy,
@@ -88,13 +90,14 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          io_buffer,
                          numberOfCells,
                          dimmz, dimmx);
-              
-        time_forward_e = dtime();
+        
+        end_t = dtime();
 
-        log_info ( "FORWARD propagation completed in %lf seconds", time_forward_e - time_forward_b);
-            
-        time_backward_b = dtime();
-        propagate_shot ( BACKWARD, 
+        log_info ( "Forward propagation finished in %lf seconds", \
+                   end_t - start_t );
+
+        start_t = dtime();
+        propagate_shot ( BACKWARD,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1, // ?? domain limits ?? 
                          dt,dz,dx,dy,
@@ -105,36 +108,41 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          numberOfCells,
                          dimmz, dimmx);
 
-        time_backward_e = dtime();
+        end_t = dtime();
 
-        log_info ( "BACKWARD propagation completed in %lf seconds", time_backward_e - time_backward_b);
-/*
-        char fnameGradient[300];
-        char fnamePrecond[300];
-        sprintf( fnameGradient, "%s/gradient_%05d.dat", shotfolder, shotid );
-        sprintf( fnamePrecond , "%s/precond_%05d.dat" , shotfolder, shotid );
-   
-        FILE* fgradient = safe_fopen( fnameGradient, "wb", __FILE__, __LINE__ );
-        FILE* fprecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
-   
-        fprintf(stderr, "Guardando el gradiente en %s\n", fnameGradient );
-        safe_fwrite( io_buffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, fgradient, __FILE__, __LINE__ );
-              
-        fprintf(stderr, "Guardando el precondicionador en %s\n", fnamePrecond);
-        safe_fwrite( io_buffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, fprecond , __FILE__, __LINE__ );
-        
-        safe_fclose( fnameGradient, fgradient, __FILE__, __LINE__ );
-        safe_fclose( fnamePrecond , fprecond , __FILE__, __LINE__ );
-*/
+        log_info ( "Backward propagation finished in %lf seconds", 
+                    end_t - start_t );
+
+#ifdef DO_NOT_PERFORM_IO
+        log_info ( "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
+#else
+        if ( localRank == 0 ) {
+            char fnameGradient[300];
+            char fnamePrecond[300];
+            sprintf( fnameGradient, "%s/gradient_%05d.dat", shotfolder, shotid );
+            sprintf( fnamePrecond , "%s/precond_%05d.dat" , shotfolder, shotid );
+
+            FILE* fgradient = safe_fopen( fnameGradient, "wb", __FILE__, __LINE__ );
+            FILE* fprecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
+
+            log_info ( "Storing local preconditioner field in %s\n", fnameGradient );
+            safe_fwrite( io_buffer, sizeof(real), numberOfCells * 12, fgradient, __FILE__, __LINE__ );
+
+            log_info ( "Storing local gradient field in %s\n", fnamePrecond);
+            safe_fwrite( io_buffer, sizeof(real), numberOfCells * 12, fprecond , __FILE__, __LINE__ );
+
+            safe_fclose( fnameGradient, fgradient, __FILE__, __LINE__ );
+            safe_fclose( fnamePrecond , fprecond , __FILE__, __LINE__ );
+        }
+#endif
+
         break;
     }
     case( FM_KERNEL  ):
     {
-        double time_fm_b, time_fm_e;
-        
-        time_fm_b   = dtime();
-        
-        propagate_shot ( FWMODEL, 
+        start_t = dtime();
+
+        propagate_shot ( FWMODEL,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1, // ?? domain limits ??
                          dt,dz,dx,dy,
@@ -144,10 +152,11 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          io_buffer,
                          numberOfCells,
                          dimmz, dimmx);
-        
-        time_fm_e = dtime();
-        
-        log_info ( "FMODELLING propagation completed in %lf seconds", time_fm_e - time_fm_b );
+
+        end_t = dtime();
+
+        log_info ( "Forward Modelling finished in %lf seconds",  \
+                    end_t - start_t );
         break;
     }
     default:
@@ -160,19 +169,26 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     // liberamos la memoria alocatada en el shot
     free_memory_shot  ( &coeffs, &s, &v, &rho);
     __free( io_buffer );
+
+    log_info ("Shot memory free'd");
 };
 
 void gather_shots( char* outputfolder, const int nshots, const int numberOfCells )
 {
-    log_info("Gathering shots...");
-
-#ifdef DO_NO_PERFORM_IO
+#ifdef DO_NOT_PERFORM_IO
+    log_info ("Warning: we are not doing any IO here (%s)", __FUNCTION__ );
+#else
     /* ---------  GLOBAL PRECONDITIONER ACCUMULATION --------- */
-    log_info ("Gathering all shots to generate the preconditioner file for the next iteration");
+    log_info ("Gathering local preconditioner");
 
+    /* variables for timming */
+    double start_t, end_t;
 
-    real* sumbuffer  = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS ); /* TODO */
-    real* readbuffer = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS ); /* TODO */
+    /* buffers to read and accumulate the fields */
+    real* sumbuffer  = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS ); 
+    real* readbuffer = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );    
+    
+    start_t = dtime();
 
     /* set buffer positions to zero */
     memset ( sumbuffer, 0, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
@@ -188,7 +204,9 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
         safe_fread ( readbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, freadfile, __FILE__, __LINE__ );
 
         #pragma omp parallel for
+#ifdef __INTEL_COMPILER
         #pragma simd
+#endif
         for( int i = 0; i < numberOfCells * WRITTEN_FIELDS; i++)
             sumbuffer[i] += readbuffer[i];
         fclose (freadfile);
@@ -200,12 +218,17 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     safe_fwrite ( sumbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, precondfile, __FILE__, __LINE__ );
     safe_fclose( precondfilename, precondfile, __FILE__, __LINE__ );
 
-    log_info ("Preconditioner file '%s' generated successfully", precondfilename );
+    end_t = dtime();
+
+    log_info ("Gathering process for preconditioner %s completed in: %lf seconds", 
+               precondfilename, end_t - start_t );
 
 
 
     /* ---------  GLOBAL GRADIENT ACCUMULATION --------- */
-    log_info ("Gathering all shots to generate the gradient file for the next iteration");
+    log_info ("Gathering  local gradient fields");
+
+    start_t = dtime();
 
     /* set buffer positions to zero */
     memset ( sumbuffer, 0, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
@@ -221,10 +244,12 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
         safe_fread ( readbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, freadfile, __FILE__, __LINE__ );
 
         #pragma omp parallel for
+#ifdef __INTEL_COMPILER
         #pragma simd
+#endif
         for( int i = 0; i < numberOfCells * WRITTEN_FIELDS; i++)
             sumbuffer[i] += readbuffer[i];
-        
+
         fclose (freadfile);
     }
 
@@ -234,17 +259,17 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     safe_fwrite ( sumbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, gradientfile, __FILE__, __LINE__ );
     safe_fclose( gradientfilename, gradientfile, __FILE__, __LINE__ );
 
-    log_info ("Gradient file '%s' generated successfully", gradientfilename );
+    end_t = dtime();
+
+    log_info ("Gradient process for gradient %s completed in: %lf seconds", 
+               precondfilename, end_t - start_t );
 
     __free(  sumbuffer);
     __free( readbuffer);
-
 #endif /* perform io conditional compilation */
-
-    log_info("Shots gathering completed successfully");
 };
 
-int main(int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
     MPI_Init ( &argc, &argv );
     int mpi_rank, subdomains;
@@ -253,57 +278,65 @@ int main(int argc, char* argv[] )
 
     real lenz,lenx,leny,vmin,srclen,rcvlen;
     char outputfolder[200];
-    
+
     read_fwi_parameters( argv[1], &lenz, &lenx, &leny, &vmin, &srclen, &rcvlen, outputfolder);
-    
+
     const int nshots = 2;
     const int ngrads = 1;
     const int ntest  = 1;
-    
-    int   nfreqs;   
+
+    int   nfreqs;
     real *frequencies;
 
     load_freqlist( argv[2], &nfreqs, &frequencies );
-    
+
     for(int i=0; i<nfreqs; i++)
     {
+        /* Process one frequency at a time */
         real waveletFreq = frequencies[i];
-        
+
         /* compute discretization deltas, 16 == puntos por longitud de onda */
         real dx = vmin / (16.0 * waveletFreq);
         real dy = vmin / (16.0 * waveletFreq);
         real dz = vmin / (16.0 * waveletFreq);
-        
+
         /* number of cells along axis */
         integer dimmz = ceil( lenz / dz );
         integer dimmy = ceil( leny / dy );
         integer dimmx = ceil( lenx / dx );
-        
-        log_info ( "Domain dimensions (dimm x, y, z) " I I I ", delta of space (dx,dy,dz) %f %f %f vmin %f", dimmx, dimmy, dimmz, dx, dy, dz, vmin);
+
+        log_info ( "Domain dimensions (dimm x, y, z) %d %d %d, delta of space (dx,dy,dz) %f %f %f vmin %f", 
+                    dimmx, dimmy, dimmz, dx, dy, dz, vmin);
         
         /* compute delta T */
         real dt = 68e-6 * dx;
-        
+
         /* dynamic I/O */
         int stacki = floor(  0.25 / (2.5 * waveletFreq * dt) );
-        
+
+        log_info ( "Stack(i) vale is %d", stacki);
+
         const integer numberOfCells = (dimmy +2*HALO) * (dimmx +2*HALO) * (dimmx +2*HALO);
         const integer VolumeMemory  = numberOfCells * sizeof(real) * 58 * WRITTEN_FIELDS;
-        log_info ( "Size of the volume is " I " bytes (%f GB)", mpi_rank, VolumeMemory, TOGB(VolumeMemory) );
-        
+
+        log_info ( "Local domain size is " I " bytes (%f GB)", 
+                   VolumeMemory, TOGB(VolumeMemory) );
+
         /* compute time steps */
         int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
         int back_steps = max_int ( IT_FACTOR * (rcvlen/dt), 1);
         
-        log_info ( "stacki = %d,  number of forward and backward iterations (%d,%d)", stacki, forw_steps, back_steps);
-        
-        forw_steps = 2;
-        back_steps = 2;
-        
+        log_info ( "stacki value is %d. "              \
+                   "forward propagation steps: %d "    \
+                   "backward propagation steps: %d", \
+                    stacki, forw_steps, back_steps);
+
+        //forw_steps = 2;
+        //back_steps = 2;
         for(int grad=0; grad<ngrads; grad++) /* iteracion de inversion */
         {
-            log_info ( "Processing gradient loop (iter %d)", grad);
-            
+            log_info ( "Processing %d-th gradient iteration.", grad);
+
             for(int shot=0; shot<nshots; shot++)
             {
                 if ( mpi_rank == 0 ) 
@@ -311,6 +344,7 @@ int main(int argc, char* argv[] )
                     char shotfolder[200];
                     sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
                     create_folder( shotfolder );
+
                     store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder);
                 }
 
@@ -319,10 +353,10 @@ int main(int argc, char* argv[] )
                 kernel( RTM_KERNEL, waveletFreq, shot, outputfolder);
 
                 // update_shot()
-                
-                log_info ( "Gradient iterations for shot id %d at %.2f Hz completed", shot, waveletFreq );
+
+                log_info ( "       %d-th shot processed", shot );
             }
-        
+
             // apilamos los shots
             MPI_Barrier( MPI_COMM_WORLD );
             
@@ -334,6 +368,7 @@ int main(int argc, char* argv[] )
             
             for(int test=0; test<ntest; test++)
             {
+                log_info ( "Processing %d-th test iteration.", test);
                 for(int shot=0; shot<nshots; shot++)
                 {
                     if ( mpi_rank == 0)
@@ -341,17 +376,18 @@ int main(int argc, char* argv[] )
                         char shotfolder[200];
                         sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
                         create_folder( shotfolder );    
+
                         store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder);
                     }
 
                     MPI_Barrier( MPI_COMM_WORLD );
                     kernel( FM_KERNEL , waveletFreq, shot, outputfolder);
-                    
-                    log_info ( "Forward modelling iterations for shot id %d at %.2f Hz completed", shot, waveletFreq );
+                
+                    log_info ( "       %d-th shot processed", shot );
                 }
             }
         } /* end of test loop */
-        
+
     } /* end of frequency loop */
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -359,6 +395,5 @@ int main(int argc, char* argv[] )
     log_info ( "-------------------------- Program Finished ------------------------ \n");
     MPI_Finalize();
 
-  return 0;
+    return 0;
 }
-

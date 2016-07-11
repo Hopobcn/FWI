@@ -37,7 +37,7 @@ void log_info (const char *fmt, ...)
     int mpi_rank;
     MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
     
-#ifndef DEBUG_TO_STDERR
+#ifndef OUTPUT_TO_STDERR
     /* build log file name */
     char logname[50];
     sprintf( logname, "mpi_%02d.log", mpi_rank);
@@ -63,7 +63,7 @@ void log_info (const char *fmt, ...)
     /* print actual line to log file  */
     fprintf( flog, "%s: %s\n", timestr, str);
    
-#ifndef DEBUG_TO_STDERR
+#ifndef OUTPUT_TO_STDERR
     /*  close file  */
     safe_fclose( logname, flog, __FILE__, __LINE__ );
 #endif
@@ -127,8 +127,8 @@ void read_fwi_parameters (const char *fname,
                           real *srclen,
                           real *rcvlen,
                           char *outputfolder)
-{   
-    log_info("Loading simulation parameters");
+{
+    //log_info("Loading simulation parameters");
 
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
     
@@ -142,60 +142,61 @@ void read_fwi_parameters (const char *fname,
     
     fclose(fp);
 
-    log_info("Simulation parameters loaded successfully");
+    //log_info("Simulation parameters loaded successfully");
 };
 
 /*
  NAME:allocate_shot_memory
  PURPOSE: Create files to store final preconditioner and gradient results. Must be initialized with zeroes.
- 
+
  outputfolder     (in) folder where snapshot data is store
  VolumeMemory     (in) memory needed to store the domain
- 
+
  RETURN none
  */
 void create_output_volumes(char *outputfolder, integer VolumeMemory)
 {
     log_info ( "Creating output files in %s", outputfolder);
 
-#ifndef DO_NOT_PERFOM_IO    
+#ifdef DO_NOT_PERFORM_IO
+    log_error ( "Warning: we are not doing any IO here (%s).", __FUNCTION__);
+#else
     char fnamePrecond[300], fnameGradient[300];
     
     sprintf( fnameGradient, "%s/resultGradient.res", outputfolder);
     sprintf( fnamePrecond , "%s/resultPrecond.res", outputfolder);
-    
+
     FILE *fGradient = safe_fopen( fnameGradient, "wb", __FILE__, __LINE__ );
     FILE *fPrecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
-     
+
     int numIts = ceil( VolumeMemory / IO_CHUNK_SIZE );
     
     /* create buffer array */
     real *tmparray = (real*) __malloc( ALIGN_INT, IO_CHUNK_SIZE );
-    
+
     /* perform the accumulation of the chunks */
     for (int i=0; i<numIts; i++) {
         safe_fwrite(tmparray, 1, IO_CHUNK_SIZE, fGradient, __FILE__, __LINE__ );
         safe_fwrite(tmparray, 1, IO_CHUNK_SIZE, fPrecond , __FILE__, __LINE__ );
     }
-    
+
     __free(tmparray);
-    
+
     // close files
     safe_fclose( fnameGradient, fGradient, __FILE__, __LINE__ );
     safe_fclose( fnamePrecond , fPrecond , __FILE__, __LINE__ );
 #endif
-
-    log_info ("Output volumes created correctly");
+    //log_info ("Output volumes created correctly");
 }
 
 /*
  NAME:create_folder
  PURPOSE:During execution creates temporal folders to organize necessary data for the execution
- 
+
  folder      (in) name of the temporal folder created
  parent_rank (in) name of the rank related to the data archived in to the folder
  shotID      (in) identifier of the shot related to the data to be archived in to the folder
- 
+
  RETURN none
  */
 void create_folder(const char *folder)
@@ -204,12 +205,13 @@ void create_folder(const char *folder)
         log_error ( "Error  creating folder %s (%s)", folder, strerror(errno));
         exit(-1);
     }
+    log_info ( "Folder created %s", folder );
 };
 
 /*
  NAME: mkdir_p
  PURPOSE: creates the hierarchy of folders requested, if they do not exist.
- 
+
  RETURN 0 if successful, !=0 otherwise
  */
 int mkdir_p(const char *dir)
@@ -217,13 +219,13 @@ int mkdir_p(const char *dir)
     char tmp[256];
     char *p = NULL;
     size_t len;
-    
+
     snprintf(tmp, sizeof(tmp),"%s",dir);
     len = strlen(tmp);
-    
+
     if(tmp[len - 1] == '/')
         tmp[len - 1] = 0;
-    
+
     for(p = tmp + 1; *p; p++) {
         if(*p == '/') {
             *p = 0;
@@ -232,17 +234,17 @@ int mkdir_p(const char *dir)
                 fprintf(stderr,"Error creating folder %s (%s)", tmp, strerror(errno));
                 return -1;
             }
-            
+
             *p = '/';
         }
     }
-    
+
     int rc = mkdir(tmp, S_IRWXU);
     if (rc != 0 && errno != EEXIST) {
         fprintf(stderr,"Error creating folder %s (%s)", tmp, strerror(errno));
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -260,12 +262,12 @@ void store_shot_parameters( int     shotid,
                            char    *outputfolder)
 {
     char name[200];
-    
+
     sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
-    
+
     log_info ( "Storing parameters for shot %d into %s", shotid, name);
     FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
-    
+
     fprintf(fp, "%f\n",  (real   ) *dz     );
     fprintf(fp, "%f\n",  (real   ) *dx     );
     fprintf(fp, "%f\n",  (real   ) *dy     );
@@ -276,10 +278,10 @@ void store_shot_parameters( int     shotid,
     fprintf(fp, "%d\n",  (int    ) *nt_bwd );
     fprintf(fp, "%f\n",  (real   ) *dt     );
     fprintf(fp, "%d\n",  (int    ) *stacki );
-    
+
     safe_fclose( name,  fp, __FILE__, __LINE__ );
     
-    log_info ( "Shot parameters stored correctly" );
+    //log_info ( "Shot parameters stored correctly" );
 };
 
 void load_shot_parameters( int    shotid,
@@ -296,12 +298,12 @@ void load_shot_parameters( int    shotid,
                           char    *outputfolder)
 {
     char name[200];
-    
+
     sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
     log_info ( "Storing parameters for shot %d into %s", shotid, name);
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
-    
+
     CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
     CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
     CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
@@ -312,11 +314,11 @@ void load_shot_parameters( int    shotid,
     CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
     CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
     CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
-    
+
     safe_fclose( name, fp, __FILE__, __LINE__);
 };
 
-void load_freqlist( const char* filename, int *nfreqs, real **freqlist ) 
+void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
 {
     int count  = 0;
     real freq;
@@ -391,7 +393,7 @@ void* __malloc( size_t alignment, const integer size)
         log_error ( "Cant allocate buffer correctly");
         abort();
     }
-      
+    
     return (buffer);
 };
 
@@ -407,7 +409,7 @@ FILE* safe_fopen(const char *filename, char *mode, char* srcfilename, int linenu
     if( temp == NULL){
         log_error ( "%s:%d Cant open filename %s, openmode '%s'", srcfilename, linenumber, filename, mode);
         exit(-1);
-    }   
+    }
     return temp;
 };
 
@@ -429,7 +431,9 @@ void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int li
 
 void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
-#ifndef DO_NOT_PERFORM_IO
+#ifdef DO_NOT_PERFORM_IO
+    log_error ( "Warning: we are not doing any IO here (%s).\n", __FUNCTION__);
+#else
     size_t res = fwrite( ptr, size, nmemb, stream);
 
     if( res != nmemb )
@@ -442,9 +446,16 @@ void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcf
 
 void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
-#ifndef DO_NOT_PERFORM_IO
+#ifdef DO_NOT_PERFORM_IO
+    log_error ( "Warning: we are not doing any IO here (%s).\n", __FUNCTION__);
+#else
+    if( stream == NULL ) {
+        log_error ( "stream is not longer valid" );
+        abort();
+    }
+
     size_t res = fread( ptr, size, nmemb, stream);
-    
+
     if( res != nmemb )
     {
         log_error ( "%s:%d: Error while fread", srcfilename, linenumber);

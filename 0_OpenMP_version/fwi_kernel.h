@@ -31,43 +31,43 @@ void check_domain_dimensions ( const integer dimmz,
                                 );
 
 void set_array_to_random_real(real* restrict array,
-															const integer length);
+                                                            const integer length);
 
 void alloc_memory_shot( const integer numberOfCells,
-                       coeff_t *c,
+                        coeff_t *c,
+                        s_t     *s,
+                        v_t     *v,
+                        real    **rho);
+
+void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-											 real    **rho);
-
-void free_memory_shot(  coeff_t *c,
-                      s_t     *s,
-                      v_t     *v,
-											real    **rho);
+                       real    **rho);
 
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-												real    *rho);
+                        real    *rho);
 
 /* --------------- I/O RELATED FUNCTIONS -------------------------------------- */
 
 void load_initial_model ( const real    waveletFreq,
-													const integer numberOfCells,
-                         	coeff_t *c,
-                         	s_t     *s,
-                         	v_t     *v,
-                         	real    *rho);
+                          const integer numberOfCells,
+                          coeff_t *c,
+                          s_t     *s,
+                          v_t     *v,
+                          real    *rho);
 
 void write_snapshot ( char          *folder,
+                      const int     suffix,
+                      v_t          *v,
+                      const integer numberOfCells);
+
+void read_snapshot ( char          *folder,
                      const int     suffix,
                      v_t          *v,
                      const integer numberOfCells);
-
-void read_snapshot ( char          *folder,
-                    const int     suffix,
-                    v_t          *v,
-                    const integer numberOfCells);
 
 /* --------------- BOUNDARY EXCHANGES ---------------------------------------- */
 

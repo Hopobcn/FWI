@@ -24,8 +24,9 @@ void check_memory_shot( const integer numberOfCells,
                         v_t     *v,
                         real    *rho)
 {
+#ifdef DEBUG
     log_info ( "Checking memory shot values");
-            
+
     real value;
     for( int i=0; i < numberOfCells; i++)
     {
@@ -35,63 +36,63 @@ void check_memory_shot( const integer numberOfCells,
         value = c->c14[i];
         value = c->c15[i];
         value = c->c16[i];
-        
+
         value = c->c22[i];
         value = c->c23[i];
         value = c->c24[i];
         value = c->c25[i];
         value = c->c26[i];
-        
+
         value = c->c33[i];
         value = c->c34[i];
         value = c->c35[i];
         value = c->c36[i];
-        
+
         value = c->c44[i];
         value = c->c45[i];
         value = c->c46[i];
-         
+        
         value = c->c55[i];
         value = c->c56[i];
         value = c->c66[i];
-         
+
         value = v->tl.u[i];
         value = v->tl.v[i];
         value = v->tl.w[i];
-         
+
         value = v->tr.u[i];
         value = v->tr.v[i];
         value = v->tr.w[i];
-         
+
         value = v->bl.u[i];
         value = v->bl.v[i];
         value = v->bl.w[i];
-         
+        
         value = v->br.u[i];
         value = v->br.v[i];
         value = v->br.w[i];
-         
+
         value = s->tl.zz[i];
         value = s->tl.xz[i];
         value = s->tl.yz[i];
         value = s->tl.xx[i];
         value = s->tl.xy[i];
         value = s->tl.yy[i];
-         
+
         value = s->tr.zz[i];
         value = s->tr.xz[i];
         value = s->tr.yz[i];
         value = s->tr.xx[i];
         value = s->tr.xy[i];
         value = s->tr.yy[i];
-         
+
         value = s->bl.zz[i];
         value = s->bl.xz[i];
         value = s->bl.yz[i];
         value = s->bl.xx[i];
         value = s->bl.xy[i];
         value = s->bl.yy[i];
-         
+
         value = s->br.zz[i];
         value = s->br.xz[i];
         value = s->br.yz[i];
@@ -101,8 +102,7 @@ void check_memory_shot( const integer numberOfCells,
 
         value = rho[i];
     }
-    
-    log_info ( "Checking memory shot values: OK");
+#endif
 };
 
 void alloc_memory_shot( const integer numberOfCells,
@@ -112,9 +112,9 @@ void alloc_memory_shot( const integer numberOfCells,
                         real    **rho)
 {
     const integer size = numberOfCells * sizeof(real);
-    
+
     log_info ( "ptr size = " I " bytes ("I" elements)", size, numberOfCells);
-    
+
     /* allocate coefficients */
     c->c11 = (real*) __malloc( ALIGN_REAL, size);
     c->c12 = (real*) __malloc( ALIGN_REAL, size);
@@ -122,43 +122,43 @@ void alloc_memory_shot( const integer numberOfCells,
     c->c14 = (real*) __malloc( ALIGN_REAL, size);
     c->c15 = (real*) __malloc( ALIGN_REAL, size);
     c->c16 = (real*) __malloc( ALIGN_REAL, size);
-    
+
     c->c22 = (real*) __malloc( ALIGN_REAL, size);
     c->c23 = (real*) __malloc( ALIGN_REAL, size);
     c->c24 = (real*) __malloc( ALIGN_REAL, size);
     c->c25 = (real*) __malloc( ALIGN_REAL, size);
     c->c26 = (real*) __malloc( ALIGN_REAL, size);
-    
+
     c->c33 = (real*) __malloc( ALIGN_REAL, size);
     c->c34 = (real*) __malloc( ALIGN_REAL, size);
     c->c35 = (real*) __malloc( ALIGN_REAL, size);
     c->c36 = (real*) __malloc( ALIGN_REAL, size);
-    
+
     c->c44 = (real*) __malloc( ALIGN_REAL, size);
     c->c45 = (real*) __malloc( ALIGN_REAL, size);
     c->c46 = (real*) __malloc( ALIGN_REAL, size);
-    
+
     c->c55 = (real*) __malloc( ALIGN_REAL, size);
     c->c56 = (real*) __malloc( ALIGN_REAL, size);
     c->c66 = (real*) __malloc( ALIGN_REAL, size);
-    
+
     /* allocate velocity components */
     v->tl.u = (real*) __malloc( ALIGN_REAL, size);
     v->tl.v = (real*) __malloc( ALIGN_REAL, size);
     v->tl.w = (real*) __malloc( ALIGN_REAL, size);
-    
+
     v->tr.u = (real*) __malloc( ALIGN_REAL, size);
     v->tr.v = (real*) __malloc( ALIGN_REAL, size);
     v->tr.w = (real*) __malloc( ALIGN_REAL, size);
-    
+
     v->bl.u = (real*) __malloc( ALIGN_REAL, size);
     v->bl.v = (real*) __malloc( ALIGN_REAL, size);
     v->bl.w = (real*) __malloc( ALIGN_REAL, size);
-    
+
     v->br.u = (real*) __malloc( ALIGN_REAL, size);
     v->br.v = (real*) __malloc( ALIGN_REAL, size);
     v->br.w = (real*) __malloc( ALIGN_REAL, size);
-    
+
     /* allocate stress components   */
     s->tl.zz = (real*) __malloc( ALIGN_REAL, size);
     s->tl.xz = (real*) __malloc( ALIGN_REAL, size);
@@ -166,32 +166,30 @@ void alloc_memory_shot( const integer numberOfCells,
     s->tl.xx = (real*) __malloc( ALIGN_REAL, size);
     s->tl.xy = (real*) __malloc( ALIGN_REAL, size);
     s->tl.yy = (real*) __malloc( ALIGN_REAL, size);
-    
+
     s->tr.zz = (real*) __malloc( ALIGN_REAL, size);
     s->tr.xz = (real*) __malloc( ALIGN_REAL, size);
     s->tr.yz = (real*) __malloc( ALIGN_REAL, size);
     s->tr.xx = (real*) __malloc( ALIGN_REAL, size);
     s->tr.xy = (real*) __malloc( ALIGN_REAL, size);
     s->tr.yy = (real*) __malloc( ALIGN_REAL, size);
-    
+
     s->bl.zz = (real*) __malloc( ALIGN_REAL, size);
     s->bl.xz = (real*) __malloc( ALIGN_REAL, size);
     s->bl.yz = (real*) __malloc( ALIGN_REAL, size);
     s->bl.xx = (real*) __malloc( ALIGN_REAL, size);
     s->bl.xy = (real*) __malloc( ALIGN_REAL, size);
     s->bl.yy = (real*) __malloc( ALIGN_REAL, size);
-    
+
     s->br.zz = (real*) __malloc( ALIGN_REAL, size);
     s->br.xz = (real*) __malloc( ALIGN_REAL, size);
     s->br.yz = (real*) __malloc( ALIGN_REAL, size);
     s->br.xx = (real*) __malloc( ALIGN_REAL, size);
     s->br.xy = (real*) __malloc( ALIGN_REAL, size);
     s->br.yy = (real*) __malloc( ALIGN_REAL, size);
-    
+
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
-
-    log_info ("Allocated memory for shot successfully");
 };
 
 void free_memory_shot( coeff_t *c,
@@ -206,44 +204,44 @@ void free_memory_shot( coeff_t *c,
     __free( (void*) c->c14 );
     __free( (void*) c->c15 );
     __free( (void*) c->c16 );
-    
+
     __free( (void*) c->c22 );
     __free( (void*) c->c23 );
     __free( (void*) c->c24 );
     __free( (void*) c->c25 );
     __free( (void*) c->c26 );
     __free( (void*) c->c33 );
-    
+
     __free( (void*) c->c34 );
     __free( (void*) c->c35 );
     __free( (void*) c->c36 );
-    
+
     __free( (void*) c->c44 );
     __free( (void*) c->c45 );
     __free( (void*) c->c46 );
-    
+
     __free( (void*) c->c55 );
     __free( (void*) c->c56 );
-    
+
     __free( (void*) c->c66 );
-    
+
     /* deallocate velocity components */
     __free( (void*) v->tl.u );
     __free( (void*) v->tl.v );
     __free( (void*) v->tl.w );
-    
+
     __free( (void*) v->tr.u );
     __free( (void*) v->tr.v );
     __free( (void*) v->tr.w );
-    
+
     __free( (void*) v->bl.u );
     __free( (void*) v->bl.v );
     __free( (void*) v->bl.w );
-    
+
     __free( (void*) v->br.u );
     __free( (void*) v->br.v );
     __free( (void*) v->br.w );
-    
+
     /* deallocate stres components   */
     __free( (void*) s->tl.zz );
     __free( (void*) s->tl.xz );
@@ -251,33 +249,31 @@ void free_memory_shot( coeff_t *c,
     __free( (void*) s->tl.xx );
     __free( (void*) s->tl.xy );
     __free( (void*) s->tl.yy );
-    
+
     __free( (void*) s->tr.zz );
     __free( (void*) s->tr.xz );
     __free( (void*) s->tr.yz );
     __free( (void*) s->tr.xx );
     __free( (void*) s->tr.xy );
     __free( (void*) s->tr.yy );
-    
+
     __free( (void*) s->bl.zz );
     __free( (void*) s->bl.xz );
     __free( (void*) s->bl.yz );
     __free( (void*) s->bl.xx );
     __free( (void*) s->bl.xy );
     __free( (void*) s->bl.yy );
-    
+
     __free( (void*) s->br.zz );
     __free( (void*) s->br.xz );
     __free( (void*) s->br.yz );
     __free( (void*) s->br.xx );
     __free( (void*) s->br.xy );
     __free( (void*) s->br.yy );
-    
-    
+
+
     /* deallocate density array       */
     __free( (void*) *rho );
-
-    log_info ("Shot memory freed");
 };
 
 /*
@@ -297,7 +293,7 @@ void load_initial_model ( const real    waveletFreq,
     MPI_Comm_rank( MPI_COMM_WORLD, &rankLocal );
     MPI_Comm_size( MPI_COMM_WORLD, &rankSize  );
 
-    log_info("Loading initial velocity model");
+    //log_info("Loading initial velocity model");
 
     /* Number of cells for HALO planes and computational volume */
     const integer cellsInHalo   = (dimmz + 2 * HALO ) * (dimmx + 2*HALO);
@@ -358,10 +354,24 @@ void load_initial_model ( const real    waveletFreq,
     memset( s->br.xy, 0, cellsInArray );
     memset( s->br.yy, 0, cellsInArray );
 
-#ifndef DO_NOT_PERFOM_IO 
+#ifdef DO_NOT_PERFORM_IO 
+    /* initalize velocity components */
+    memset( v->tl.u, 0, cellsInArray );
+    memset( v->tl.v, 0, cellsInArray );
+    memset( v->tl.w, 0, cellsInArray );
+    memset( v->tr.u, 0, cellsInArray );
+    memset( v->tr.v, 0, cellsInArray );
+    memset( v->tr.w, 0, cellsInArray );
+    memset( v->bl.u, 0, cellsInArray );
+    memset( v->bl.v, 0, cellsInArray );
+    memset( v->bl.w, 0, cellsInArray );
+    memset( v->br.u, 0, cellsInArray );
+    memset( v->br.v, 0, cellsInArray );
+    memset( v->br.w, 0, cellsInArray );
 
+#else
     /* open initial model, binary file */
-    char modelname[300];    
+    char modelname[300];
     sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
 
     log_info ("Loading input model %s from disk (this could take a while)", modelname);
@@ -389,32 +399,16 @@ void load_initial_model ( const real    waveletFreq,
     safe_fread(      rho, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
 
     /* close model file */
-    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );     
+    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
 
     /* 
      * The elements on the HALO are not initialized here because they're going to be
      * exchanged at the beginning of the wave propagator 
      */
 
-#else
 
-    /* initalize velocity components */
-    memset( v->tl.u, 0, cellsInArray );
-    memset( v->tl.v, 0, cellsInArray );
-    memset( v->tl.w, 0, cellsInArray );
-    memset( v->tr.u, 0, cellsInArray );
-    memset( v->tr.v, 0, cellsInArray );
-    memset( v->tr.w, 0, cellsInArray );
-    memset( v->bl.u, 0, cellsInArray );
-    memset( v->bl.v, 0, cellsInArray );
-    memset( v->bl.w, 0, cellsInArray );
-    memset( v->br.u, 0, cellsInArray );
-    memset( v->br.v, 0, cellsInArray );
-    memset( v->br.w, 0, cellsInArray );
- 
-#endif // end of DDO_NOT_PERFOM_IO clause
 
-    log_info("Initial velocity model loaded successfully");
+#endif /* end of DDO_NOT_PERFORM_IO clause */
 };
 
 void write_snapshot(char *folder,
@@ -423,6 +417,9 @@ void write_snapshot(char *folder,
                     const integer numberOfCells,
                     const int nfields)
 {
+#ifdef DO_NOT_PERFORM_IO
+    log_error ( "Warning, We are not doing any IO here (%s)", __FUNCTION__);
+#else
     char fname[300];
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
     
@@ -431,8 +428,9 @@ void write_snapshot(char *folder,
     safe_fwrite(data, sizeof(real), numberOfCells * nfields, snapshot, __FILE__, __LINE__ );
     
     if ( fclose(snapshot)!=0)
-        log_error ("can not close file %s", fname);
-                /* not a critical error ? */
+        log_error ("Error closing file %s", fname);
+        /* not a critical error ? */
+#endif
 };
 
 void read_snapshot(char *folder,
@@ -441,6 +439,9 @@ void read_snapshot(char *folder,
                    const integer numberOfCells,
                    const int nfields)
 {
+#ifdef DO_NOT_PERFORM_IO
+    log_error ( "Warning: We are not doing any IO here (%s)", __FUNCTION__);
+#else
     char fname[300];
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
     
@@ -453,6 +454,7 @@ void read_snapshot(char *folder,
         log_error ("Error closing or unliking file %s", fname);
                 abort();
     }
+#endif
 };
 
 void propagate_shot ( time_d        direction,
@@ -478,7 +480,7 @@ void propagate_shot ( time_d        direction,
                       integer       datalen,
                       integer       dimmz,
                       integer       dimmx)
-{   
+{
     /* local variables */
     integer cellsInHalo;   // number of cells being exchanged using MPI 
     int     rank;          // mpi local rank
@@ -491,32 +493,89 @@ void propagate_shot ( time_d        direction,
 
     for(int t=0; t < timesteps; t++)
     {
-        // if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, dataflush, datalen);
-        
-        // Phase 1 computation for velocities
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, ny0+HALO, dimmz, dimmx);
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, nyf-HALO, nyf, dimmz, dimmx);
-        
-        // Boundary exchange
+        log_info ( "Computing %d-th timestep", t);
+
+        /* perform IO */
+        //if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, dataflush, datalen);
+
+        /* ------------------------------------------------------------------------------ */
+        /*                      VELOCITY COMPUTATION                                      */
+        /* ------------------------------------------------------------------------------ */
+      
+        /* Phase 1. Computation of the left-most planes of the domain */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0,
+                            nzf,
+                            nx0,
+                            nxf,
+                            ny0,
+                            ny0 + HALO,
+                            dimmz, dimmx);
+
+        /* Phase 1. Computation of the right-most planes of the domain */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0,
+                            nzf,
+                            nx0,
+                            nxf,
+                            nyf - HALO,
+                            nyf,
+                            dimmz, dimmx);
+    
+        /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( &v, cellsInHalo, nyf, ny0);
-        
-        // Phase 2 computation for velocities
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0+HALO, nyf-HALO, dimmz, dimmx);
-        
-        // Phase 1 computation for stresses
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, ny0+HALO, dimmz, dimmx);
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, nyf-HALO, nyf, dimmz, dimmx);
-        
-        // Boundary exchange
+
+        /* Phase 2. Computation of the central planes. */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi, 
+                            nz0,
+                            nzf,
+                            nx0,
+                            nxf,
+                            ny0 + HALO,
+                            nyf - HALO,
+                            dimmz, dimmx);
+
+        /* ------------------------------------------------------------------------------ */
+        /*                        STRESS COMPUTATION                                      */
+        /* ------------------------------------------------------------------------------ */
+
+        /* Phase 1. Computation of the left-most planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
+                          nz0,
+                          nzf,
+                          nx0,
+                          nxf,
+                          ny0,
+                          ny0 + HALO,
+                          dimmz, dimmx);
+      
+        /* Phase 1. Computation of the right-most planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
+                          nz0,
+                          nzf,
+                          nx0,
+                          nxf,
+                          nyf - HALO,
+                          nyf,
+                          dimmz, dimmx);
+
+        /* Boundary exchange for stress values */
         exchange_stress_boundaries( &s, cellsInHalo, nyf, ny0);
+
+        /* Phase 2 computation. Central planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
+                          nz0,
+                          nzf,
+                          nx0,
+                          nxf,
+                          ny0 + HALO,
+                          nyf - HALO,
+                          dimmz, dimmx);
         
-        // P2 computation
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0+HALO, nyf-HALO, dimmz, dimmx);      
-        
+            /* perform IO */
         // if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, dataflush, datalen);
     }
-    
-    log_info ( "Kernel finished successfully.");
+    //log_info ( "Kernel finished successfully.");
 };
 
 /*
@@ -536,7 +595,9 @@ void exchange_velocity_boundaries ( v_t *v,
                                     integer nyf, 
                                     integer ny0 )
 {
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("Exchanging velocity boundaries. Number of cells " I "", nCells);
+#endif
 
     const uint64_t UNUSED(idxA) = (nyf-HALO)* nCells;
     const uint64_t UNUSED(idxB) = nyf       * nCells;
@@ -546,7 +607,9 @@ void exchange_velocity_boundaries ( v_t *v,
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
     MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
 
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("         Rank %d out of rank %d", rank, ranksize );
+#endif
 
     if ( rank != 0 )  //task to exchange velocities boundaries
     {
@@ -601,8 +664,9 @@ void exchange_velocity_boundaries ( v_t *v,
         exchange_buffer ( &v->br.w[0], &v->br.w[0], rank+1, numberOfCells);
         */
     }
-
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("Velocity boundaries exchanged successfully");
+#endif
 };
 
 /*
@@ -622,8 +686,10 @@ void exchange_stress_boundaries ( s_t *s,
                                   integer nyf, 
                                   integer ny0 )
 {
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("Exchanging stress boundaries");
- 
+#endif
+
     const uint64_t UNUSED(idxA) = (nyf-HALO)* nCells;
     const uint64_t UNUSED(idxB) = nyf       * nCells;
     const uint64_t UNUSED(idxC) = ny0       * nCells;
@@ -632,8 +698,10 @@ void exchange_stress_boundaries ( s_t *s,
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
     MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
 
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("         Rank %d out of rank %d", rank, ranksize );
-  
+#endif
+
     if ( rank != 0 ) //task to exchange velocities boundaries
     {
         EXCHANGE( &s->tl.zz[0], &s->tl.zz[0], rank-1, rank, nCells );
@@ -711,7 +779,9 @@ void exchange_stress_boundaries ( s_t *s,
         exchange_buffer ( &s->br.yy[0], &s->br.yy[0], rank+1, numberOfCells);
         */
     }
-    
+
+#if defined(DEBUG) && defined(DEBUG_MPI)
     log_info ("Stress boundaries exchanged successfully");
+#endif
 };
 

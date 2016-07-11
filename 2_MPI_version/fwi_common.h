@@ -64,8 +64,8 @@ extern FILE* logfile;
 
 /*  Compiler compatiblity macros */
 #ifdef __GNUC__
-	/* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
-	 	#define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
+    /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
+        #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
 /*  Compiler macro to suppress unused variable warnings */
@@ -77,7 +77,7 @@ extern FILE* logfile;
 #endif
 
 #define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
-inline void checkErrors(const integer error, const char *filename, int line)
+static inline void checkErrors(const integer error, const char *filename, int line)
 {
     if ( error < 0 ) {                     
         fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
@@ -132,16 +132,16 @@ void load_shot_parameters( int     shotid,
                           integer *dimmy,
                           char    *outputfolder);
 
-void load_freqlist (  const char* filename, 
-											int *nfreqs, 
-											real **freqlist ); 
+void load_freqlist (  const char*  filename,
+                            int*   nfreqs,
+                            real** freqlist );
 
 void* __malloc ( const size_t alignment, const integer size);
 void  __free   ( void *ptr );
 
 void create_output_volumes(char* outputfolder, integer VolumeMemory);
 
-int mkdir_p(const char *dir); 
+int mkdir_p(const char *dir);
 void create_folder(const char *folder);
 
 #endif // end of _FWI_COMMON_H_ definition

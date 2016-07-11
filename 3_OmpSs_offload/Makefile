@@ -7,7 +7,7 @@ LDFLAGS  =-lrt -lm -lstdc++
 PRECFLAGS=--Wn,
 CFLAGS   :=$(addprefix $(PRECFLAGS), $(CFLAGS) )
 #DEFINES  =-DDEBUG
-#DEFINES  +=-DDO_NOT_PERFOM_IO
+#DEFINES  +=-DDO_NOT_PERFORM_IO
 DEFINES  +=-DUSE_NMVE
 
 TARGET=fwi.intel64 create_schedule ModelGenerator

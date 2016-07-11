@@ -348,7 +348,7 @@ void free_memory_shot( coeff_t *c,
      memset( s->br.xy, 0, size);
      memset( s->br.yy, 0, size);
 
- #ifdef DO_NOT_PERFOM_IO /* initalize velocity components */
+ #ifdef DO_NOT_PERFORM_IO /* initalize velocity components */
 
      set_array_to_random_real( v->tl.u, numberOfCells );
      set_array_to_random_real( v->tl.v, numberOfCells );
@@ -403,7 +403,7 @@ void free_memory_shot( coeff_t *c,
 		/* close model file */
      safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
 
- #endif /* end of DDO_NOT_PERFOM_IO clause */
+ #endif /* end of DDO_NOT_PERFORM_IO clause */
  };
 
 /*
@@ -416,7 +416,7 @@ void store_field (char *shotdir,
                   v_t *v,
                   const integer numberOfCells)
 {
-#ifdef DO_NOT_PERFOM_IO
+#ifdef DO_NOT_PERFORM_IO
   fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 
 #else
@@ -484,7 +484,7 @@ void write_snapshot(char *folder,
                     v_t *v,
                     const integer numberOfCells)
 {
-#ifdef DO_NOT_PERFOM_IO
+#ifdef DO_NOT_PERFORM_IO
   fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 
 #else
@@ -532,7 +532,7 @@ void read_snapshot(char *folder,
                    v_t *v,
                    const integer numberOfCells)
 {
-#ifdef DO_NOT_PERFOM_IO
+#ifdef DO_NOT_PERFORM_IO
   fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 
 #else

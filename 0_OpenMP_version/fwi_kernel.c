@@ -23,100 +23,100 @@
  */
 void set_array_to_random_real( real* restrict array, const integer length)
 {
-	const real randvalue = rand() / (1.0 * RAND_MAX);
+    const real randvalue = rand() / (1.0 * RAND_MAX);
 
 #ifdef DEBUG
-	fprintf(stderr, "Array is being initialized to %f\n", randvalue);
+    fprintf(stderr, "Array is being initialized to %f\n", randvalue);
 #endif
 
-	for( integer i = 0; i < length; i++ )
-		array[i] = randvalue;
+    for( integer i = 0; i < length; i++ )
+        array[i] = randvalue;
 }
 
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-												real    *rho)
+                        real    *rho)
 {
 #ifdef DEBUG
-	fprintf(stderr, "Checking memory shot values\n");
+    fprintf(stderr, "Checking memory shot values\n");
 
-	real value;
-	for( int i=0; i < numberOfCells; i++)
-	{
-		value = c->c11[i];
-		value = c->c12[i];
-		value = c->c13[i];
-		value = c->c14[i];
-		value = c->c15[i];
-		value = c->c16[i];
+    real value;
+    for( int i=0; i < numberOfCells; i++)
+    {
+        value = c->c11[i];
+        value = c->c12[i];
+        value = c->c13[i];
+        value = c->c14[i];
+        value = c->c15[i];
+        value = c->c16[i];
 
-		value = c->c22[i];
-		value = c->c23[i];
-		value = c->c24[i];
-		value = c->c25[i];
-		value = c->c26[i];
+        value = c->c22[i];
+        value = c->c23[i];
+        value = c->c24[i];
+        value = c->c25[i];
+        value = c->c26[i];
 
-		value = c->c33[i];
-		value = c->c34[i];
-		value = c->c35[i];
-		value = c->c36[i];
+        value = c->c33[i];
+        value = c->c34[i];
+        value = c->c35[i];
+        value = c->c36[i];
 
-		value = c->c44[i];
-		value = c->c45[i];
-		value = c->c46[i];
-		
-		value = c->c55[i];
-		value = c->c56[i];
-		value = c->c66[i];
+        value = c->c44[i];
+        value = c->c45[i];
+        value = c->c46[i];
+        
+        value = c->c55[i];
+        value = c->c56[i];
+        value = c->c66[i];
 
-		value = v->tl.u[i];
-		value = v->tl.v[i];
-		value = v->tl.w[i];
+        value = v->tl.u[i];
+        value = v->tl.v[i];
+        value = v->tl.w[i];
 
-		value = v->tr.u[i];
-		value = v->tr.v[i];
-		value = v->tr.w[i];
+        value = v->tr.u[i];
+        value = v->tr.v[i];
+        value = v->tr.w[i];
 
-		value = v->bl.u[i];
-		value = v->bl.v[i];
-		value = v->bl.w[i];
-		
-		value = v->br.u[i];
-		value = v->br.v[i];
-		value = v->br.w[i];
+        value = v->bl.u[i];
+        value = v->bl.v[i];
+        value = v->bl.w[i];
+        
+        value = v->br.u[i];
+        value = v->br.v[i];
+        value = v->br.w[i];
 
-		value = s->tl.zz[i];
-		value = s->tl.xz[i];
-		value = s->tl.yz[i];
-		value = s->tl.xx[i];
-		value = s->tl.xy[i];
-		value = s->tl.yy[i];
+        value = s->tl.zz[i];
+        value = s->tl.xz[i];
+        value = s->tl.yz[i];
+        value = s->tl.xx[i];
+        value = s->tl.xy[i];
+        value = s->tl.yy[i];
 
-		value = s->tr.zz[i];
-		value = s->tr.xz[i];
-		value = s->tr.yz[i];
-		value = s->tr.xx[i];
-		value = s->tr.xy[i];
-		value = s->tr.yy[i];
+        value = s->tr.zz[i];
+        value = s->tr.xz[i];
+        value = s->tr.yz[i];
+        value = s->tr.xx[i];
+        value = s->tr.xy[i];
+        value = s->tr.yy[i];
 
-		value = s->bl.zz[i];
-		value = s->bl.xz[i];
-		value = s->bl.yz[i];
-		value = s->bl.xx[i];
-		value = s->bl.xy[i];
-		value = s->bl.yy[i];
+        value = s->bl.zz[i];
+        value = s->bl.xz[i];
+        value = s->bl.yz[i];
+        value = s->bl.xx[i];
+        value = s->bl.xy[i];
+        value = s->bl.yy[i];
 
-		value = s->br.zz[i];
-		value = s->br.xz[i];
-		value = s->br.yz[i];
-		value = s->br.xx[i];
-		value = s->br.xy[i];
-		value = s->br.yy[i];
+        value = s->br.zz[i];
+        value = s->br.xz[i];
+        value = s->br.yz[i];
+        value = s->br.xx[i];
+        value = s->br.xy[i];
+        value = s->br.yy[i];
 
-		value = rho[i];
-	}
+        value = rho[i];
+    }
 #endif
 };
 
@@ -124,7 +124,7 @@ void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-												real    **rho)
+                        real    **rho)
 {
     const integer size = numberOfCells * sizeof(real);
 
@@ -210,7 +210,7 @@ void alloc_memory_shot( const integer numberOfCells,
 void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-											 real    **rho)
+                       real    **rho)
 {
     /* deallocate coefficients */
     __free( (void*) c->c11 );
@@ -294,111 +294,109 @@ void free_memory_shot( coeff_t *c,
 /*
  * Loads initial values from coeffs, stress and velocity.
  */
- void load_initial_model ( const real    waveletFreq,
- 													const integer numberOfCells,
-                           coeff_t *c,
-                           s_t     *s,
-                           v_t     *v,
- 												  real    *rho)
- {
-     const integer size = numberOfCells * sizeof(real);
+void load_initial_model ( const real    waveletFreq,
+                          const integer numberOfCells,
+                          coeff_t *c,
+                          s_t     *s,
+                          v_t     *v,
+                          real    *rho)
+{
+    const integer size = numberOfCells * sizeof(real);
+    
+       /* initialize coefficients */
+    set_array_to_random_real( c->c11, numberOfCells);
+    set_array_to_random_real( c->c12, numberOfCells);
+    set_array_to_random_real( c->c13, numberOfCells);
+    set_array_to_random_real( c->c14, numberOfCells);
+    set_array_to_random_real( c->c15, numberOfCells);
+    set_array_to_random_real( c->c16, numberOfCells);
+    set_array_to_random_real( c->c22, numberOfCells);
+    set_array_to_random_real( c->c23, numberOfCells);
+    set_array_to_random_real( c->c24, numberOfCells);
+    set_array_to_random_real( c->c25, numberOfCells);
+    set_array_to_random_real( c->c26, numberOfCells);
+    set_array_to_random_real( c->c33, numberOfCells);
+    set_array_to_random_real( c->c34, numberOfCells);
+    set_array_to_random_real( c->c35, numberOfCells);
+    set_array_to_random_real( c->c36, numberOfCells);
+    set_array_to_random_real( c->c44, numberOfCells);
+    set_array_to_random_real( c->c45, numberOfCells);
+    set_array_to_random_real( c->c46, numberOfCells);
+    set_array_to_random_real( c->c55, numberOfCells);
+    set_array_to_random_real( c->c56, numberOfCells);
+    set_array_to_random_real( c->c66, numberOfCells);
+    
+    /* initialize stress */
+    memset( s->tl.zz, 0, size);
+    memset( s->tl.xz, 0, size);
+    memset( s->tl.yz, 0, size);
+    memset( s->tl.xx, 0, size);
+    memset( s->tl.xy, 0, size);
+    memset( s->tl.yy, 0, size);
+    memset( s->tr.zz, 0, size);
+    memset( s->tr.xz, 0, size);
+    memset( s->tr.yz, 0, size);
+    memset( s->tr.xx, 0, size);
+    memset( s->tr.xy, 0, size);
+    memset( s->tr.yy, 0, size);
+    memset( s->bl.zz, 0, size);
+    memset( s->bl.xz, 0, size);
+    memset( s->bl.yz, 0, size);
+    memset( s->bl.xx, 0, size);
+    memset( s->bl.xy, 0, size);
+    memset( s->bl.yy, 0, size);
+    memset( s->br.zz, 0, size);
+    memset( s->br.xz, 0, size);
+    memset( s->br.yz, 0, size);
+    memset( s->br.xx, 0, size);
+    memset( s->br.xy, 0, size);
+    memset( s->br.yy, 0, size);
 
- 		/* initialize coefficients */
-     set_array_to_random_real( c->c11, numberOfCells);
-     set_array_to_random_real( c->c12, numberOfCells);
-     set_array_to_random_real( c->c13, numberOfCells);
-     set_array_to_random_real( c->c14, numberOfCells);
-     set_array_to_random_real( c->c15, numberOfCells);
-     set_array_to_random_real( c->c16, numberOfCells);
-     set_array_to_random_real( c->c22, numberOfCells);
-     set_array_to_random_real( c->c23, numberOfCells);
-     set_array_to_random_real( c->c24, numberOfCells);
-     set_array_to_random_real( c->c25, numberOfCells);
-     set_array_to_random_real( c->c26, numberOfCells);
-     set_array_to_random_real( c->c33, numberOfCells);
-     set_array_to_random_real( c->c34, numberOfCells);
-     set_array_to_random_real( c->c35, numberOfCells);
-     set_array_to_random_real( c->c36, numberOfCells);
-     set_array_to_random_real( c->c44, numberOfCells);
-     set_array_to_random_real( c->c45, numberOfCells);
-     set_array_to_random_real( c->c46, numberOfCells);
-     set_array_to_random_real( c->c55, numberOfCells);
-     set_array_to_random_real( c->c56, numberOfCells);
-     set_array_to_random_real( c->c66, numberOfCells);
+#ifdef DO_NOT_PERFORM_IO 
+    /* initalize velocity components */
+    set_array_to_random_real( v->tl.u, numberOfCells );
+    set_array_to_random_real( v->tl.v, numberOfCells );
+    set_array_to_random_real( v->tl.w, numberOfCells );
+    set_array_to_random_real( v->tr.u, numberOfCells );
+    set_array_to_random_real( v->tr.v, numberOfCells );
+    set_array_to_random_real( v->tr.w, numberOfCells );
+    set_array_to_random_real( v->bl.u, numberOfCells );
+    set_array_to_random_real( v->bl.v, numberOfCells );
+    set_array_to_random_real( v->bl.w, numberOfCells );
+    set_array_to_random_real( v->br.u, numberOfCells );
+    set_array_to_random_real( v->br.v, numberOfCells );
+    set_array_to_random_real( v->br.w, numberOfCells );
+    
+    /* initialize rho */
+    set_array_to_random_real( rho, numberOfCells );
+#else /* load velocity model from external file */
+    /* open initial model, binary file */
+    char modelname[300];
+    sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
 
-     /* initialize stress */
-     memset( s->tl.zz, 0, size);
-     memset( s->tl.xz, 0, size);
-     memset( s->tl.yz, 0, size);
-     memset( s->tl.xx, 0, size);
-     memset( s->tl.xy, 0, size);
-     memset( s->tl.yy, 0, size);
-     memset( s->tr.zz, 0, size);
-     memset( s->tr.xz, 0, size);
-     memset( s->tr.yz, 0, size);
-     memset( s->tr.xx, 0, size);
-     memset( s->tr.xy, 0, size);
-     memset( s->tr.yy, 0, size);
-     memset( s->bl.zz, 0, size);
-     memset( s->bl.xz, 0, size);
-     memset( s->bl.yz, 0, size);
-     memset( s->bl.xx, 0, size);
-     memset( s->bl.xy, 0, size);
-     memset( s->bl.yy, 0, size);
-     memset( s->br.zz, 0, size);
-     memset( s->br.xz, 0, size);
-     memset( s->br.yz, 0, size);
-     memset( s->br.xx, 0, size);
-     memset( s->br.xy, 0, size);
-     memset( s->br.yy, 0, size);
+    fprintf(stderr, "Loading input model %s from disk (this could take a while)\n", modelname);
 
- #ifdef DO_NOT_PERFOM_IO /* initalize velocity components */
+    FILE* model = safe_fopen( modelname, "rb", __FILE__, __LINE__ );
 
-     set_array_to_random_real( v->tl.u, numberOfCells );
-     set_array_to_random_real( v->tl.v, numberOfCells );
-     set_array_to_random_real( v->tl.w, numberOfCells );
-     set_array_to_random_real( v->tr.u, numberOfCells );
-     set_array_to_random_real( v->tr.v, numberOfCells );
-     set_array_to_random_real( v->tr.w, numberOfCells );
-     set_array_to_random_real( v->bl.u, numberOfCells );
-     set_array_to_random_real( v->bl.v, numberOfCells );
-     set_array_to_random_real( v->bl.w, numberOfCells );
-     set_array_to_random_real( v->br.u, numberOfCells );
-     set_array_to_random_real( v->br.v, numberOfCells );
-     set_array_to_random_real( v->br.w, numberOfCells );
-     
-		 /* initialize rho */
-		 set_array_to_random_real( rho, numberOfCells );
+    /* initalize velocity components */
+    safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    
+    /* close model file */
+    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
 
- #else /* load velocity model from external file */
-
-     /* open initial model, binary file */
-     char modelname[300];
-     sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
-
-     fprintf(stderr, "Loading input model %s from disk (this could take a while)\n", modelname);
-
-     FILE* model = safe_fopen( modelname, "rb", __FILE__, __LINE__ );
-
-     /* initalize velocity components */
-     safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->tl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->tl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->tr.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->tr.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->tr.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->bl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->bl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->bl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-     safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-
-     /* close model file */
-     safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
-
- #endif /* end of DDO_NOT_PERFOM_IO clause */
- };
+#endif /* end of DDO_NOT_PERFORM_IO clause */
+};
 
 
 /*
@@ -409,30 +407,29 @@ void write_snapshot(char *folder,
                     v_t *v,
                     const integer numberOfCells)
 {
-#ifdef DO_NOT_PERFOM_IO
-  fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
-
+#ifdef DO_NOT_PERFORM_IO
+    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 #else
-  char fname[300];
-  sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    char fname[300];
+    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
-  FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
+    FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
 
-	safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	
-	safe_fwrite( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    
+    safe_fwrite( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-	safe_fwrite( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	
-	safe_fwrite( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    
+    safe_fwrite( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
   if ( fclose(snapshot)!=0)
       fprintf(stderr,"Error closing file %s\n", fname);
@@ -448,74 +445,110 @@ void read_snapshot(char *folder,
                    v_t *v,
                    const integer numberOfCells)
 {
-#ifdef DO_NOT_PERFOM_IO
+#ifdef DO_NOT_PERFORM_IO
   fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
-
 #else
-  char fname[300];
-  sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
-
-  FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
-
-	safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	
-	safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-
-	safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	
-	safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-	safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-
-  if ( fclose(snapshot)!=0 )
-      fprintf(stderr,"Error closing file %s\n", fname);
+    char fname[300];
+    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    
+    FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
+    
+    safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+      
+    safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    
+    safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+      
+    safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    
+    if ( fclose(snapshot)!=0 )
+        fprintf(stderr,"Error closing file %s\n", fname);
 
 #endif
 };
 
 void propagate_shot ( time_d        direction,
-                     v_t           v,
-                     s_t           s,
-                     coeff_t       coeffs,
-                     real          *rho,
-                     int           timesteps,
-                     int           ntbwd,
-                     real          dt,
-                     real          dzi,
-                     real          dxi,
-                     real          dyi,
-                     integer       nz0,
-                     integer       nzf,
-                     integer       nx0,
-                     integer       nxf,
-                     integer       ny0,
-                     integer       nyf,
-                     integer       stacki,
-                     char          *folder,
-                     real          *dataflush,
-                     integer       datalen,
-                     integer       dimmz,
-                     integer       dimmx)
+                      v_t           v,
+                      s_t           s,
+                      coeff_t       coeffs,
+                      real          *rho,
+                      int           timesteps,
+                      int           ntbwd,
+                      real          dt,
+                      real          dzi,
+                      real          dxi,
+                      real          dyi,
+                      integer       nz0,
+                      integer       nzf,
+                      integer       nx0,
+                      integer       nxf,
+                      integer       ny0,
+                      integer       nyf,
+                      integer       stacki,
+                      char          *folder,
+                      real          *dataflush,
+                      integer       datalen,
+                      integer       dimmz,
+                      integer       dimmx)
 {
     for(int t=0; t < timesteps; t++)
     {
-      fprintf(stderr, "Computing %d-th timestep\n", t);
+        fprintf(stderr, "Computing %d-th timestep\n", t);
 
-      /* perform IO */
-      if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
+        /* perform IO */
+        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
 
-			/* ------------------------------------------------------------------------------ */
-			/*                      VELOCITY COMPUTATION                                      */
-			/* ------------------------------------------------------------------------------ */
+        /* ------------------------------------------------------------------------------ */
+        /*                      VELOCITY COMPUTATION                                      */
+        /* ------------------------------------------------------------------------------ */
       
-			/* Phase 1. Computation of the left-most planes of the domain */
-      velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+        /* Phase 1. Computation of the left-most planes of the domain */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            ny0 +   HALO,
+                            ny0 + 2*HALO,
+                            dimmz, dimmx);
+
+        /* Phase 1. Computation of the right-most planes of the domain */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            nyf - 2*HALO,
+                            nyf -   HALO,
+                            dimmz, dimmx);
+    
+        /* Boundary exchange for velocity values */
+        // exchange_velocity_boundaries( &v, plane_size, rank, numTasks, nyf, ny0);
+
+        /* Phase 2. Computation of the central planes. */
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            ny0 +   HALO,
+                            nyf -   HALO,
+                            dimmz, dimmx);
+
+        /* ------------------------------------------------------------------------------ */
+        /*                        STRESS COMPUTATION                                      */
+        /* ------------------------------------------------------------------------------ */
+
+        /* Phase 1. Computation of the left-most planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                           nz0 +   HALO,
                           nzf -   HALO,
                           nx0 +   HALO,
@@ -523,9 +556,9 @@ void propagate_shot ( time_d        direction,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
                           dimmz, dimmx);
-
-      /* Phase 1. Computation of the right-most planes of the domain */
-      velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+      
+        /* Phase 1. Computation of the right-most planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                           nz0 +   HALO,
                           nzf -   HALO,
                           nx0 +   HALO,
@@ -533,12 +566,12 @@ void propagate_shot ( time_d        direction,
                           nyf - 2*HALO,
                           nyf -   HALO,
                           dimmz, dimmx);
-      
-			/* Boundary exchange for velocity values */
-      // exchange_velocity_boundaries( &v, plane_size, rank, numTasks, nyf, ny0);
 
-      /* Phase 2. Computation of the central planes. */
-      velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+        /* Boundary exchange for stress values */
+        // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
+
+        /* Phase 2 computation. Central planes of the domain */
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                           nz0 +   HALO,
                           nzf -   HALO,
                           nx0 +   HALO,
@@ -546,46 +579,8 @@ void propagate_shot ( time_d        direction,
                           ny0 +   HALO,
                           nyf -   HALO,
                           dimmz, dimmx);
-
-
-			/* ------------------------------------------------------------------------------ */
-			/*                        STRESS COMPUTATION                                      */
-			/* ------------------------------------------------------------------------------ */
-
-      /* Phase 1. Computation of the left-most planes of the domain */
-      stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                          nz0 +   HALO,
-                          nzf -   HALO,
-                          nx0 +   HALO,
-                          nxf -   HALO,
-                          ny0 +   HALO,
-                          ny0 + 2*HALO,
-													dimmz, dimmx);
-      
-      /* Phase 1. Computation of the right-most planes of the domain */
-			stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                          nz0 +   HALO,
-                          nzf -   HALO,
-                          nx0 +   HALO,
-                          nxf -   HALO,
-                          nyf - 2*HALO,
-                          nyf -   HALO,
-													dimmz, dimmx);
-
-      /* Boundary exchange for stress values */
-      // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
-
-      /* Phase 2 computation. Central planes of the domain */
-			stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                          nz0 +   HALO,
-                          nzf -   HALO,
-                          nx0 +   HALO,
-                          nxf -   HALO,
-                          ny0 +   HALO,
-                          nyf -   HALO,
-													dimmz, dimmx);
-      	
-			/* perform IO */
-      if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
+        
+            /* perform IO */
+        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
 };

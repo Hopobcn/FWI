@@ -2,7 +2,7 @@ CC       = pgcc
 CFLAGS   = -g -c99 -fast -acc -ta=tesla:managed -Minfo=accel
 INCS     =
 LIBS     = -lm
-DEFINES  += -DDO_NOT_PERFOM_IO
+DEFINES  += -DDO_NOT_PERFORM_IO
 
 
 

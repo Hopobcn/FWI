@@ -2,10 +2,10 @@ CC       = gcc
 CFLAGS   = -std=c99 -g -O3
 INCS     =
 LIBS     = -lm
-DEFINES  += -DDO_NOT_PERFOM_IO #-DDEBUG
+DEFINES  += -DDO_NOT_PERFORM_IO #-DDEBUG
 
 ifeq ($(CC), gcc)
-    CFLAGS += -fopenmp -march=native -Wno-unused-result
+    CFLAGS += -fopenmp -march=native -Wall -fopt-info #-Wno-unused-result
 else
 ifeq ($(CC), icc)
     CFLAGS += -openmp -mavx -qopt-report=2

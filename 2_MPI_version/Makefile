@@ -1,13 +1,13 @@
 CC      = gcc
 MPICC   = mpicc
-CFLAGS  = -std=c99 -O3
+CFLAGS  = -std=c99 -g -O3
 INCS    =
 LIBS    = -lm
-DEFINES = -DDO_NOT_PERFOM_IO -DDEBUG -DDEBUG_MPI -DDEBUG_TO_STDERR
+DEFINES = -DDO_NOT_PERFORM_IO -DOUTPUT_TO_STDERR -DDEBUG # -DDEBUG_MPI
 LDFLAGS = 
 
 ifeq ($(CC), gcc)
-    CFLAGS += -fopenmp -march=native -fopt-info #-fopt-info-vec-missed
+    CFLAGS += -fopenmp -march=native -Wall -fopt-info #-fopt-info-vec-missed
 else
 ifeq ($(CC), icc)
     CFLAGS += -openmp -mavx -qopt-report=2
@@ -61,9 +61,8 @@ run: fwi.intel64
 irun: fwi.intel64
 	mpirun -np $(NCPUS) ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
-
 debug: fwi.intel64
-	gdb --args fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+	mpirun -np $(NCPUS) xterm -e gdb --args fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 memcheck: fwi.intel64
 	valgrind ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
