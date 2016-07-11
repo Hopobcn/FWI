@@ -378,12 +378,13 @@ void stress_update(real* restrict sptr,
                    const integer dimmz,
                    const integer dimmx)
 {
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c1 * u_x;
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c2 * v_y;
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c3 * w_z;
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c4 * (w_y + v_z);
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c5 * (w_x + u_z);
-    sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c6 * (v_x + u_y);
+    real accum  = dt * c1 * u_x;
+         accum += dt * c2 * v_y;
+         accum += dt * c3 * w_z;
+         accum += dt * c4 * (w_y + v_z);
+         accum += dt * c5 * (w_x + u_z);
+         accum += dt * c6 * (v_x + u_y);
+    sptr[IDX(z,x,y,dimmz,dimmx)] += accum;
 };
 
 void stress_propagator(s_t           s,
