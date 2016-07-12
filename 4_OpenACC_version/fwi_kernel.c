@@ -410,13 +410,19 @@ void write_snapshot(char *folder,
                     const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-  fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
+    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 
 #else
-  char fname[300];
-  sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
+                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
+                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
+                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
 
-  FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
+
+    char fname[300];
+    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+
+    FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
 
     safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -434,8 +440,8 @@ void write_snapshot(char *folder,
     safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-  if ( fclose(snapshot)!=0)
-      fprintf(stderr,"Error closing file %s\n", fname);
+    if ( fclose(snapshot)!=0)
+        fprintf(stderr,"Error closing file %s\n", fname);
 
 #endif
 };
@@ -449,13 +455,13 @@ void read_snapshot(char *folder,
                    const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-  fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
+    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 
 #else
-  char fname[300];
-  sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    char fname[300];
+    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
-  FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
+    FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
 
     safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -473,13 +479,18 @@ void read_snapshot(char *folder,
     safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-  if ( fclose(snapshot)!=0 )
-      fprintf(stderr,"Error closing file %s\n", fname);
+    if ( fclose(snapshot)!=0 )
+        fprintf(stderr,"Error closing file %s\n", fname);
+
+    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
+                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
+                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
+                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
 
 #endif
 };
 
-void propagate_shot ( time_d        direction,
+void propagate_shot (time_d        direction,
                      v_t           v,
                      s_t           s,
                      coeff_t       coeffs,
@@ -503,6 +514,7 @@ void propagate_shot ( time_d        direction,
                      integer       dimmz,
                      integer       dimmx)
 {
+
     for(int t=0; t < timesteps; t++)
     {
         fprintf(stderr, "Computing %d-th timestep\n", t);
