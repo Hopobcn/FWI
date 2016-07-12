@@ -309,8 +309,8 @@ int main(int argc, const char *argv[])
                          VolumeMemory, TOGB(VolumeMemory) );
     
         /* compute time steps */
-        int forw_steps = 10; // max_int ( IT_FACTOR * (srclen/dt), 1);
-        int back_steps = 10; //max_int ( IT_FACTOR * (rcvlen/dt), 1);
+        int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
+        int back_steps = max_int ( IT_FACTOR * (rcvlen/dt), 1);
     
         fprintf(stderr, "stacki value is %d.                \
                          forward propagation steps: %d      \
