@@ -84,6 +84,9 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                      copyin(coeffs.c55[0:datalen], coeffs.c56[0:datalen]) \
                      copyin(coeffs.c66[0:datalen]) \
                      copyin(rho[0:datalen])
+    {
+    #pragma acc wait // wait for the copies to be finished before start executing kernels (we could optimize this)
+
     switch( propagator )
     {
     case( RTM_KERNEL ):
@@ -175,7 +178,9 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
         fprintf(stderr, "Invalid propagation identifier\n");
         abort();
     }
-    }
+    } /* end case */
+
+    } /* end acc data */
 
     // liberamos la memoria alocatada en el shot
     free_memory_shot  ( &coeffs, &s, &v, &rho);

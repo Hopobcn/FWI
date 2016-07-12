@@ -534,7 +534,8 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx);
+                            dimmz, dimmx,
+                            ONE_A);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
@@ -544,7 +545,8 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx);
+                            dimmz, dimmx,
+                            ONE_B);
         
         /* Boundary exchange for velocity values */
         // exchange_velocity_boundaries( &v, plane_size, rank, numTasks, nyf, ny0);
@@ -557,8 +559,10 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             nyf -   HALO,
-                            dimmz, dimmx);
+                            dimmz, dimmx,
+                            TWO);
 
+        #pragma acc wait(ONE_A, ONE_B, TWO)
 
         /* ------------------------------------------------------------------------------ */
         /*                        STRESS COMPUTATION                                      */
@@ -572,7 +576,8 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx);
+                            dimmz, dimmx,
+                            ONE_A);
         
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
@@ -582,7 +587,8 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx);
+                            dimmz, dimmx,
+                            ONE_B);
 
         /* Boundary exchange for stress values */
         // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
@@ -595,8 +601,11 @@ void propagate_shot (time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             nyf -   HALO,
-                            dimmz, dimmx);
-          
+                            dimmz, dimmx,
+                            TWO);
+ 
+        #pragma acc wait(ONE_A, ONE_B, TWO)
+         
               /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }

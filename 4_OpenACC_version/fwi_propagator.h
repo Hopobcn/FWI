@@ -41,6 +41,7 @@ typedef struct {
 #define ASSUMED_DISTANCE 16
 
 typedef enum {back_offset, forw_offset} offset_t;
+typedef enum {ONE_A, ONE_B, TWO} phase_t;
 
 #pragma acc routine seq
 integer IDX (const integer z, 
@@ -134,7 +135,8 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
                                  const integer        dimmz,
-                                 const integer        dimmx);
+                                 const integer        dimmx,
+                                 const phase_t        phase);
 
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -156,7 +158,8 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
                                  const integer        dimmz,
-                                 const integer        dimmx);
+                                 const integer        dimmx,
+                                 const phase_t        phase);
 
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -178,7 +181,8 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
                                  const integer        dimmz,
-                                 const integer        dimmx);
+                                 const integer        dimmx,
+                                 const phase_t        phase);
 
 void compute_component_vcell_BL (      real* restrict vptr,
                                  const real* restrict szptr,
@@ -199,7 +203,8 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
                                  const integer        dimmz,
-                                 const integer        dimmx);
+                                 const integer        dimmx,
+                                 const phase_t        phase);
 
 void velocity_propagator(v_t           v,
                          s_t           s,
@@ -216,7 +221,8 @@ void velocity_propagator(v_t           v,
                          const integer ny0,
                          const integer nyf,
                          const integer dimmz,
-                         const integer dimmx);
+                         const integer dimmx,
+                         const phase_t phase);
 
 
 
@@ -267,7 +273,8 @@ void stress_propagator(s_t           s,
                        const integer ny0,
                        const integer nyf,
                        const integer dimmz,
-                       const integer dimmx );
+                       const integer dimmx,
+                       const phase_t phase );
 
 #pragma acc routine seq
 real cell_coeff_BR ( const real* restrict ptr, 
@@ -346,7 +353,8 @@ void compute_component_scell_TR ( s_t             s,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx);
+                                 const integer  dimmx,
+                                 const phase_t phase);
 
 void compute_component_scell_TL ( s_t             s,
                                   point_v_t       vnode_z,
@@ -366,8 +374,9 @@ void compute_component_scell_TL ( s_t             s,
                                   const offset_t _SZ,
                                   const offset_t _SX,
                                   const offset_t _SY,
-                                  const integer  dimmz,
-                                  const integer  dimmx);
+                                  const integer   dimmz,
+                                  const integer   dimmx,
+                                  const phase_t   phase);
 
 void compute_component_scell_BR ( s_t             s,
                                   point_v_t       vnode_z,
@@ -387,8 +396,9 @@ void compute_component_scell_BR ( s_t             s,
                                   const offset_t _SZ,
                                   const offset_t _SX,
                                   const offset_t _SY,
-                                  const integer  dimmz,
-                                  const integer  dimmx);
+                                  const integer   dimmz,
+                                  const integer   dimmx,
+                                  const phase_t   phase);
 
 void compute_component_scell_BL ( s_t             s,
                                   point_v_t       vnode_z,
@@ -408,7 +418,8 @@ void compute_component_scell_BL ( s_t             s,
                                   const offset_t _SZ,
                                   const offset_t _SX,
                                   const offset_t _SY,
-                                  const integer  dimmz,
-                                  const integer  dimmx);
+                                  const integer   dimmz,
+                                  const integer   dimmx,
+                                  const phase_t   phase);
 
 #endif /* end of _FWI_PROPAGATOR_H_ definition */
