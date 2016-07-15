@@ -212,6 +212,37 @@ void free_memory_shot( coeff_t *c,
                        v_t     *v,
                        real    **rho)
 {
+    
+
+    const int ngpus = acc_get_num_devices( acc_device_nvidia );
+    
+    #pragma omp parallel for schedule(static, 1)
+    for (int gpu = 0; gpu < ngpus; gpu++)
+    {
+        
+
+        acc_set_device_num(gpu, acc_device_nvidia);
+        
+        #pragma acc wait
+        #pragma acc exit data delete(v->tl.u, v->tl.v, v->tl.w) \
+                              delete(v->tr.u, v->tr.v, v->tr.w) \
+                              delete(v->bl.u, v->bl.v, v->bl.w) \
+                              delete(v->br.u, v->br.v, v->br.w) \
+                              delete(s->tl.zz, s->tl.xz, s->tl.yz, s->tl.xx, s->tl.xy, s->tl.yy) \
+                              delete(s->tr.zz, s->tr.xz, s->tr.yz, s->tr.xx, s->tr.xy, s->tr.yy) \
+                              delete(s->bl.zz, s->bl.xz, s->bl.yz, s->bl.xx, s->bl.xy, s->bl.yy) \
+                              delete(s->br.zz, s->br.xz, s->br.yz, s->br.xx, s->br.xy, s->br.yy) \
+                              delete(c->c11, c->c12, c->c13, c->c14, c->c15, c->c16) \
+                              delete(c->c22, c->c23, c->c24, c->c25, c->c26) \
+                              delete(c->c33, c->c34, c->c35, c->c36) \
+                              delete(c->c44, c->c45, c->c46) \
+                              delete(c->c55, c->c56) \
+                              delete(c->c66) \
+                              delete(rho)
+        
+    }
+
+
     /* deallocate coefficients */
     __free( (void*) c->c11 );
     __free( (void*) c->c12 );
@@ -289,6 +320,8 @@ void free_memory_shot( coeff_t *c,
 
     /* deallocate density array       */
     __free( (void*) *rho );
+
+    
 };
 
 /*
@@ -398,6 +431,112 @@ void free_memory_shot( coeff_t *c,
     safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
 
 #endif /* end of DDO_NOT_PERFORM_IO clause */
+
+    const integer datalen = numberOfCells;
+
+    const real* cc11 = c->c11;
+    const real* cc12 = c->c12;
+    const real* cc13 = c->c13;
+    const real* cc14 = c->c14;
+    const real* cc15 = c->c15;
+    const real* cc16 = c->c16;
+                             
+    const real* cc22 = c->c22;
+    const real* cc23 = c->c23;
+    const real* cc24 = c->c24;
+    const real* cc25 = c->c25;
+    const real* cc26 = c->c26;
+                             
+    const real* cc33 = c->c33;
+    const real* cc34 = c->c34;
+    const real* cc35 = c->c35;
+    const real* cc36 = c->c36;
+                             
+    const real* cc44 = c->c44;
+    const real* cc45 = c->c45;
+    const real* cc46 = c->c46;
+                             
+    const real* cc55 = c->c55;
+    const real* cc56 = c->c56;
+                       
+    const real* cc66 = c->c66;
+          
+    const real* vtlu = v->tl.u;
+    const real* vtlv = v->tl.v;
+    const real* vtlw = v->tl.w;
+                              
+    const real* vtru = v->tr.u;
+    const real* vtrv = v->tr.v;
+    const real* vtrw = v->tr.w;
+                              
+    const real* vblu = v->bl.u;
+    const real* vblv = v->bl.v;
+    const real* vblw = v->bl.w;
+                              
+    const real* vbru = v->br.u;
+    const real* vbrv = v->br.v;
+    const real* vbrw = v->br.w;
+       
+    const real* stlzz = s->tl.zz;
+    const real* stlxz = s->tl.xz;
+    const real* stlyz = s->tl.yz;
+    const real* stlxx = s->tl.xx;
+    const real* stlxy = s->tl.xy;
+    const real* stlyy = s->tl.yy;
+                                
+    const real* strzz = s->tr.zz;
+    const real* strxz = s->tr.xz;
+    const real* stryz = s->tr.yz;
+    const real* strxx = s->tr.xx;
+    const real* strxy = s->tr.xy;
+    const real* stryy = s->tr.yy;
+                                
+    const real* sblzz = s->bl.zz;
+    const real* sblxz = s->bl.xz;
+    const real* sblyz = s->bl.yz;
+    const real* sblxx = s->bl.xx;
+    const real* sblxy = s->bl.xy;
+    const real* sblyy = s->bl.yy;
+                                
+    const real* sbrzz = s->br.zz;
+    const real* sbrxz = s->br.xz;
+    const real* sbryz = s->br.yz;
+    const real* sbrxx = s->br.xx;
+    const real* sbrxy = s->br.xy;
+    const real* sbryy = s->br.yy;
+
+    const real* rrho  = rho;
+
+    const int ngpus = acc_get_num_devices( acc_device_nvidia );
+
+    //#pragma omp parallel for schedule(static, 1)    
+    for (int gpu = 0; gpu < ngpus; gpu++)
+    {
+        
+
+        acc_set_device_num(gpu, acc_device_nvidia);
+       
+        #pragma acc enter data copyin(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
+                               copyin(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
+                               copyin(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
+                               copyin(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
+                               create(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
+                               create(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
+                               create(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
+                               create(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
+                               copyin(cc11[0:datalen], cc12[0:datalen], cc13[0:datalen], cc14[0:datalen], cc15[0:datalen], cc16[0:datalen]) \
+                               copyin(cc22[0:datalen], cc23[0:datalen], cc24[0:datalen], cc25[0:datalen], cc26[0:datalen]) \
+                               copyin(cc33[0:datalen], cc34[0:datalen], cc35[0:datalen], cc36[0:datalen]) \
+                               copyin(cc44[0:datalen], cc45[0:datalen], cc46[0:datalen]) \
+                               copyin(cc55[0:datalen], cc56[0:datalen]) \
+                               copyin(cc66[0:datalen]) \
+                               copyin(rrho[0:datalen]) 
+       
+        #pragma acc wait // wait for the copies to be finished before start executing kernels (we could optimize this)
+        
+        
+    }
+
 };
 
 
@@ -514,7 +653,6 @@ void propagate_shot (time_d        direction,
                      integer       dimmz,
                      integer       dimmx)
 {
-
     for(int t=0; t < timesteps; t++)
     {
         fprintf(stderr, "Computing %d-th timestep\n", t);
@@ -522,91 +660,271 @@ void propagate_shot (time_d        direction,
         /* perform IO */
         if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
 
-        /* ------------------------------------------------------------------------------ */
-        /*                      VELOCITY COMPUTATION                                      */
-        /* ------------------------------------------------------------------------------ */
+        const int ngpus              = acc_get_num_devices( acc_device_nvidia );
+        const int num_planes_per_gpu = (nyf-2*HALO) / ngpus;
+        const int remainder          = (nyf-2*HALO) % ngpus;
         
-        /* Phase 1. Computation of the left-most planes of the domain */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            ny0 +   HALO,
-                            ny0 + 2*HALO,
-                            dimmz, dimmx,
-                            ONE_A);
+        #pragma omp parallel for schedule(static, 1)
+        for (int gpu = 0; gpu < ngpus; gpu++)
+        {
+            const int roffset = ((gpu < remainder) ? 1 : 0);
+            const int accumof = ( remainder ); // TODO: control situations when remainder>0!
+            const int ny0i    = ny0  + gpu * (num_planes_per_gpu + accumof) + ((gpu > 0) ? HALO : 0);
+            const int nyfi    = ny0i +       (num_planes_per_gpu + roffset) + (((gpu > 0) && (gpu < ngpus-1)) ? 0 : HALO);
+            const int plane_size = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO);
+            
+            //fprintf(stderr, "gpu %d ny0i %d nybi %d -- (ny0 %d nyf %d) omp_thread_id %d\n", 
+            //        gpu, ny0i, nyfi, ny0, nyf, omp_get_thread_num());
 
-        /* Phase 1. Computation of the right-most planes of the domain */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            nyf - 2*HALO,
-                            nyf -   HALO,
-                            dimmz, dimmx,
-                            ONE_B);
-        
-        /* Boundary exchange for velocity values */
-        // exchange_velocity_boundaries( &v, plane_size, rank, numTasks, nyf, ny0);
-
-        /* Phase 2. Computation of the central planes. */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            ny0 +   HALO,
-                            nyf -   HALO,
-                            dimmz, dimmx,
-                            TWO);
-
-        #pragma acc wait(ONE_A, ONE_B, TWO)
-
-        /* ------------------------------------------------------------------------------ */
-        /*                        STRESS COMPUTATION                                      */
-        /* ------------------------------------------------------------------------------ */
-
-        /* Phase 1. Computation of the left-most planes of the domain */
-        stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            ny0 +   HALO,
-                            ny0 + 2*HALO,
-                            dimmz, dimmx,
-                            ONE_A);
-        
-        /* Phase 1. Computation of the right-most planes of the domain */
-        stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            nyf - 2*HALO,
-                            nyf -   HALO,
-                            dimmz, dimmx,
-                            ONE_B);
-
-        /* Boundary exchange for stress values */
-        // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
-
-        /* Phase 2 computation. Central planes of the domain */
-        stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            ny0 +   HALO,
-                            nyf -   HALO,
-                            dimmz, dimmx,
-                            TWO);
+            acc_set_device_num(gpu, acc_device_nvidia);
  
-        #pragma acc wait(ONE_A, ONE_B, TWO)
-         
+            /* ------------------------------------------------------------------------------ */
+            /*                      VELOCITY COMPUTATION                                      */
+            /* ------------------------------------------------------------------------------ */
+           
+            if (gpu > 0) {
+                /* Phase 1. Computation of the left-most planes of the domain */
+                velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                                    nz0 +   HALO,
+                                    nzf -   HALO,
+                                    nx0 +   HALO,
+                                    nxf -   HALO,
+                                    ny0i,
+                                    ny0i+   HALO,
+                                    dimmz, dimmx,
+                                    ONE_L); 
+            } 
+            if (gpu < ngpus - 1) {
+                /* Phase 1. Computation of the right-most planes of the domain */
+                velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                                    nz0 +   HALO,
+                                    nzf -   HALO,
+                                    nx0 +   HALO,
+                                    nxf -   HALO,
+                                    nyfi-   HALO,
+                                    nyfi,
+                                    dimmz, dimmx,
+                                    ONE_R);
+            } 
+            /* Phase 2. Computation of the central planes. */
+            velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                                nz0 +   HALO,
+                                nzf -   HALO,
+                                nx0 +   HALO,
+                                nxf -   HALO,
+                                ny0i+   HALO,
+                                nyfi-   HALO,
+                                dimmz, dimmx,
+                                TWO);
+
+            /* Boundary exchange for velocity values */
+            exchange_velocity_boundaries( v, plane_size, gpu, ngpus, nyfi, ny0i);
+
+            #pragma acc wait(ONE_L, ONE_R, TWO)
+
+            /* ------------------------------------------------------------------------------ */
+            /*                        STRESS COMPUTATION                                      */
+            /* ------------------------------------------------------------------------------ */
+
+            if (gpu > 0) {
+                /* Phase 1. Computation of the left-most planes of the domain */
+                stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+                                    nz0 +   HALO,
+                                    nzf -   HALO,
+                                    nx0 +   HALO,
+                                    nxf -   HALO,
+                                    ny0i,
+                                    ny0i+   HALO,
+                                    dimmz, dimmx,
+                                    ONE_L);
+            }
+            if (gpu < ngpus - 1) {
+                /* Phase 1. Computation of the right-most planes of the domain */
+                stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+                                    nz0 +   HALO,
+                                    nzf -   HALO,
+                                    nx0 +   HALO,
+                                    nxf -   HALO,
+                                    nyfi-   HALO,
+                                    nyfi,
+                                    dimmz, dimmx,
+                                    ONE_R);
+            }
+
+            /* Phase 2 computation. Central planes of the domain */
+            stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+                                nz0 +   HALO,
+                                nzf -   HALO,
+                                nx0 +   HALO,
+                                nxf -   HALO,
+                                ny0i+   HALO,
+                                nyfi-   HALO,
+                                dimmz, dimmx,
+                                TWO);
+
+            /* Boundary exchange for stress values */
+            exchange_stress_boundaries( s, plane_size, gpu, ngpus, nyfi, ny0i);
+
+            #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+        } 
               /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
 };
+
+/*
+NAME:exchange_boundaries
+PURPOSE: data exchanges between the boundary layers of the analyzed volume
+
+v                   (in) struct containing velocity arrays (4 points / cell x 3 components / point = 12 arrays)
+plane_size          (in) Number of elements per plane to be exchanged
+gpu                 (in) gpu id
+ngpus               (in) number of gpus
+nyf                 (in) final plane to be exchanged
+ny0                 (in) intial plane to be exchanged
+
+RETURN none
+*/
+void exchange_velocity_boundaries ( v_t v, 
+                                    const integer plane_size, 
+                                    const integer gpu,
+                                    const integer ngpus,
+                                    const integer nyf, 
+                                    const integer ny0 )
+{
+    const integer num_planes = (nyf-ny0);
+    const integer nelems     = num_planes * plane_size;
+
+    if ( gpu != 0 )
+    {
+        acc_set_device_num(gpu-1, acc_device_nvidia);
+ 
+        #pragma acc update device(v.tl.u[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.v[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.w[ny0:nelems]) wait(D2H) asynch(H2D)
+ 
+        #pragma acc update device(v.tr.u[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.v[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.w[ny0:nelems]) wait(D2H) asynch(H2D)
+       
+        #pragma acc update device(v.bl.u[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.v[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.w[ny0:nelems]) wait(D2H) asynch(H2D)
+       
+        #pragma acc update device(v.br.u[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.v[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.w[ny0:nelems]) wait(D2H) asynch(H2D)
+    }
+
+    if ( gpu != ngpus-1 )
+    {
+        acc_set_device_num(gpu+1, acc_device_nvidia);
+ 
+        #pragma acc update device(v.tl.u[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.v[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.w[nyf:nelems]) wait(D2H) asynch(H2D)
+ 
+        #pragma acc update device(v.tr.u[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.v[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.w[nyf:nelems]) wait(D2H) asynch(H2D)
+       
+        #pragma acc update device(v.bl.u[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.v[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.w[nyf:nelems]) wait(D2H) asynch(H2D)
+       
+        #pragma acc update device(v.br.u[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.v[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.w[nyf:nelems]) wait(D2H) asynch(H2D)
+    }
+    acc_set_device_num(gpu, acc_device_nvidia);
+};
+
+/*
+NAME:exchange_stress_boundaries
+PURPOSE: data exchanges between the boundary layers of the analyzed volume
+
+s                   (in) struct containing stress arrays (4 points / cell x 6 components / point = 24 arrays)
+numElement          (in) Number of elements to exchange
+idxt                (in) identifier related to the folder
+nyf                 (in) final plane to be exchanged
+ny0                 (in) intial plane to be exchanged
+
+RETURN none
+*/
+void exchange_stress_boundaries ( s_t s, 
+                                  const integer plane_size, 
+                                  const integer gpu,
+                                  const integer ngpus,
+                                  const integer nyf, 
+                                  const integer ny0 )
+{
+    const integer nplanes = HALO;
+    const integer nelems  = nplanes * plane_size;
+
+    if ( gpu != 0 ) 
+    {
+
+        acc_set_device_num(gpu-1, acc_device_nvidia);
+ 
+        #pragma acc update device(s.tl.zz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.yz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xx[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xy[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.yy[ny0:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.tr.zz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.yz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xx[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xy[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.yy[ny0:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.bl.zz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.yz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xx[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xy[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.yy[ny0:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.br.zz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.yz[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xx[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xy[ny0:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.yy[ny0:nelems]) wait(D2H) asynch(H2D)
+    }
+
+    if ( gpu != ngpus -1 )  
+    {
+        #pragma acc update device(s.tl.zz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.yz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xx[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.xy[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.yy[nyf:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.tr.zz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.yz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xx[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.xy[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.yy[nyf:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.bl.zz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.yz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xx[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.xy[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.yy[nyf:nelems]) wait(D2H) asynch(H2D)
+
+        #pragma acc update device(s.br.zz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.yz[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xx[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.xy[nyf:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.yy[nyf:nelems]) wait(D2H) asynch(H2D)
+    }
+    acc_set_device_num(gpu, acc_device_nvidia);
+};
+

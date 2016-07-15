@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <omp.h>
-
+#include <openacc.h>
 
 /* data types definition */
 typedef float  real;

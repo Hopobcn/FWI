@@ -50,7 +50,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     s_t     s;
     coeff_t coeffs;
 
-    fprintf(stderr, "Computing " I " planes, and " I " cells\n", dimmy, numberOfCells);
+    fprintf(stderr, "Computing " I " planes, and " I " cells. Grid dim [%d][%d][%d]\n", dimmy, numberOfCells, dimmz, dimmx, dimmy);
 
     /* allocate shot memory */
     alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
@@ -67,26 +67,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
     /* some variables for timming */
     double start_t, end_t;
-    const integer datalen = numberOfCells;
-
-    #pragma acc data copy(v.tl.u[0:datalen], v.tl.v[0:datalen], v.tl.w[0:datalen]) \
-                     copy(v.tr.u[0:datalen], v.tr.v[0:datalen], v.tr.w[0:datalen]) \
-                     copy(v.bl.u[0:datalen], v.bl.v[0:datalen], v.bl.w[0:datalen]) \
-                     copy(v.br.u[0:datalen], v.br.v[0:datalen], v.br.w[0:datalen]) \
-                     copy(s.tl.zz[0:datalen], s.tl.xz[0:datalen], s.tl.yz[0:datalen], s.tl.xx[0:datalen], s.tl.xy[0:datalen], s.tl.yy[0:datalen]) \
-                     copy(s.tr.zz[0:datalen], s.tr.xz[0:datalen], s.tr.yz[0:datalen], s.tr.xx[0:datalen], s.tr.xy[0:datalen], s.tr.yy[0:datalen]) \
-                     copy(s.bl.zz[0:datalen], s.bl.xz[0:datalen], s.bl.yz[0:datalen], s.bl.xx[0:datalen], s.bl.xy[0:datalen], s.bl.yy[0:datalen]) \
-                     copy(s.br.zz[0:datalen], s.br.xz[0:datalen], s.br.yz[0:datalen], s.br.xx[0:datalen], s.br.xy[0:datalen], s.br.yy[0:datalen]) \
-                     copyin(coeffs.c11[0:datalen], coeffs.c12[0:datalen], coeffs.c13[0:datalen], coeffs.c14[0:datalen], coeffs.c15[0:datalen], coeffs.c16[0:datalen]) \
-                     copyin(coeffs.c22[0:datalen], coeffs.c23[0:datalen], coeffs.c24[0:datalen], coeffs.c25[0:datalen], coeffs.c26[0:datalen]) \
-                     copyin(coeffs.c33[0:datalen], coeffs.c34[0:datalen], coeffs.c35[0:datalen], coeffs.c36[0:datalen]) \
-                     copyin(coeffs.c44[0:datalen], coeffs.c45[0:datalen], coeffs.c46[0:datalen]) \
-                     copyin(coeffs.c55[0:datalen], coeffs.c56[0:datalen]) \
-                     copyin(coeffs.c66[0:datalen]) \
-                     copyin(rho[0:datalen])
-    {
-    #pragma acc wait // wait for the copies to be finished before start executing kernels (we could optimize this)
-
+     
     switch( propagator )
     {
     case( RTM_KERNEL ):
@@ -179,8 +160,6 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
         abort();
     }
     } /* end case */
-
-    } /* end acc data */
 
     // liberamos la memoria alocatada en el shot
     free_memory_shot  ( &coeffs, &s, &v, &rho);

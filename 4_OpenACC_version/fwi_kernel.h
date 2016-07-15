@@ -26,64 +26,63 @@
  * Just needed for debugging when running small cases.
  */
 void check_domain_dimensions ( const integer dimmz,
-                                  const integer dimmx,
-                                  const integer dimmy
-                                );
+                               const integer dimmx,
+                               const integer dimmy);
 
 void set_array_to_random_real(real* restrict array,
-															const integer length);
+                              const integer length);
 
 void alloc_memory_shot( const integer numberOfCells,
-                       coeff_t *c,
+                        coeff_t *c,
+                        s_t     *s,
+                        v_t     *v,
+                        real    **rho);
+
+void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-											 real    **rho);
-
-void free_memory_shot(  coeff_t *c,
-                      s_t     *s,
-                      v_t     *v,
-											real    **rho);
+                       real    **rho);
 
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-												real    *rho);
+                        real    *rho);
 
 /* --------------- I/O RELATED FUNCTIONS -------------------------------------- */
 
 void load_initial_model ( const real    waveletFreq,
-													const integer numberOfCells,
-                         	coeff_t *c,
-                         	s_t     *s,
-                         	v_t     *v,
-                         	real    *rho);
+                          const integer numberOfCells,
+                          coeff_t *c,
+                          s_t     *s,
+                          v_t     *v,
+                          real    *rho);
 
 void write_snapshot ( char          *folder,
+                      const int     suffix,
+                      v_t          *v,
+                      const integer numberOfCells);
+
+void read_snapshot ( char          *folder,
                      const int     suffix,
                      v_t          *v,
                      const integer numberOfCells);
 
-void read_snapshot ( char          *folder,
-                    const int     suffix,
-                    v_t          *v,
-                    const integer numberOfCells);
-
 /* --------------- BOUNDARY EXCHANGES ---------------------------------------- */
 
-void exchange_velocity_boundaries ( v_t *v,
-                                   int numElement,
-                                   int rank,
-                                   int numTasks,
-                                   int nyf,
-                                   int ny0);
+void exchange_velocity_boundaries ( v_t v,
+                                    int plane_size,
+                                    int gpu,
+                                    int ngpus,
+                                    int nyf,
+                                    int ny0);
 
-void exchange_stress_boundaries   ( s_t *s,
-                                   int numElement,
-                                   int rank,
-                                   int numTasks,
-                                   int nyf,
-                                   int ny0);
+void exchange_stress_boundaries   ( s_t s,
+                                    int plane_size,
+                                    int gpu,
+                                    int ngpus,
+                                    int nyf,
+                                    int ny0);
 
 
 

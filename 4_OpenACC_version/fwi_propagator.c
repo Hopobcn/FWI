@@ -133,7 +133,16 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    #pragma acc kernels present(vptr, szptr, sxptr, syptr, rho) async(phase)
+    const integer start_in   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in     = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in  = end_in - start_in;
+    const integer start_out  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out = end_out - start_out;
+
+    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
+                        copyin(vptr[start_in:nelems_in]) \
+                        async(phase)
     {
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
@@ -155,6 +164,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -179,7 +189,16 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    #pragma acc kernels present(vptr, szptr, sxptr, syptr, rho) async(phase)
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
+                        copyin(vptr[start_in:nelems_in]) \
+                        async(phase)
     {
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
@@ -201,6 +220,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -225,7 +245,16 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    #pragma acc kernels present(vptr, szptr, sxptr, syptr, rho) async(phase)
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
+                        copyin(vptr[start_in:nelems_in]) \
+                        async(phase)
     {
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
@@ -247,6 +276,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -271,7 +301,16 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    #pragma acc kernels present(vptr, szptr, sxptr, syptr, rho) async(phase)
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
+                        copyin(vptr[start_in:nelems_in]) \
+                        async(phase)
     {
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
@@ -293,6 +332,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
         }
     }
     } /* end acc loop */
+    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void velocity_propagator(v_t           v,
@@ -556,10 +596,17 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                        present(vxu, vxv, vxw)                                  \
-                        present(vyu, vyv, vyw)                                  \
-                        present(vzu, vzv, vzw)                                  \
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
+                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
+                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
+                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -619,7 +666,15 @@ void compute_component_scell_TR (s_t             s,
             }
         }
     }
-    } /* end acc kernels */
+    } /* end acc kernels */ 
+    
+    #pragma acc update self(sxxptr[start_out:nelems_out]) \
+                       self(syyptr[start_out:nelems_out]) \
+                       self(szzptr[start_out:nelems_out]) \
+                       self(syzptr[start_out:nelems_out]) \
+                       self(sxzptr[start_out:nelems_out]) \
+                       self(sxyptr[start_out:nelems_out]) \
+                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_scell_TL (s_t             s,
@@ -683,10 +738,17 @@ void compute_component_scell_TL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                        present(vxu, vxv, vxw)                                  \
-                        present(vyu, vyv, vyw)                                  \
-                        present(vzu, vzv, vzw)                                  \
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
+                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
+                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
+                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -745,6 +807,13 @@ void compute_component_scell_TL (s_t             s,
             }
         }
     }
+    #pragma acc update self(sxxptr[start_out:nelems_out]) \
+                       self(syyptr[start_out:nelems_out]) \
+                       self(szzptr[start_out:nelems_out]) \
+                       self(syzptr[start_out:nelems_out]) \
+                       self(sxzptr[start_out:nelems_out]) \
+                       self(sxyptr[start_out:nelems_out]) \
+                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 
@@ -809,10 +878,17 @@ void compute_component_scell_BR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                        present(vxu, vxv, vxw)                                  \
-                        present(vyu, vyv, vyw)                                  \
-                        present(vzu, vzv, vzw)                                  \
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
+                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
+                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
+                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -872,6 +948,13 @@ void compute_component_scell_BR (s_t             s,
             }
         }
     }
+    #pragma acc update self(sxxptr[start_out:nelems_out]) \
+                       self(syyptr[start_out:nelems_out]) \
+                       self(szzptr[start_out:nelems_out]) \
+                       self(syzptr[start_out:nelems_out]) \
+                       self(sxzptr[start_out:nelems_out]) \
+                       self(sxyptr[start_out:nelems_out]) \
+                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_scell_BL (s_t             s,
@@ -935,10 +1018,17 @@ void compute_component_scell_BL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                        present(vxu, vxv, vxw)                                  \
-                        present(vyu, vyv, vyw)                                  \
-                        present(vzu, vzv, vzw)                                  \
+    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems_in = end_in - start_in;
+    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
+    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
+    const integer nelems_out= end_out - start_out;
+
+    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
+                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
+                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
+                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -997,4 +1087,11 @@ void compute_component_scell_BL (s_t             s,
             }
         }
     }
+    #pragma acc update self(sxxptr[start_out:nelems_out]) \
+                       self(syyptr[start_out:nelems_out]) \
+                       self(szzptr[start_out:nelems_out]) \
+                       self(syzptr[start_out:nelems_out]) \
+                       self(sxzptr[start_out:nelems_out]) \
+                       self(sxyptr[start_out:nelems_out]) \
+                       wait(phase) asynch(D2H) if(phase != TWO)
 };

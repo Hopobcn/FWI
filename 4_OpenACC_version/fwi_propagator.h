@@ -41,7 +41,7 @@ typedef struct {
 #define ASSUMED_DISTANCE 16
 
 typedef enum {back_offset, forw_offset} offset_t;
-typedef enum {ONE_A, ONE_B, TWO} phase_t;
+typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
 #pragma acc routine seq
 integer IDX (const integer z, 
