@@ -1,7 +1,7 @@
 CC       = pgcc
 NVCC     = nvcc
-CFLAGS   = -g -c99 -fast -mp -acc -ta=tesla,cc50 -Minfo=accel,inline,mp -Minline=IDX -Mcuda
-NVFLAGS  = -g -std=c++11 -O3 -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
+CFLAGS   = -g -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX -Mcuda
+NVFLAGS  = -g -std=c++11 -O3 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
 INCS     = -I$(CUDA_HOME)/include #-I$(ACC_HOME)/include
 LIBS     = -lm
 DEFINES  += -DDO_NOT_PERFORM_IO -DUSE_CUDA

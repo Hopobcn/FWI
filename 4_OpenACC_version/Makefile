@@ -1,5 +1,5 @@
 CC       = pgcc
-CFLAGS   = -g -c99 -fast -mp -acc -ta=tesla,cc50 -Minfo=accel,inline,mp -Minline=IDX
+CFLAGS   = -g -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX
 INCS     = 
 LIBS     = -lm
 DEFINES  += -DDO_NOT_PERFORM_IO
