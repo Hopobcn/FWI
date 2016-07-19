@@ -334,7 +334,7 @@ real cell_coeff_ARTM_TR ( const real* restrict ptr,
                           const integer dimmz, 
                           const integer dimmx);
 
-void compute_component_scell_TR ( s_t             s,
+void compute_component_scell_TR (s_t             s,
                                  point_v_t       vnode_z,
                                  point_v_t       vnode_x,
                                  point_v_t       vnode_y,

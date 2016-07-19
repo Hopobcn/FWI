@@ -161,20 +161,22 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer start_out  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
     const integer end_out    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out = end_out - start_out;
-    
+
+    //#pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase)
+
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase)
     {
-    #pragma acc loop independent device_type(nvidia) gang vector(4)
-    for(integer z=nz0; z < nzf; z++)
+    #pragma acc loop independent seq
+    for(integer y=ny0; y < nyf; y++)
     {
-        #pragma acc loop independent device_type(nvidia) worker(32)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma acc loop independent seq
-            for(integer y=ny0; y < nyf; y++)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
                 
@@ -228,6 +230,8 @@ void compute_component_vcell_TR (      real* restrict vptr,
     const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
+
+    //#pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
@@ -297,6 +301,8 @@ void compute_component_vcell_BR (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
+    //#pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase)
+
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
@@ -363,6 +369,8 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
+
+    //#pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \

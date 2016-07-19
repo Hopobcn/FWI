@@ -26,12 +26,11 @@
  * Just needed for debugging when running small cases.
  */
 void check_domain_dimensions ( const integer dimmz,
-                                  const integer dimmx,
-                                  const integer dimmy
-                                );
+                               const integer dimmx,
+                               const integer dimmy);
 
 void set_array_to_random_real(real* restrict array,
-                                                            const integer length);
+                              const integer length);
 
 void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
@@ -72,18 +71,18 @@ void read_snapshot ( char          *folder,
 /* --------------- BOUNDARY EXCHANGES ---------------------------------------- */
 
 void exchange_velocity_boundaries ( v_t *v,
-                                   int numElement,
-                                   int rank,
-                                   int numTasks,
-                                   int nyf,
-                                   int ny0);
+                                    int numElement,
+                                    int rank,
+                                    int numTasks,
+                                    int nyf,
+                                    int ny0);
 
 void exchange_stress_boundaries   ( s_t *s,
-                                   int numElement,
-                                   int rank,
-                                   int numTasks,
-                                   int nyf,
-                                   int ny0);
+                                    int numElement,
+                                    int rank,
+                                    int numTasks,
+                                    int nyf,
+                                    int ny0);
 
 
 

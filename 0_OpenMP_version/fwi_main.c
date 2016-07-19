@@ -83,10 +83,10 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          io_buffer,
                          numberOfCells,
                          dimmz, dimmx);
-        
+
         end_t = dtime();
 
-        fprintf(stderr, "Forward propagation finished in %lf seconds\n", \
+        fprintf(stdout, "Forward propagation finished in %lf seconds\n", \
                          end_t - start_t );
 
         start_t = dtime();
@@ -103,7 +103,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
         end_t = dtime();
 
-        fprintf(stderr, "Backward propagation finished in %lf seconds\n", \
+        fprintf(stdout, "Backward propagation finished in %lf seconds\n", \
                          end_t - start_t );
 
 #ifdef DO_NOT_PERFORM_IO
@@ -146,7 +146,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
         end_t = dtime();
 
-        fprintf(stderr, "Forward Modelling finished in %lf seconds\n",  \
+        fprintf(stdout, "Forward Modelling finished in %lf seconds\n",  \
                          end_t - start_t );
        
         break;
@@ -196,7 +196,9 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
         safe_fread ( readbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, freadfile, __FILE__, __LINE__ );
 
         #pragma omp parallel for
+#ifdef __INTEL_COMPILER
         #pragma simd
+#endif
         for( int i = 0; i < numberOfCells * WRITTEN_FIELDS; i++)
             sumbuffer[i] += readbuffer[i];
         fclose (freadfile);
@@ -210,8 +212,7 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for preconditioner %s "   \
-                    "completed in: %lf seconds\n",              \
+    fprintf(stderr, "Gatering process for preconditioner %s completed in: %lf seconds\n",
                     precondfilename, end_t - start_t  );
 
 
@@ -252,8 +253,8 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for gradient %s "   \
-                    "completed in: %lf seconds\n",        \
+    fprintf(stderr, "Gatering process for gradient %s " 
+                    "completed in: %lf seconds\n",    
                     precondfilename, end_t - start_t );
 
     __free(  sumbuffer);
@@ -328,13 +329,15 @@ int main(int argc, const char* argv[])
                 sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
                 create_folder( shotfolder );
 
-                store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder);
+                store_shot_parameters ( shot, &stacki, &dt, &forw_steps, &back_steps, 
+                                        &dz, &dx, &dy, 
+                                        &dimmz, &dimmx, &dimmy, 
+                                        outputfolder);
 
                 kernel( RTM_KERNEL, waveletFreq, shot, outputfolder);
 
-                // update_shot()
-
                 fprintf(stderr, "       %d-th shot processed\n", shot);
+                // update_shot()
             }
 
             gather_shots( outputfolder, nshots, numberOfCells );
@@ -348,7 +351,10 @@ int main(int argc, const char* argv[])
                     sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
                     create_folder( shotfolder );
                     
-                    store_shot_parameters ( shot, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder);
+                    store_shot_parameters ( shot, &stacki, &dt, &forw_steps, &back_steps, 
+                                            &dz, &dx, &dy, 
+                                            &dimmz, &dimmx, &dimmy, 
+                                            outputfolder);
 
                     kernel( FM_KERNEL , waveletFreq, shot, outputfolder);
                 

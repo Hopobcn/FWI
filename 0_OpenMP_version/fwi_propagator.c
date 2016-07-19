@@ -11,7 +11,7 @@ integer IDX (const integer z,
 
 
 real stencil_Z ( const offset_t off,
-                 real* restrict ptr,
+                 const real* restrict ptr,
                  const real    dzi,
                  const integer z,
                  const integer x,
@@ -26,7 +26,7 @@ real stencil_Z ( const offset_t off,
 };
 
 real stencil_X( const offset_t off,
-                real* restrict ptr,
+                const real* restrict ptr,
                 const real dxi,
                 const integer z,
                 const integer x,
@@ -41,7 +41,7 @@ real stencil_X( const offset_t off,
 };
 
 real stencil_Y( const offset_t off,
-                real* restrict ptr,
+                const real* restrict ptr,
                 const real dyi,
                 const integer z,
                 const integer x,
@@ -60,7 +60,7 @@ real stencil_Y( const offset_t off,
 /* -------------------------------------------------------------------- */
 
 
-real rho_BL ( real* restrict rho,
+real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
@@ -70,7 +70,7 @@ real rho_BL ( real* restrict rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z+1,x,y,dimmz,dimmx)]));
 };
 
-real rho_TR ( real* restrict rho,
+real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
@@ -80,7 +80,7 @@ real rho_TR ( real* restrict rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x+1,y,dimmz,dimmx)]));
 };
 
-real rho_BR ( real* restrict rho,
+real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
@@ -97,7 +97,7 @@ real rho_BR ( real* restrict rho,
                      rho[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
 };
 
-real rho_TL ( real* restrict rho,
+real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
@@ -107,34 +107,34 @@ real rho_TL ( real* restrict rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x,y+1,dimmz,dimmx)]));
 };
 
-void compute_component_vcell_TL (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
-                                 const real     dt,
-                                 const real     dzi,
-                                 const real     dxi,
-                                 const real     dyi,
-                                 const integer  nz0,
-                                 const integer  nzf,
-                                 const integer  nx0,
-                                 const integer  nxf,
-                                 const integer  ny0,
-                                 const integer  nyf,
-                                 const offset_t _SZ,
-                                 const offset_t _SX,
-                                 const offset_t _SY,
-                                 const integer  dimmz,
-                                 const integer  dimmx)
+void compute_component_vcell_TL (      real* restrict vptr,
+                                 const real* restrict szptr,
+                                 const real* restrict sxptr,
+                                 const real* restrict syptr,
+                                 const real* restrict rho,
+                                 const real           dt,
+                                 const real           dzi,
+                                 const real           dxi,
+                                 const real           dyi,
+                                 const integer        nz0,
+                                 const integer        nzf,
+                                 const integer        nx0,
+                                 const integer        nxf,
+                                 const integer        ny0,
+                                 const integer        nyf,
+                                 const offset_t       _SZ,
+                                 const offset_t       _SX,
+                                 const offset_t       _SY,
+                                 const integer        dimmz,
+                                 const integer        dimmx)
 {
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
 
     real* restrict _vptr  __attribute__ ((aligned (64))) = vptr;
-    real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
-    real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
-    real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
+    const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+    const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+    const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
     #pragma omp parallel for
     for(integer y=ny0; y < nyf; y++)
@@ -151,18 +151,18 @@ void compute_component_vcell_TL (real* restrict vptr,
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx);
-                
+ 
                 _vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
 };
 
-void compute_component_vcell_TR (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
+void compute_component_vcell_TR (      real* restrict vptr,
+                                 const real* restrict szptr,
+                                 const real* restrict sxptr,
+                                 const real* restrict syptr,
+                                 const real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -183,9 +183,9 @@ void compute_component_vcell_TR (real* restrict vptr,
     __assume( nzf % HALO == 0);
 
     real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
-    real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
-    real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
-    real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
+    const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+    const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+    const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
     #pragma omp parallel for
     for(integer y=ny0; y < nyf; y++)
@@ -209,34 +209,34 @@ void compute_component_vcell_TR (real* restrict vptr,
     }
 };
 
-void compute_component_vcell_BR (real* restrict  vptr,
-                                 real* restrict  szptr,
-                                 real* restrict  sxptr,
-                                 real* restrict  syptr,
-                                 real* restrict  rho,
-                                 const real     dt,
-                                 const real     dzi,
-                                 const real     dxi,
-                                 const real     dyi,
-                                 const integer  nz0,
-                                 const integer  nzf,
-                                 const integer  nx0,
-                                 const integer  nxf,
-                                 const integer  ny0,
-                                 const integer  nyf,
-                                 const offset_t _SZ,
-                                 const offset_t _SX,
-                                 const offset_t _SY,
-                                 const integer  dimmz,
-                                 const integer  dimmx)
+void compute_component_vcell_BR (      real* restrict  vptr,
+                                 const real* restrict  szptr,
+                                 const real* restrict  sxptr,
+                                 const real* restrict  syptr,
+                                 const real* restrict  rho,
+                                 const real            dt,
+                                 const real            dzi,
+                                 const real            dxi,
+                                 const real            dyi,
+                                 const integer         nz0,
+                                 const integer         nzf,
+                                 const integer         nx0,
+                                 const integer         nxf,
+                                 const integer         ny0,
+                                 const integer         nyf,
+                                 const offset_t        _SZ,
+                                 const offset_t        _SX,
+                                 const offset_t        _SY,
+                                 const integer         dimmz,
+                                 const integer         dimmx)
 {
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
     
     real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
-    real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
-    real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
-    real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
+    const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+    const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+    const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
     #pragma omp parallel for
     for(integer y=ny0; y < nyf; y++)
@@ -260,11 +260,11 @@ void compute_component_vcell_BR (real* restrict  vptr,
     }
 };
 
-void compute_component_vcell_BL (real* restrict  vptr,
-                                 real* restrict  szptr,
-                                 real* restrict  sxptr,
-                                 real* restrict  syptr,
-                                 real* restrict  rho,
+void compute_component_vcell_BL (      real* restrict  vptr,
+                                 const real* restrict  szptr,
+                                 const real* restrict  sxptr,
+                                 const real* restrict  syptr,
+                                 const real* restrict  rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -285,9 +285,9 @@ void compute_component_vcell_BL (real* restrict  vptr,
     __assume( nzf % HALO == 0);
     
     real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
-    real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
-    real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
-    real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
+    const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
+    const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
+    const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
 
 
     #pragma omp parallel for
@@ -300,7 +300,7 @@ void compute_component_vcell_BL (real* restrict  vptr,
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
-                const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
+                const real lrho = rho_BL(rho, z, x, y, dimmz, dimmx);
                 
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
@@ -312,22 +312,22 @@ void compute_component_vcell_BL (real* restrict  vptr,
     }
 };
 
-void velocity_propagator(v_t       v,
-                         s_t       s,
-                         coeff_t   coeffs,
-                         real      *rho,
-                         const real      dt,
-                         const real      dzi,
-                         const real      dxi,
-                         const real      dyi,
-                         const integer   nz0,
-                         const integer   nzf,
-                         const integer   nx0,
-                         const integer   nxf,
-                         const integer   ny0,
-                         const integer   nyf,
-                         const integer   dimmz,
-                         const integer   dimmx)
+void velocity_propagator(v_t           v,
+                         s_t           s,
+                         coeff_t       coeffs,
+                         real*         rho,
+                         const real    dt,
+                         const real    dzi,
+                         const real    dxi,
+                         const real    dyi,
+                         const integer nz0,
+                         const integer nzf,
+                         const integer nx0,
+                         const integer nxf,
+                         const integer ny0,
+                         const integer nyf,
+                         const integer dimmz,
+                         const integer dimmx)
 {
 #ifdef DEBUG
     fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
@@ -362,28 +362,28 @@ void velocity_propagator(v_t       v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-void stress_update( real* restrict sptr,
-                    const real          c1,
-                    const real          c2,
-                    const real          c3,
-                    const real          c4,
-                    const real          c5,
-                    const real          c6,
-                    const integer z,
-                    const integer x,
-                    const integer y,
-                    const real    dt,
-                    const real    u_x,
-                    const real    u_y,
-                    const real    u_z,
-                    const real    v_x,
-                    const real    v_y,
-                    const real    v_z,
-                    const real    w_x,
-                    const real    w_y,
-                    const real    w_z,
-                    const integer dimmz,
-                    const integer dimmx)
+void stress_update(real* restrict sptr,
+                   const real     c1,
+                   const real     c2,
+                   const real     c3,
+                   const real     c4,
+                   const real     c5,
+                   const real     c6,
+                   const integer  z,
+                   const integer  x,
+                   const integer  y,
+                   const real     dt,
+                   const real     u_x,
+                   const real     u_y,
+                   const real     u_z,
+                   const real     v_x,
+                   const real     v_y,
+                   const real     v_z,
+                   const real     w_x,
+                   const real     w_y,
+                   const real     w_z,
+                   const integer  dimmz,
+                   const integer  dimmx)
 {
     sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c1 * u_x;
     sptr[IDX(z,x,y,dimmz,dimmx)] += dt * c2 * v_y;
@@ -396,11 +396,11 @@ void stress_update( real* restrict sptr,
 void stress_propagator(s_t           s,
                        v_t           v,
                        coeff_t       coeffs,
-                       real          *rho,
+                       real*         rho,
                        const real    dt,
                        const real    dzi,
                        const real    dxi,
-                       const real    dyi, 
+                       const real    dyi,
                        const integer nz0,
                        const integer nzf,
                        const integer nx0,
@@ -425,7 +425,12 @@ void stress_propagator(s_t           s,
     }
 };
 
-real cell_coeff_BR ( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_BR ( const real* restrict ptr, 
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
+                     const integer dimmx)
 {
     return ( 1.0f / ( 2.5f  *(ptr[IDX(z  , x  ,y,dimmz,dimmx)] +
                               ptr[IDX(z  , x+1,y,dimmz,dimmx)] +
@@ -433,20 +438,35 @@ real cell_coeff_BR ( real* restrict ptr, const integer z, const integer x, const
                               ptr[IDX(z+1, x+1,y,dimmz,dimmx)])) );
 };
 
-real cell_coeff_TL ( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_TL ( const real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx)
 {
     return ( 1.0f / (ptr[IDX(z,x,y,dimmz,dimmx)]));
 };
 
-real cell_coeff_BL ( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_BL ( const real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx)
 {
     return ( 1.0f / ( 2.5f *(ptr[IDX(z  ,x,y  ,dimmz,dimmx)] +
-                         ptr[IDX(z  ,x,y+1,dimmz,dimmx)] +
-                         ptr[IDX(z+1,x,y  ,dimmz,dimmx)] +
-                         ptr[IDX(z+1,x,y+1,dimmz,dimmx)])) );
+                             ptr[IDX(z  ,x,y+1,dimmz,dimmx)] +
+                             ptr[IDX(z+1,x,y  ,dimmz,dimmx)] +
+                             ptr[IDX(z+1,x,y+1,dimmz,dimmx)])) );
 };
 
-real cell_coeff_TR ( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_TR ( const real* restrict ptr, 
+                     const integer z, 
+                     const integer x, 
+                     const integer y, 
+                     const integer dimmz, 
+                     const integer dimmx)
 {
     return ( 1.0f / ( 2.5f *(ptr[IDX(z  , x  , y  ,dimmz,dimmx)] +
                              ptr[IDX(z  , x+1, y  ,dimmz,dimmx)] +
@@ -454,7 +474,12 @@ real cell_coeff_TR ( real* restrict ptr, const integer z, const integer x, const
                              ptr[IDX(z  , x+1, y+1,dimmz,dimmx)])));
 };
 
-real cell_coeff_ARTM_BR( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_ARTM_BR( const real* restrict ptr, 
+                         const integer z, 
+                         const integer x, 
+                         const integer y, 
+                         const integer dimmz, 
+                         const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z  ,x  ,y,dimmz,dimmx )]  +
              1.0f / ptr[IDX(z  ,x+1,y,dimmz,dimmx )]  +
@@ -462,12 +487,22 @@ real cell_coeff_ARTM_BR( real* restrict ptr, const integer z, const integer x, c
              1.0f / ptr[IDX(z+1,x+1,y,dimmz,dimmx )]) * 0.25f);
 };
 
-real cell_coeff_ARTM_TL( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_ARTM_TL( const real* restrict ptr, 
+                         const integer z, 
+                         const integer x, 
+                         const integer y, 
+                         const integer dimmz, 
+                         const integer dimmx)
 {
     return (1.0f / ptr[IDX(z,x,y,dimmz,dimmx)]);
 };
 
-real cell_coeff_ARTM_BL( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_ARTM_BL( const real* restrict ptr, 
+                         const integer z, 
+                         const integer x, 
+                         const integer y, 
+                         const integer dimmz, 
+                         const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z  ,x,y  ,dimmz,dimmx)]  +
              1.0f / ptr[IDX(z  ,x,y+1,dimmz,dimmx)]  +
@@ -475,7 +510,12 @@ real cell_coeff_ARTM_BL( real* restrict ptr, const integer z, const integer x, c
              1.0f / ptr[IDX(z+1,x,y+1,dimmz,dimmx)]) * 0.25f);
 };
 
-real cell_coeff_ARTM_TR( real* restrict ptr, const integer z, const integer x, const integer y, const integer dimmz, const integer dimmx)
+real cell_coeff_ARTM_TR( const real* restrict ptr, 
+                         const integer z, 
+                         const integer x, 
+                         const integer y, 
+                         const integer dimmz, 
+                         const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z,x  ,y  ,dimmz,dimmx)]  +
              1.0f / ptr[IDX(z,x+1,y  ,dimmz,dimmx)]  +
@@ -514,16 +554,15 @@ void compute_component_scell_TR (s_t             s,
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.tr.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.tr.xy;
     
-    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
-    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
-    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
-    
-    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
-    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
-    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
-    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
-    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
-    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+    const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    const real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    const real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    const real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    const real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    const real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    const real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
 
     #pragma omp parallel for
     for (integer y = ny0; y < nyf; y++)
@@ -611,17 +650,15 @@ void compute_component_scell_TL (s_t             s,
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.tl.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.tl.xy;
     
-    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
-    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
-    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
-    
-    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
-    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
-    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
-    
-    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
-    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
-    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+    const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    const real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    const real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    const real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    const real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    const real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    const real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
 
     #pragma omp parallel for
     for (integer y = ny0; y < nyf; y++)
@@ -710,17 +747,15 @@ void compute_component_scell_BR (s_t             s,
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
     
-    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
-    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
-    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
-    
-    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
-    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
-    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
-    
-    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
-    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
-    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+    const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    const real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    const real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    const real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    const real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    const real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    const real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
 
     #pragma omp parallel for
     for (integer y = ny0; y < nyf; y++)
@@ -802,24 +837,22 @@ void compute_component_scell_BL (s_t             s,
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
 
-    real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
-    real* restrict syyptr __attribute__ ((aligned (64))) = s.br.yy;
-    real* restrict szzptr __attribute__ ((aligned (64))) = s.br.zz;
-    real* restrict syzptr __attribute__ ((aligned (64))) = s.br.yz;
-    real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
-    real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
+    real* restrict sxxptr __attribute__ ((aligned (64))) = s.bl.xx;
+    real* restrict syyptr __attribute__ ((aligned (64))) = s.bl.yy;
+    real* restrict szzptr __attribute__ ((aligned (64))) = s.bl.zz;
+    real* restrict syzptr __attribute__ ((aligned (64))) = s.bl.yz;
+    real* restrict sxzptr __attribute__ ((aligned (64))) = s.bl.xz;
+    real* restrict sxyptr __attribute__ ((aligned (64))) = s.bl.xy;
     
-    real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
-    real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
-    real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
-    
-    real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
-    real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
-    real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
-    
-    real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
-    real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
-    real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
+    const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
+    const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
+    const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
+    const real* restrict vyu    __attribute__ ((aligned (64))) = vnode_y.u;
+    const real* restrict vyv    __attribute__ ((aligned (64))) = vnode_y.v;
+    const real* restrict vyw    __attribute__ ((aligned (64))) = vnode_y.w;
+    const real* restrict vzu    __attribute__ ((aligned (64))) = vnode_z.u;
+    const real* restrict vzv    __attribute__ ((aligned (64))) = vnode_z.v;
+    const real* restrict vzw    __attribute__ ((aligned (64))) = vnode_z.w;
 
     #pragma omp parallel for
     for (integer y = ny0; y < nyf; y++)

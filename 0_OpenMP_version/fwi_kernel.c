@@ -303,29 +303,6 @@ void load_initial_model ( const real    waveletFreq,
 {
     const integer size = numberOfCells * sizeof(real);
     
-       /* initialize coefficients */
-    set_array_to_random_real( c->c11, numberOfCells);
-    set_array_to_random_real( c->c12, numberOfCells);
-    set_array_to_random_real( c->c13, numberOfCells);
-    set_array_to_random_real( c->c14, numberOfCells);
-    set_array_to_random_real( c->c15, numberOfCells);
-    set_array_to_random_real( c->c16, numberOfCells);
-    set_array_to_random_real( c->c22, numberOfCells);
-    set_array_to_random_real( c->c23, numberOfCells);
-    set_array_to_random_real( c->c24, numberOfCells);
-    set_array_to_random_real( c->c25, numberOfCells);
-    set_array_to_random_real( c->c26, numberOfCells);
-    set_array_to_random_real( c->c33, numberOfCells);
-    set_array_to_random_real( c->c34, numberOfCells);
-    set_array_to_random_real( c->c35, numberOfCells);
-    set_array_to_random_real( c->c36, numberOfCells);
-    set_array_to_random_real( c->c44, numberOfCells);
-    set_array_to_random_real( c->c45, numberOfCells);
-    set_array_to_random_real( c->c46, numberOfCells);
-    set_array_to_random_real( c->c55, numberOfCells);
-    set_array_to_random_real( c->c56, numberOfCells);
-    set_array_to_random_real( c->c66, numberOfCells);
-    
     /* initialize stress */
     memset( s->tl.zz, 0, size);
     memset( s->tl.xz, 0, size);
@@ -352,7 +329,34 @@ void load_initial_model ( const real    waveletFreq,
     memset( s->br.xy, 0, size);
     memset( s->br.yy, 0, size);
 
-#ifdef DO_NOT_PERFORM_IO 
+#ifdef DO_NOT_PERFORM_IO
+
+    /* initialize coefficients */
+    set_array_to_random_real( c->c11, numberOfCells);
+    set_array_to_random_real( c->c12, numberOfCells);
+    set_array_to_random_real( c->c13, numberOfCells);
+    set_array_to_random_real( c->c14, numberOfCells);
+    set_array_to_random_real( c->c15, numberOfCells);
+    set_array_to_random_real( c->c16, numberOfCells);
+    set_array_to_random_real( c->c22, numberOfCells);
+    set_array_to_random_real( c->c23, numberOfCells);
+    set_array_to_random_real( c->c24, numberOfCells);
+    set_array_to_random_real( c->c25, numberOfCells);
+    set_array_to_random_real( c->c26, numberOfCells);
+    set_array_to_random_real( c->c33, numberOfCells);
+    set_array_to_random_real( c->c34, numberOfCells);
+    set_array_to_random_real( c->c35, numberOfCells);
+    set_array_to_random_real( c->c36, numberOfCells);
+    set_array_to_random_real( c->c44, numberOfCells);
+    set_array_to_random_real( c->c45, numberOfCells);
+    set_array_to_random_real( c->c46, numberOfCells);
+    set_array_to_random_real( c->c55, numberOfCells);
+    set_array_to_random_real( c->c56, numberOfCells);
+    set_array_to_random_real( c->c66, numberOfCells);
+
+    /* initialize rho */
+    set_array_to_random_real( rho, numberOfCells );
+
     /* initalize velocity components */
     set_array_to_random_real( v->tl.u, numberOfCells );
     set_array_to_random_real( v->tl.v, numberOfCells );
@@ -366,10 +370,34 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( v->br.u, numberOfCells );
     set_array_to_random_real( v->br.v, numberOfCells );
     set_array_to_random_real( v->br.w, numberOfCells );
-    
+#else 
+    /* initialize coefficients */
+    memset( c->c11, 1.0, size);
+    memset( c->c12, 1.0, size);
+    memset( c->c13, 1.0, size);
+    memset( c->c14, 1.0, size);
+    memset( c->c15, 1.0, size);
+    memset( c->c16, 1.0, size);
+    memset( c->c22, 1.0, size);
+    memset( c->c23, 1.0, size);
+    memset( c->c24, 1.0, size);
+    memset( c->c25, 1.0, size);
+    memset( c->c26, 1.0, size);
+    memset( c->c33, 1.0, size);
+    memset( c->c34, 1.0, size);
+    memset( c->c35, 1.0, size);
+    memset( c->c36, 1.0, size);
+    memset( c->c44, 1.0, size);
+    memset( c->c45, 1.0, size);
+    memset( c->c46, 1.0, size);
+    memset( c->c55, 1.0, size);
+    memset( c->c56, 1.0, size);
+    memset( c->c66, 1.0, size);
+
     /* initialize rho */
-    set_array_to_random_real( rho, numberOfCells );
-#else /* load velocity model from external file */
+    memset( rho, 1.0, size );
+
+    /* load velocity model from external file */
     /* open initial model, binary file */
     char modelname[300];
     sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
@@ -391,7 +419,7 @@ void load_initial_model ( const real    waveletFreq,
     safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    
+
     /* close model file */
     safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
 
@@ -431,8 +459,8 @@ void write_snapshot(char *folder,
     safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-  if ( fclose(snapshot)!=0)
-      fprintf(stderr,"Error closing file %s\n", fname);
+    if ( fclose(snapshot)!=0 )
+        fprintf(stderr,"Error closing file %s\n", fname);
 
 #endif
 };
@@ -446,58 +474,58 @@ void read_snapshot(char *folder,
                    const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-  fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
+    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
 #else
     char fname[300];
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
-    
+
     FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
-    
+
     safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-      
+    
     safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-      
+    
     safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     if ( fclose(snapshot)!=0 )
         fprintf(stderr,"Error closing file %s\n", fname);
 
 #endif
 };
 
-void propagate_shot ( time_d        direction,
-                      v_t           v,
-                      s_t           s,
-                      coeff_t       coeffs,
-                      real          *rho,
-                      int           timesteps,
-                      int           ntbwd,
-                      real          dt,
-                      real          dzi,
-                      real          dxi,
-                      real          dyi,
-                      integer       nz0,
-                      integer       nzf,
-                      integer       nx0,
-                      integer       nxf,
-                      integer       ny0,
-                      integer       nyf,
-                      integer       stacki,
-                      char          *folder,
-                      real          *dataflush,
-                      integer       datalen,
-                      integer       dimmz,
-                      integer       dimmx)
+void propagate_shot (time_d        direction,
+                     v_t           v,
+                     s_t           s,
+                     coeff_t       coeffs,
+                     real          *rho,
+                     int           timesteps,
+                     int           ntbwd,
+                     real          dt,
+                     real          dzi,
+                     real          dxi,
+                     real          dyi,
+                     integer       nz0,
+                     integer       nzf,
+                     integer       nx0,
+                     integer       nxf,
+                     integer       ny0,
+                     integer       nyf,
+                     integer       stacki,
+                     char          *folder,
+                     real          *dataflush,
+                     integer       datalen,
+                     integer       dimmz,
+                     integer       dimmx)
 {
     for(int t=0; t < timesteps; t++)
     {
@@ -510,25 +538,25 @@ void propagate_shot ( time_d        direction,
         /*                      VELOCITY COMPUTATION                                      */
         /* ------------------------------------------------------------------------------ */
       
-        /* Phase 1. Computation of the left-most planes of the domain */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            ny0 +   HALO,
-                            ny0 + 2*HALO,
-                            dimmz, dimmx);
+        // /* Phase 1. Computation of the left-most planes of the domain */
+        // velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+        //                     nz0 +   HALO,
+        //                     nzf -   HALO,
+        //                     nx0 +   HALO,
+        //                     nxf -   HALO,
+        //                     ny0 +   HALO,
+        //                     ny0 + 2*HALO,
+        //                     dimmz, dimmx);
 
-        /* Phase 1. Computation of the right-most planes of the domain */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0 +   HALO,
-                            nzf -   HALO,
-                            nx0 +   HALO,
-                            nxf -   HALO,
-                            nyf - 2*HALO,
-                            nyf -   HALO,
-                            dimmz, dimmx);
+        // /* Phase 1. Computation of the right-most planes of the domain */
+        // velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+        //                     nz0 +   HALO,
+        //                     nzf -   HALO,
+        //                     nx0 +   HALO,
+        //                     nxf -   HALO,
+        //                     nyf - 2*HALO,
+        //                     nyf -   HALO,
+        //                     dimmz, dimmx);
     
         /* Boundary exchange for velocity values */
         // exchange_velocity_boundaries( &v, plane_size, rank, numTasks, nyf, ny0);
@@ -547,25 +575,25 @@ void propagate_shot ( time_d        direction,
         /*                        STRESS COMPUTATION                                      */
         /* ------------------------------------------------------------------------------ */
 
-        /* Phase 1. Computation of the left-most planes of the domain */
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                          nz0 +   HALO,
-                          nzf -   HALO,
-                          nx0 +   HALO,
-                          nxf -   HALO,
-                          ny0 +   HALO,
-                          ny0 + 2*HALO,
-                          dimmz, dimmx);
+        // /* Phase 1. Computation of the left-most planes of the domain */
+        // stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+        //                   nz0 +   HALO,
+        //                   nzf -   HALO,
+        //                   nx0 +   HALO,
+        //                   nxf -   HALO,
+        //                   ny0 +   HALO,
+        //                   ny0 + 2*HALO,
+        //                   dimmz, dimmx);
       
-        /* Phase 1. Computation of the right-most planes of the domain */
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
-                          nz0 +   HALO,
-                          nzf -   HALO,
-                          nx0 +   HALO,
-                          nxf -   HALO,
-                          nyf - 2*HALO,
-                          nyf -   HALO,
-                          dimmz, dimmx);
+        // /* Phase 1. Computation of the right-most planes of the domain */
+        // stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+        //                   nz0 +   HALO,
+        //                   nzf -   HALO,
+        //                   nx0 +   HALO,
+        //                   nxf -   HALO,
+        //                   nyf - 2*HALO,
+        //                   nyf -   HALO,
+        //                   dimmz, dimmx);
 
         /* Boundary exchange for stress values */
         // exchange_stress_boundaries( &s, plane_size, rank, numTasks, nyf, ny0);
