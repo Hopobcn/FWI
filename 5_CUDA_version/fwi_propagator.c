@@ -169,7 +169,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase)
     {
-    #pragma acc loop independent seq
+    #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent device_type(nvidia) gang worker(4)
@@ -238,13 +238,13 @@ void compute_component_vcell_TR (      real* restrict vptr,
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase)
     {
-    #pragma acc loop independent
+    #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
     {
-        #pragma acc loop independent device_type(nvidia) gang worker(32)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma acc loop independent device_type(nvidia) vector(32)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho, z, x, y, dimmz, dimmx);
@@ -311,10 +311,10 @@ void compute_component_vcell_BR (      real* restrict vptr,
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
     {
-        #pragma acc loop independent device_type(nvidia) gang worker(32)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma acc loop independent device_type(nvidia) vector(32)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
@@ -377,13 +377,13 @@ void compute_component_vcell_BL (      real* restrict vptr,
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase)
     {
-    #pragma acc loop independent
+    #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
     {
-        #pragma acc loop independent device_type(nvidia) gang worker(32)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
         for(integer x=nx0; x < nxf; x++)
         {
-            #pragma acc loop independent device_type(nvidia) vector(32)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BL(rho, z, x, y, dimmz, dimmx);
@@ -694,10 +694,10 @@ void compute_component_scell_TR (s_t             s,
     {
     for (integer y = ny0; y < nyf; y++)
     {
-        #pragma acc loop device_type(nvidia) gang worker(32)
+        #pragma acc loop device_type(nvidia) gang worker(4)
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma acc loop device_type(nvidia) vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32)
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_TR      (cc11, z, x, y, dimmz, dimmx);
@@ -853,10 +853,10 @@ void compute_component_scell_TL (s_t             s,
                         async(phase)
     for (integer y = ny0; y < nyf; y++)
     {
-        #pragma acc loop device_type(nvidia) gang worker(32)
+        #pragma acc loop device_type(nvidia) gang worker(4)
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma acc loop device_type(nvidia) vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32)
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_TL      (cc11, z, x, y, dimmz, dimmx);
@@ -1012,10 +1012,10 @@ void compute_component_scell_BR (s_t             s,
                         async(phase)
     for (integer y = ny0; y < nyf; y++)
     {
-        #pragma acc loop device_type(nvidia) gang worker(32)
+        #pragma acc loop device_type(nvidia) gang worker(4)
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma acc loop device_type(nvidia) vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32)
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_BR      (cc11, z, x, y, dimmz, dimmx);
@@ -1171,10 +1171,10 @@ void compute_component_scell_BL (s_t             s,
                         async(phase)
     for (integer y = ny0; y < nyf; y++)
     {
-        #pragma acc loop device_type(nvidia) gang worker(32)
+        #pragma acc loop device_type(nvidia) gang worker(4)
         for (integer x = nx0; x < nxf; x++)
         {
-            #pragma acc loop device_type(nvidia) vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32)
             for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_BL      (cc11, z, x, y, dimmz, dimmx);
