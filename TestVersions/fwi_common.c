@@ -29,6 +29,89 @@ const size_t ALIGN_INT     = 16;
 const size_t ALIGN_INTEGER = 16;
 const size_t ALIGN_REAL    = 64;
 
+
+typedef enum {false, true} bool;
+
+typedef union
+{
+        //Float_t(float num = 0.0f) : f(num) {}
+        // Portable extraction of components.
+                    
+        int32_t i;
+        float f;
+#ifdef DEBUG
+        struct
+        {   // Bitfields for exploration. Do not use in production code.
+            uint32_t mantissa : 23;
+            uint32_t exponent : 8;
+            uint32_t sign : 1;
+        } parts;
+#endif
+} Float_t;
+
+bool Negative(Float_t f) { return f.i < 0; }
+int32_t RawMantissa(Float_t f) { return f.i & ((1 << 23) - 1); }
+int32_t RawExponent(Float_t f) { return (f.i >> 23) & 0xFF; }
+         
+bool AlmostEqualUlps(float A, float B, int maxUlpsDiff)
+{
+    Float_t uA;
+    Float_t uB;
+    
+    uA.f = A;
+    uB.f = B;
+
+    // NaN or Infinite means they do not match.
+    if (isnan(A) || isnan(B) || (A == INFINITY) || (B == INFINITY))
+        return false;
+
+    // Different signs means they do not match.
+    if (Negative(uA) != Negative(uB))
+    {
+        // Check for equality to make sure +0==-0
+        if (A == B)
+            return true;
+        return false;
+    }
+                                                      
+    // Find the difference in ULPs.
+    int ulpsDiff = abs(uA.i - uB.i);
+    if (ulpsDiff <= maxUlpsDiff)
+        return true;
+                                                       
+    return false;
+}
+
+int UlpDiff(float A, float B)
+{
+    Float_t uA, uB;
+    uA.f = A;
+    uB.f = B;
+
+    return abs(uA.i - uB.i);
+}
+
+void assert_eq_scalar( float ref, float opt, char* ref_name, char* opt_name, int maxULP )
+{
+    if (!AlmostEqualUlps(ref, opt, maxULP) )
+    {
+        fprintf(stderr, "%s %e !=\t%e\t%s by %d ULP\n",
+                ref_name, ref, opt, opt_name, UlpDiff(ref, opt) );
+        exit(0);
+    }
+}
+
+void assert_eq_vec( float ref, float opt, int z, int x, int y, char* ref_name, char* opt_name, int maxULP )
+{
+    if (!AlmostEqualUlps(ref, opt, maxULP) )
+    {
+        fprintf(stderr, "%s[%d][%d][%d] %e !=\t%e\t%s[%d][%d][%d] by %d ULP\n",
+                ref_name, y, x, z, ref, opt, opt_name, y, x, z, UlpDiff(ref, opt) );
+        exit(0);
+    }
+}
+
+
 int max_int( int a, int b)
 {
     return ((a >= b) ? a : b);
@@ -185,22 +268,24 @@ int mkdir_p(const char *dir)
     return 0;
 }
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
-                           int    *nt_fwd,
-                           int    *nt_bwd,
+                           int     *nt_fwd,
+                           int     *nt_bwd,
                            real    *dz,
                            real    *dx,
                            real    *dy,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder)
+                           char    *outputfolder, 
+                           real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", 
+            outputfolder, waveletFreq, shotid);
 
     fprintf(stderr, "Storing parameters for shot %d into %s\n", shotid, name);
     FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
@@ -219,7 +304,7 @@ void store_shot_parameters( int     shotid,
     fclose(fp);
 };
 
-void load_shot_parameters( int    shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -230,12 +315,15 @@ void load_shot_parameters( int    shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder)
+                          char    *outputfolder,
+                          real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
-    fprintf(stderr, "Loading parameters for shot %d from %s\n", shotid, name);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat",
+            outputfolder, waveletFreq, shotid);
+
+    fprintf(stderr, "Storing parameters for shot %d into %s\n", shotid, name);
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
 

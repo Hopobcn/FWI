@@ -97,7 +97,7 @@ void read_fwi_parameters (const char *fname,
                           real *rcvlen,
                           char *outputfolder);
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
                            int     *nt_fwd,
@@ -108,9 +108,10 @@ void store_shot_parameters( int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder);
+                           char    *outputfolder,
+                           real    waveletFreq);
 
-void load_shot_parameters( int     shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -121,7 +122,8 @@ void load_shot_parameters( int     shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder);
+                          char    *outputfolder,
+                          real    waveletFreq);
 
 void load_freqlist (  const char*  filename,
                             int*   nfreqs,

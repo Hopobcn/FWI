@@ -23,7 +23,9 @@
 // http://stackoverflow.com/questions/32438554/warning-implicit-declaration-of-posix-memalign
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 #include <math.h>
 #include <sys/time.h>
 #include <string.h>
@@ -78,6 +80,9 @@ static inline void checkErrors(const integer error, const char *filename, int li
     }
 };
 
+void assert_eq_scalar( float ref, float opt, char* ref_name, char* opt_name, int maxULP );
+void assert_eq_vec( float ref, float opt, int z, int x, int y, char* ref_name, char* opt_name, int maxULP );
+
 FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
 void  safe_fwrite ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
@@ -97,7 +102,7 @@ void read_fwi_parameters (const char *fname,
                           real *rcvlen,
                           char *outputfolder);
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
                            int     *nt_fwd,
@@ -108,9 +113,10 @@ void store_shot_parameters( int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder);
+                           char    *outputfolder,
+                           real    waveletFreq);
 
-void load_shot_parameters( int     shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -121,7 +127,8 @@ void load_shot_parameters( int     shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder);
+                          char    *outputfolder,
+                          real    waveletFreq);
 
 void load_freqlist (  const char*  filename,
                             int*   nfreqs,

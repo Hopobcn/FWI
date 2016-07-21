@@ -24,16 +24,14 @@
  * functions can be used.
  */
 
-void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder)
+void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder, char* shotfolder)
 {
     int stacki;
     real dt,dz,dx,dy;
     integer dimmz, dimmx, dimmy;
     int forw_steps, back_steps;
 
-    char shotfolder[200];
-    sprintf( shotfolder, "%s/shot.%05d", outputfolder, shotid);
-    load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder);
+    load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder, waveletFreq );
 
     const integer numberOfCells = dimmz * dimmx * dimmy;
 
@@ -165,7 +163,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     fprintf(stderr, "Shot memory free'd\n");
 };
 
-void gather_shots( char* outputfolder, const int nshots, const int numberOfCells )
+void gather_shots( char* outputfolder, const real waveletFreq, const int nshots, const int numberOfCells )
 {
 #ifdef DO_NOT_PERFORM_IO
     fprintf(stderr, "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
@@ -188,7 +186,8 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     for( int shot=0; shot < nshots; shot++)
     {
         char readfilename[300];
-        sprintf( readfilename, "%s/shot.%05d/precond_%05d.dat", outputfolder, shot, shot);
+        sprintf( readfilename, "%s/shot.%2.1f.%05d/precond_%05d.dat", 
+                outputfolder, waveletFreq, shot, shot);
 
         fprintf(stderr, "Reading preconditioner file %s\n", readfilename );
 
@@ -205,15 +204,16 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     }
 
     char precondfilename[300];
-    sprintf( precondfilename, "%s/Preconditioner", outputfolder);
+    sprintf( precondfilename, "%s/Preconditioner.%2.1f", outputfolder, waveletFreq );
     FILE* precondfile = safe_fopen( precondfilename, "wb", __FILE__, __LINE__ );
     safe_fwrite ( sumbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, precondfile, __FILE__, __LINE__ );
     safe_fclose( precondfilename, precondfile, __FILE__, __LINE__ );
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for preconditioner %s completed in: %lf seconds\n",
-                    precondfilename, end_t - start_t  );
+    fprintf(stderr, "Gatering process for preconditioner %s (freq %2.1f) "
+                    "completed in: %lf seconds\n",
+                    precondfilename, waveletFreq, end_t - start_t  );
 
 
 
@@ -228,7 +228,8 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     for( int shot=0; shot < nshots; shot++)
     {
         char readfilename[300];
-        sprintf( readfilename, "%s/shot.%05d/gradient_%05d.dat", outputfolder, shot, shot);
+        sprintf( readfilename, "%s/shot.%2.1f.%05d/gradient_%05d.dat", 
+                outputfolder, waveletFreq, shot, shot);
 
         fprintf(stderr, "Reading gradient file %s\n", readfilename );
 
@@ -246,16 +247,16 @@ void gather_shots( char* outputfolder, const int nshots, const int numberOfCells
     }
 
     char gradientfilename[300];
-    sprintf( gradientfilename, "%s/Gradient", outputfolder);
+    sprintf( gradientfilename, "%s/Gradient.%2.1f", outputfolder, waveletFreq );
     FILE* gradientfile = safe_fopen( gradientfilename, "wb", __FILE__, __LINE__ );
     safe_fwrite ( sumbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, gradientfile, __FILE__, __LINE__ );
     safe_fclose( gradientfilename, gradientfile, __FILE__, __LINE__ );
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for gradient %s " 
+    fprintf(stderr, "Gatering process for gradient %s (freq %2.1f) " 
                     "completed in: %lf seconds\n",    
-                    precondfilename, end_t - start_t );
+                    precondfilename, waveletFreq, end_t - start_t );
 
     __free(  sumbuffer);
     __free( readbuffer);
@@ -326,21 +327,21 @@ int main(int argc, const char* argv[])
             for(int shot=0; shot<nshots; shot++)
             {
                 char shotfolder[200];
-                sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
+                sprintf(shotfolder, "%s/shot.%2.1f.%05d", outputfolder, waveletFreq, shot);
                 create_folder( shotfolder );
 
                 store_shot_parameters ( shot, &stacki, &dt, &forw_steps, &back_steps, 
                                         &dz, &dx, &dy, 
                                         &dimmz, &dimmx, &dimmy, 
-                                        outputfolder);
+                                        outputfolder, waveletFreq );
 
-                kernel( RTM_KERNEL, waveletFreq, shot, outputfolder);
+                kernel( RTM_KERNEL, waveletFreq, shot, outputfolder, shotfolder);
 
                 fprintf(stderr, "       %d-th shot processed\n", shot);
                 // update_shot()
             }
 
-            gather_shots( outputfolder, nshots, numberOfCells );
+            gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );
 
             for(int test=0; test<ntest; test++)
             {
@@ -348,15 +349,16 @@ int main(int argc, const char* argv[])
                 for(int shot=0; shot<nshots; shot++)
                 {
                     char shotfolder[200];
-                    sprintf(shotfolder, "%s/shot.%05d", outputfolder, shot);
+                    sprintf(shotfolder, "%s/test.%05d.shot.%2.1f.%05d", 
+                            outputfolder, test, waveletFreq, shot);
                     create_folder( shotfolder );
                     
                     store_shot_parameters ( shot, &stacki, &dt, &forw_steps, &back_steps, 
                                             &dz, &dx, &dy, 
                                             &dimmz, &dimmx, &dimmy, 
-                                            outputfolder);
+                                            outputfolder, waveletFreq );
 
-                    kernel( FM_KERNEL , waveletFreq, shot, outputfolder);
+                    kernel( FM_KERNEL , waveletFreq, shot, outputfolder, shotfolder);
                 
                     fprintf(stderr, "       %d-th shot processed\n", shot);
                 }

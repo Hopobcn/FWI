@@ -17,9 +17,6 @@
  */
 
 #include "fwi_kernel.h"
-#include <assert.h>
-#include <stdint.h>
-
 
 /*
  * Initializes and array of length "length" to a random number.
@@ -488,72 +485,6 @@ integer IDX (const integer z,
     return (y*dimmx*dimmz) + (x*dimmz) + (z);
 };
 
-typedef union
-{
-        //Float_t(float num = 0.0f) : f(num) {}
-        // Portable extraction of components.
-                    
-        int32_t i;
-        float f;
-#ifdef DEBUG
-        struct
-        {   // Bitfields for exploration. Do not use in production code.
-            uint32_t mantissa : 23;
-            uint32_t exponent : 8;
-            uint32_t sign : 1;
-        } parts;
-#endif
-} Float_t;
-
-typedef enum {false, true} bool;
-
-bool Negative(Float_t f) { return f.i < 0; }
-int32_t RawMantissa(Float_t f) { return f.i & ((1 << 23) - 1); }
-int32_t RawExponent(Float_t f) { return (f.i >> 23) & 0xFF; }
-         
-bool AlmostEqualUlps(float A, float B, int maxUlpsDiff)
-{
-    Float_t uA;
-    Float_t uB;
-    
-    uA.f = A;
-    uB.f = B;
-
-    // Different signs means they do not match.
-    if (Negative(uA) != Negative(uB))
-    {
-        // Check for equality to make sure +0==-0
-        if (A == B)
-            return true;
-        return false;
-    }
-                                                      
-    // Find the difference in ULPs.
-    int ulpsDiff = abs(uA.i - uB.i);
-    if (ulpsDiff <= maxUlpsDiff)
-        return true;
-                                                       
-    return false;
-}
-
-int UlpDiff(float A, float B)
-{
-    Float_t uA, uB;
-    uA.f = A;
-    uB.f = B;
-
-    return abs(uA.i - uB.i);
-}
-
-void assert_eq( float ref, float opt, int z, int x, int y, char* ref_name, char* opt_name, int maxULP )
-{
-    if (!AlmostEqualUlps(ref, opt, maxULP) )
-    {
-        fprintf(stderr, "%s[%d][%d][%d] %e !=\t%e\t%s[%d][%d][%d] by %d ULP\n",
-                ref_name, y, x, z, ref, opt, opt_name, y, x, z, UlpDiff(ref, opt) );
-        exit(0);
-    }
-}
 
 void propagate_shot ( time_d        direction,
                       v_t           v_ref,
@@ -582,17 +513,15 @@ void propagate_shot ( time_d        direction,
 {
     for(int t=0; t < timesteps; t++)
     {
-
-
         /* perform IO */
-        if ( t%stacki == 0 && direction == FORWARD) {
+        if ( t%stacki == 0 && direction == FORWARD) //TODO: only FORWARD ?
+        {
             read_snapshot(ref_folder, ntbwd-t, &v_ref, datalen);
             read_snapshot(opt_folder, ntbwd-t, &v_opt, datalen);
 
             fprintf(stderr, "Testing %d-th timestep\n", t);
 
-            //TODO: compare v_ref && v_opt
-            const int maxULPdiff = 50;
+            const int maxULPdiff = 1;
             for (integer y = 0; y < nyf; y++)
             {
                 for (integer x = 0; x < nxf; x++)
@@ -601,26 +530,23 @@ void propagate_shot ( time_d        direction,
                     {
                         int k = IDX(z,x,y, dimmz, dimmx);
                         
-                        assert_eq( v_ref.tl.w[k], v_opt.tl.w[k], z, x, y, "v_ref.tl.w", "v_opt.tl.w", maxULPdiff );
-                        assert_eq( v_ref.tr.w[k], v_opt.tr.w[k], z, x, y, "v_ref.tr.w", "v_opt.tr.w", maxULPdiff );
-                        assert_eq( v_ref.bl.w[k], v_opt.bl.w[k], z, x, y, "v_ref.bl.w", "v_opt.bl.w", maxULPdiff );
-                        assert_eq( v_ref.br.w[k], v_opt.br.w[k], z, x, y, "v_ref.br.w", "v_opt.br.w", maxULPdiff );
+                        assert_eq_vec( v_ref.tl.w[k], v_opt.tl.w[k], z, x, y, "v_ref.tl.w", "v_opt.tl.w", maxULPdiff );
+                        assert_eq_vec( v_ref.tr.w[k], v_opt.tr.w[k], z, x, y, "v_ref.tr.w", "v_opt.tr.w", maxULPdiff );
+                        assert_eq_vec( v_ref.bl.w[k], v_opt.bl.w[k], z, x, y, "v_ref.bl.w", "v_opt.bl.w", maxULPdiff );
+                        assert_eq_vec( v_ref.br.w[k], v_opt.br.w[k], z, x, y, "v_ref.br.w", "v_opt.br.w", maxULPdiff );
                         
-                        assert_eq( v_ref.tl.u[k], v_opt.tl.u[k], z, x, y, "v_ref.tl.u", "v_opt.tl.u", maxULPdiff );
-                        assert_eq( v_ref.tr.u[k], v_opt.tr.u[k], z, x, y, "v_ref.tr.u", "v_opt.tr.u", maxULPdiff );
-                        assert_eq( v_ref.bl.u[k], v_opt.bl.u[k], z, x, y, "v_ref.bl.u", "v_opt.bl.u", maxULPdiff );
-                        assert_eq( v_ref.br.u[k], v_opt.br.u[k], z, x, y, "v_ref.br.u", "v_opt.br.u", maxULPdiff );
+                        assert_eq_vec( v_ref.tl.u[k], v_opt.tl.u[k], z, x, y, "v_ref.tl.u", "v_opt.tl.u", maxULPdiff );
+                        assert_eq_vec( v_ref.tr.u[k], v_opt.tr.u[k], z, x, y, "v_ref.tr.u", "v_opt.tr.u", maxULPdiff );
+                        assert_eq_vec( v_ref.bl.u[k], v_opt.bl.u[k], z, x, y, "v_ref.bl.u", "v_opt.bl.u", maxULPdiff );
+                        assert_eq_vec( v_ref.br.u[k], v_opt.br.u[k], z, x, y, "v_ref.br.u", "v_opt.br.u", maxULPdiff );
 
-                        assert_eq( v_ref.tl.v[k], v_opt.tl.v[k], z, x, y, "v_ref.tl.v", "v_opt.tl.v", maxULPdiff );
-                        assert_eq( v_ref.tr.v[k], v_opt.tr.v[k], z, x, y, "v_ref.tr.v", "v_opt.tr.v", maxULPdiff );
-                        assert_eq( v_ref.bl.v[k], v_opt.bl.v[k], z, x, y, "v_ref.bl.v", "v_opt.bl.v", maxULPdiff );
-                        assert_eq( v_ref.br.v[k], v_opt.br.v[k], z, x, y, "v_ref.br.v", "v_opt.br.v", maxULPdiff );
+                        assert_eq_vec( v_ref.tl.v[k], v_opt.tl.v[k], z, x, y, "v_ref.tl.v", "v_opt.tl.v", maxULPdiff );
+                        assert_eq_vec( v_ref.tr.v[k], v_opt.tr.v[k], z, x, y, "v_ref.tr.v", "v_opt.tr.v", maxULPdiff );
+                        assert_eq_vec( v_ref.bl.v[k], v_opt.bl.v[k], z, x, y, "v_ref.bl.v", "v_opt.bl.v", maxULPdiff );
+                        assert_eq_vec( v_ref.br.v[k], v_opt.br.v[k], z, x, y, "v_ref.br.v", "v_opt.br.v", maxULPdiff );
                     }
                 }
             }
         }
-
-            /* perform IO */
-        //if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
 };

@@ -185,22 +185,24 @@ int mkdir_p(const char *dir)
     return 0;
 }
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
-                           int    *nt_fwd,
-                           int    *nt_bwd,
+                           int     *nt_fwd,
+                           int     *nt_bwd,
                            real    *dz,
                            real    *dx,
                            real    *dy,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder)
+                           char    *outputfolder, 
+                           real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", 
+            outputfolder, waveletFreq, shotid);
 
     fprintf(stderr, "Storing parameters for shot %d into %s\n", shotid, name);
     FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
@@ -219,7 +221,7 @@ void store_shot_parameters( int     shotid,
     fclose(fp);
 };
 
-void load_shot_parameters( int    shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -230,11 +232,14 @@ void load_shot_parameters( int    shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder)
+                          char    *outputfolder,
+                          real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat",
+            outputfolder, waveletFreq, shotid);
+
     fprintf(stderr, "Storing parameters for shot %d into %s\n", shotid, name);
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
