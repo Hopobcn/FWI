@@ -60,6 +60,16 @@ void read_fwi_parameters (const char *fname,
     fscanf( fp, "%f\n", (real*) vmin   );
     fscanf( fp, "%f\n", (real*) srclen );
     fscanf( fp, "%f\n", (real*) rcvlen );
+    
+    /* these three values are not needed for the shared memory implementation */
+    int NotNeededValue;
+    fscanf( fp, "%d\n", (int*) &NotNeededValue );
+    fscanf( fp, "%d\n", (int*) &NotNeededValue );
+    fscanf( fp, "%d\n", (int*) &NotNeededValue );
+    fscanf( fp, "%d\n", (int*) &NotNeededValue );
+    fscanf( fp, "%d\n", (int*) &NotNeededValue );
+
+    /* Recover the value of the output directory path */
     fscanf( fp, "%s\n",  outputfolder  );
 
     fclose(fp);

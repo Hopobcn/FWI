@@ -1,0 +1,5 @@
+InputModels/velocitymodel.*
+*.o
+*.bin
+valgrind.*
+

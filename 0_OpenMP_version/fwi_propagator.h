@@ -51,7 +51,7 @@ static integer IDX (const integer z,
 										const integer dimmx);
 
 real stencil_Z (const offset_t off,
-                real* restrict ptr,
+                real *restrict ptr,
                 const real    dzi,
                 const integer z,
                 const integer x,

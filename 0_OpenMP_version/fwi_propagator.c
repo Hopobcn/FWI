@@ -142,8 +142,8 @@ void compute_component_vcell_TL (real* restrict vptr,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
 	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
 	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
@@ -189,8 +189,8 @@ void compute_component_vcell_TR (real* restrict vptr,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
 	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
 	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
@@ -236,8 +236,8 @@ void compute_component_vcell_BR (real* restrict  vptr,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 	
 	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
 	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
@@ -284,8 +284,8 @@ void compute_component_vcell_BL (real* restrict  vptr,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 	
 	real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
 	real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
@@ -495,8 +495,8 @@ void compute_component_scell_TR ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
   real* restrict sxxptr __attribute__ ((aligned (64))) = s.tr.xx;
   real* restrict syyptr __attribute__ ((aligned (64))) = s.tr.yy;
@@ -588,8 +588,8 @@ void compute_component_scell_TL ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
   real* restrict sxxptr __attribute__ ((aligned (64))) = s.tl.xx;
   real* restrict syyptr __attribute__ ((aligned (64))) = s.tl.yy;
@@ -683,8 +683,8 @@ void compute_component_scell_BR ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
   real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
   real* restrict syyptr __attribute__ ((aligned (64))) = s.br.yy;
@@ -778,8 +778,8 @@ void compute_component_scell_BL ( s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx)
 {
-	__assume( nz0 % HALO == 0);
-	__assume( nzf % HALO == 0);
+	// __assume( nz0 % HALO == 0);
+	// __assume( nzf % HALO == 0);
 
   real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
   real* restrict syyptr __attribute__ ((aligned (64))) = s.br.yy;

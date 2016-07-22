@@ -144,7 +144,6 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
     FILE *fPrecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
 
     int numIts = ceil( VolumeMemory / IO_CHUNK_SIZE );
-    fprintf(stderr, "Necesitamos realizar %d iteraciones para generar los volumenes de salida\n", numIts);
 
     /* create buffer array */
     real *tmparray = (real*) __malloc( ALIGN_REAL, IO_CHUNK_SIZE );
