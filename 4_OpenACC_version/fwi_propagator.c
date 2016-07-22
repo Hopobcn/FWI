@@ -140,8 +140,6 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer end_out    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out = end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
-
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase) wait(H2D)
@@ -166,7 +164,6 @@ void compute_component_vcell_TL (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
-    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -198,8 +195,6 @@ void compute_component_vcell_TR (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
-
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase) wait(H2D)
@@ -224,7 +219,6 @@ void compute_component_vcell_TR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
-    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -256,8 +250,6 @@ void compute_component_vcell_BR (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
-
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase) wait(H2D)
@@ -282,7 +274,6 @@ void compute_component_vcell_BR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
-    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -314,8 +305,6 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
-
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
                         async(phase) wait(H2D)
@@ -340,7 +329,6 @@ void compute_component_vcell_BL (      real* restrict vptr,
         }
     }
     } /* end acc loop */
-    #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void velocity_propagator(v_t           v,
@@ -675,14 +663,6 @@ void compute_component_scell_TR (s_t             s,
         }
     }
     } /* end acc kernels */ 
-
-    #pragma acc update self(sxxptr[start_out:nelems_out]) \
-                       self(syyptr[start_out:nelems_out]) \
-                       self(szzptr[start_out:nelems_out]) \
-                       self(syzptr[start_out:nelems_out]) \
-                       self(sxzptr[start_out:nelems_out]) \
-                       self(sxyptr[start_out:nelems_out]) \
-                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_scell_TL (s_t             s,
@@ -815,13 +795,6 @@ void compute_component_scell_TL (s_t             s,
             }
         }
     }
-    #pragma acc update self(sxxptr[start_out:nelems_out]) \
-                       self(syyptr[start_out:nelems_out]) \
-                       self(szzptr[start_out:nelems_out]) \
-                       self(syzptr[start_out:nelems_out]) \
-                       self(sxzptr[start_out:nelems_out]) \
-                       self(sxyptr[start_out:nelems_out]) \
-                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 
@@ -956,13 +929,6 @@ void compute_component_scell_BR (s_t             s,
             }
         }
     }
-    #pragma acc update self(sxxptr[start_out:nelems_out]) \
-                       self(syyptr[start_out:nelems_out]) \
-                       self(szzptr[start_out:nelems_out]) \
-                       self(syzptr[start_out:nelems_out]) \
-                       self(sxzptr[start_out:nelems_out]) \
-                       self(sxyptr[start_out:nelems_out]) \
-                       wait(phase) asynch(D2H) if(phase != TWO)
 };
 
 void compute_component_scell_BL (s_t             s,
@@ -1095,11 +1061,4 @@ void compute_component_scell_BL (s_t             s,
             }
         }
     }
-    #pragma acc update self(sxxptr[start_out:nelems_out]) \
-                       self(syyptr[start_out:nelems_out]) \
-                       self(szzptr[start_out:nelems_out]) \
-                       self(syzptr[start_out:nelems_out]) \
-                       self(sxzptr[start_out:nelems_out]) \
-                       self(sxyptr[start_out:nelems_out]) \
-                       wait(phase) asynch(D2H) if(phase != TWO)
 };

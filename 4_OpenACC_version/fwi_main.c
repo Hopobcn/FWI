@@ -24,7 +24,7 @@
  * functions can be used.
  */
 
-void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder, char* shotfolder)
+void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, char* outputfolder, char* shotfolder)
 {
     int stacki;
     real dt,dz,dx,dy;
@@ -54,7 +54,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
 
     /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, numberOfCells, &coeffs, &s, &v, rho);
+    load_initial_model ( waveletFreq, numberOfCells, &coeffs, &s, &v, rho, ngpus );
 
     /* Allocate memory for IO buffer */
     real* io_buffer = (real*) __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
@@ -80,7 +80,8 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          shotfolder,
                          io_buffer,
                          numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx,
+                         ngpus );
 
         end_t = dtime();
 
@@ -97,7 +98,8 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          shotfolder,
                          io_buffer,
                          numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx,
+                         ngpus );
 
         end_t = dtime();
 
@@ -140,7 +142,8 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          shotfolder,
                          io_buffer,
                          numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx,
+                         ngpus );
 
         end_t = dtime();
 
@@ -157,7 +160,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     } /* end case */
 
     // liberamos la memoria alocatada en el shot
-    free_memory_shot  ( &coeffs, &s, &v, &rho);
+    free_memory_shot  ( &coeffs, &s, &v, &rho, ngpus );
     __free( io_buffer );
 
     fprintf(stderr, "Shot memory free'd\n");
@@ -279,6 +282,10 @@ int main(int argc, const char* argv[])
 
     load_freqlist( argv[2], &nfreqs, &frequencies );
 
+    int ngpus;
+    if (argc > 3) ngpus = atoi(argv[3]);
+    else ngpus = acc_get_num_devices( acc_device_nvidia );
+
     for(int i=0; i<nfreqs; i++)
     {
         /* Process one frequency at a time */
@@ -335,7 +342,7 @@ int main(int argc, const char* argv[])
                                         &dimmz, &dimmx, &dimmy, 
                                         outputfolder, waveletFreq );
 
-                kernel( RTM_KERNEL, waveletFreq, shot, outputfolder, shotfolder);
+                kernel( RTM_KERNEL, waveletFreq, shot, ngpus, outputfolder, shotfolder);
 
                 fprintf(stderr, "       %d-th shot processed\n", shot);
                 // update_shot()
@@ -358,7 +365,7 @@ int main(int argc, const char* argv[])
                                             &dimmz, &dimmx, &dimmy, 
                                             outputfolder, waveletFreq );
 
-                    kernel( FM_KERNEL , waveletFreq, shot, outputfolder, shotfolder);
+                    kernel( FM_KERNEL , waveletFreq, shot, ngpus, outputfolder, shotfolder);
                 
                     fprintf(stderr, "       %d-th shot processed\n", shot);
                 }

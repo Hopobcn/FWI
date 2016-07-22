@@ -246,12 +246,9 @@ void alloc_memory_shot( const integer numberOfCells,
 void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-                       real    **rho)
+                       real    **rho,
+                       const int ngpus )
 {
-    
-
-    const int ngpus = acc_get_num_devices( acc_device_nvidia );
-    
     #pragma omp parallel for schedule(static, 1)
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
@@ -366,7 +363,8 @@ void load_initial_model ( const real    waveletFreq,
                           coeff_t *c,
                           s_t     *s,
                           v_t     *v,
-                          real    *rho)
+                          real    *rho,
+                          const int ngpus )
 {
     /* initialize stress */
     set_array_to_constant( s->tl.zz, 0, numberOfCells);
@@ -565,8 +563,6 @@ void load_initial_model ( const real    waveletFreq,
 
     const real* rrho  = rho;
 
-    const int ngpus = acc_get_num_devices( acc_device_nvidia );
-
     //#pragma omp parallel for schedule(static, 1)    
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
@@ -578,23 +574,19 @@ void load_initial_model ( const real    waveletFreq,
                                copyin(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
                                copyin(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
                                copyin(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
-                               create(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
-                               create(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
-                               create(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
-                               create(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
+                               copyin(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
+                               copyin(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
+                               copyin(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
+                               copyin(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
                                copyin(cc11[0:datalen], cc12[0:datalen], cc13[0:datalen], cc14[0:datalen], cc15[0:datalen], cc16[0:datalen]) \
                                copyin(cc22[0:datalen], cc23[0:datalen], cc24[0:datalen], cc25[0:datalen], cc26[0:datalen]) \
                                copyin(cc33[0:datalen], cc34[0:datalen], cc35[0:datalen], cc36[0:datalen]) \
                                copyin(cc44[0:datalen], cc45[0:datalen], cc46[0:datalen]) \
                                copyin(cc55[0:datalen], cc56[0:datalen]) \
                                copyin(cc66[0:datalen]) \
-                               copyin(rrho[0:datalen]) 
-       
-        #pragma acc wait // wait for the copies to be finished before start executing kernels (we could optimize this)
-        
-        
+                               copyin(rrho[0:datalen]) \
+                               async(H2D)
     }
-
 };
 
 
@@ -682,7 +674,6 @@ void read_snapshot(char *folder,
                        device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
                        device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
                        async(H2D)
-
 #endif
 };
 
@@ -708,7 +699,8 @@ void propagate_shot (time_d        direction,
                      real          *dataflush,
                      integer       datalen,
                      integer       dimmz,
-                     integer       dimmx)
+                     integer       dimmx,
+                     integer       ngpus)
 {
     for(int t=0; t < timesteps; t++)
     {
@@ -717,7 +709,6 @@ void propagate_shot (time_d        direction,
         /* perform IO */
         if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
 
-        const int ngpus              = acc_get_num_devices( acc_device_nvidia );
         const int num_planes_per_gpu = (nyf-2*HALO) / ngpus;
         const int remainder          = (nyf-2*HALO) % ngpus;
         
@@ -734,7 +725,10 @@ void propagate_shot (time_d        direction,
             //        gpu, ny0i, nyfi, ny0, nyf, omp_get_thread_num());
 
             acc_set_device_num(gpu, acc_device_nvidia);
- 
+
+            /* wait read_snapshot H2D copies */
+            #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+            
             /* ------------------------------------------------------------------------------ */
             /*                      VELOCITY COMPUTATION                                      */
             /* ------------------------------------------------------------------------------ */
@@ -854,48 +848,93 @@ void exchange_velocity_boundaries ( v_t v,
     const integer left       = ny0-HALO;
     const integer right      = nyf+HALO;
 
+
     if ( gpu != 0 )
     {
-        // at this point {GPU-1,thread-1} has to be performed their HALO D2H, then 
-        //               {GPU  , thread } has to perform his H2D copy to GPU
+        // update CPU with left HALO
  
-        #pragma acc update device(v.tl.u[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tl.v[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tl.w[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.u[ny0:nelems]) asynch(H2D) wait(ONE_L)
+        #pragma acc update device(v.tl.v[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.w[ny0:nelems]) asynch(H2D)
  
-        #pragma acc update device(v.tr.u[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tr.v[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tr.w[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.u[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.v[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.w[ny0:nelems]) asynch(H2D)
        
-        #pragma acc update device(v.bl.u[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.bl.v[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.bl.w[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.u[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.v[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.w[ny0:nelems]) asynch(H2D)
        
-        #pragma acc update device(v.br.u[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.br.v[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.br.w[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.u[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.v[ny0:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.w[ny0:nelems]) asynch(H2D)
     }
 
     if ( gpu != ngpus-1 )
     {
-        // at this point {GPU+1, thread+1} has to be performed their HALO D2H, then
-        //               {GPU  , thread  } has to perform his H2D copy to GPU
+        // update CPU with right HALO 
  
-        #pragma acc update device(v.tl.u[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tl.v[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tl.w[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tl.u[nyf:nelems]) asynch(H2D) wait(ONE_R)
+        #pragma acc update device(v.tl.v[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.w[nyf:nelems]) asynch(H2D)
  
-        #pragma acc update device(v.tr.u[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tr.v[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.tr.w[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.tr.u[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.v[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.w[nyf:nelems]) asynch(H2D)
        
-        #pragma acc update device(v.bl.u[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.bl.v[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.bl.w[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.bl.u[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.v[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.w[nyf:nelems]) asynch(H2D)
        
-        #pragma acc update device(v.br.u[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.br.v[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(v.br.w[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(v.br.u[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.v[nyf:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.w[nyf:nelems]) asynch(H2D)
+    }
+
+    // wait for D2H completion & synchronize all host threads
+    #pragma acc wait(H2D)
+    #pragma omp barrier
+
+    if ( gpu != 0 )
+    {
+        // update GPU with left HALO computed by GPU-1
+ 
+        #pragma acc update device(v.tl.u[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.v[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.w[left:nelems]) asynch(H2D)
+ 
+        #pragma acc update device(v.tr.u[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.v[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.w[left:nelems]) asynch(H2D)
+       
+        #pragma acc update device(v.bl.u[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.v[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.w[left:nelems]) asynch(H2D)
+       
+        #pragma acc update device(v.br.u[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.v[left:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.w[left:nelems]) asynch(H2D)
+    }
+
+    if ( gpu != ngpus-1 )
+    {
+        // update GPU with right HALO computed by GPU+1
+
+        #pragma acc update device(v.tl.u[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.v[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.tl.w[right:nelems]) asynch(H2D)
+ 
+        #pragma acc update device(v.tr.u[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.v[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.tr.w[right:nelems]) asynch(H2D)
+       
+        #pragma acc update device(v.bl.u[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.v[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.bl.w[right:nelems]) asynch(H2D)
+       
+        #pragma acc update device(v.br.u[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.v[right:nelems]) asynch(H2D)
+        #pragma acc update device(v.br.w[right:nelems]) asynch(H2D)
     }
 };
 
@@ -925,70 +964,138 @@ void exchange_stress_boundaries ( s_t s,
 
     if ( gpu != 0 ) 
     {
-        // at this point {GPU-1,thread-1} has to be performed their HALO D2H, then 
-        //               {GPU  , thread } has to perform his H2D copy to GPU
+        // update CPU with left HALO
  
-        #pragma acc update device(s.tl.zz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.yz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xx[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xy[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.yy[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.zz[ny0:nelems]) asynch(D2H) wait(ONE_L)
+        #pragma acc update device(s.tl.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.tr.zz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.yz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xx[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xy[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.yy[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.bl.zz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.yz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xx[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xy[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.yy[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.br.zz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.yz[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xx[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xy[left:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.yy[left:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.yy[ny0:nelems]) asynch(D2H)
     }
 
     if ( gpu != ngpus -1 )  
     {
-        // at this point {GPU-1,thread-1} has to be performed their HALO D2H, then 
-        //               {GPU  , thread } has to perform his H2D copy to GPU
+        // update CPU with right HALO 
  
-        #pragma acc update device(s.tl.zz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.yz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xx[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.xy[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tl.yy[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tl.zz[nyf:nelems]) asynch(D2H) wait(ONE_R)
+        #pragma acc update device(s.tl.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tl.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.tr.zz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.yz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xx[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.xy[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.tr.yy[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.tr.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.tr.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.bl.zz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.yz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xx[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.xy[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.bl.yy[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.bl.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.bl.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.br.zz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.yz[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xx[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.xy[right:nelems]) wait(D2H) asynch(H2D)
-        #pragma acc update device(s.br.yy[right:nelems]) wait(D2H) asynch(H2D)
+        #pragma acc update device(s.br.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update device(s.br.yy[nyf:nelems]) asynch(D2H)
+    }
+   
+    // wait for D2H completion & synchronize all host threads
+    #pragma acc wait(D2H)
+    #pragma omp barrier
+
+    if ( gpu != 0 ) 
+    {
+        // update GPU with left HALO computed by GPU-1
+ 
+        #pragma acc update device(s.tl.zz[left:nelems]) asynch(H2D) wait(ONE_L)
+        #pragma acc update device(s.tl.xz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.yz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.xx[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.xy[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.yy[left:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.tr.zz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.yz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xx[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xy[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.yy[left:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.bl.zz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.yz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xx[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xy[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.yy[left:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.br.zz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.yz[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xx[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xy[left:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.yy[left:nelems]) asynch(H2D)
+    }
+
+    if ( gpu != ngpus -1 )  
+    {
+        // update GPU with right HALO computed by GPU+1
+ 
+        #pragma acc update device(s.tl.zz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.xz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.yz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.xx[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.xy[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tl.yy[right:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.tr.zz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.yz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xx[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.xy[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.tr.yy[right:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.bl.zz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.yz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xx[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.xy[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.bl.yy[right:nelems]) asynch(H2D)
+
+        #pragma acc update device(s.br.zz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.yz[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xx[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.xy[right:nelems]) asynch(H2D)
+        #pragma acc update device(s.br.yy[right:nelems]) asynch(H2D)
     }
 };
 
