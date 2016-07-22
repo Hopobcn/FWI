@@ -19,7 +19,7 @@
 #include "fwi_kernel.h"
 
 /*
- * Initializes and array of length "length" to a random number.
+ * Initializes an array of length "length" to a random number.
  */
 void set_array_to_random_real( real* restrict array, const integer length)
 {
@@ -31,6 +31,15 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
+}
+
+/*
+ * Initializes an array of length "length" to a constant floating point value.
+ */
+void set_array_to_constant( real* restrict array, const real value, const integer length)
+{
+    for( integer i = 0; i < length; i++ )
+        array[i] = value;
 }
 
 void check_memory_shot( const integer numberOfCells,
@@ -70,6 +79,33 @@ void check_memory_shot( const integer numberOfCells,
         value = c->c55[i];
         value = c->c56[i];
         value = c->c66[i];
+#ifndef DO_NOT_PERFORM_IO
+        if (c->c11[i] != 1.0) printf("ERROR c->c11 != 1.0\n");
+        if (c->c12[i] != 1.0) printf("ERROR c->c12 != 1.0\n");
+        if (c->c13[i] != 1.0) printf("ERROR c->c13 != 1.0\n");
+        if (c->c14[i] != 1.0) printf("ERROR c->c14 != 1.0\n");
+        if (c->c15[i] != 1.0) printf("ERROR c->c15 != 1.0\n");
+        if (c->c16[i] != 1.0) printf("ERROR c->c16 != 1.0\n");
+                                                  
+        if (c->c22[i] != 1.0) printf("ERROR c->c22 != 1.0\n");
+        if (c->c23[i] != 1.0) printf("ERROR c->c23 != 1.0\n");
+        if (c->c24[i] != 1.0) printf("ERROR c->c24 != 1.0\n");
+        if (c->c25[i] != 1.0) printf("ERROR c->c25 != 1.0\n");
+        if (c->c26[i] != 1.0) printf("ERROR c->c26 != 1.0\n");
+                                                  
+        if (c->c33[i] != 1.0) printf("ERROR c->c33 != 1.0\n");
+        if (c->c34[i] != 1.0) printf("ERROR c->c34 != 1.0\n");
+        if (c->c35[i] != 1.0) printf("ERROR c->c35 != 1.0\n");
+        if (c->c36[i] != 1.0) printf("ERROR c->c36 != 1.0\n");
+                                                  
+        if (c->c44[i] != 1.0) printf("ERROR c->c44 != 1.0\n");
+        if (c->c45[i] != 1.0) printf("ERROR c->c45 != 1.0\n");
+        if (c->c46[i] != 1.0) printf("ERROR c->c46 != 1.0\n");
+ 
+        if (c->c55[i] != 1.0) printf("ERROR c->c55 != 1.0\n");
+        if (c->c56[i] != 1.0) printf("ERROR c->c56 != 1.0\n");
+        if (c->c66[i] != 1.0) printf("ERROR c->c66 != 1.0\n");
+#endif
 
         value = v->tl.u[i];
         value = v->tl.v[i];
@@ -87,33 +123,33 @@ void check_memory_shot( const integer numberOfCells,
         value = v->br.v[i];
         value = v->br.w[i];
 
-        value = s->tl.zz[i];
-        value = s->tl.xz[i];
-        value = s->tl.yz[i];
-        value = s->tl.xx[i];
-        value = s->tl.xy[i];
-        value = s->tl.yy[i];
-
-        value = s->tr.zz[i];
-        value = s->tr.xz[i];
-        value = s->tr.yz[i];
-        value = s->tr.xx[i];
-        value = s->tr.xy[i];
-        value = s->tr.yy[i];
-
-        value = s->bl.zz[i];
-        value = s->bl.xz[i];
-        value = s->bl.yz[i];
-        value = s->bl.xx[i];
-        value = s->bl.xy[i];
-        value = s->bl.yy[i];
-
-        value = s->br.zz[i];
-        value = s->br.xz[i];
-        value = s->br.yz[i];
-        value = s->br.xx[i];
-        value = s->br.xy[i];
-        value = s->br.yy[i];
+        if (s->tl.zz[i] != 0.0) printf("ERROR s->tl.zz value!\n");
+        if (s->tl.xz[i] != 0.0) printf("ERROR s->tl.xz value!\n");
+        if (s->tl.yz[i] != 0.0) printf("ERROR s->tl.yz value!\n");
+        if (s->tl.xx[i] != 0.0) printf("ERROR s->tl.xx value!\n");
+        if (s->tl.xy[i] != 0.0) printf("ERROR s->tl.xy value!\n");
+        if (s->tl.yy[i] != 0.0) printf("ERROR s->tl.yy value!\n");
+                                                      
+        if (s->tr.zz[i] != 0.0) printf("ERROR s->tr.zz value!\n");
+        if (s->tr.xz[i] != 0.0) printf("ERROR s->tr.xz value!\n");
+        if (s->tr.yz[i] != 0.0) printf("ERROR s->tr.yz value!\n");
+        if (s->tr.xx[i] != 0.0) printf("ERROR s->tr.xx value!\n");
+        if (s->tr.xy[i] != 0.0) printf("ERROR s->tr.xy value!\n");
+        if (s->tr.yy[i] != 0.0) printf("ERROR s->tr.yy value!\n");
+                                                      
+        if (s->bl.zz[i] != 0.0) printf("ERROR s->bl.zz value!\n");
+        if (s->bl.xz[i] != 0.0) printf("ERROR s->bl.xz value!\n");
+        if (s->bl.yz[i] != 0.0) printf("ERROR s->bl.yz value!\n");
+        if (s->bl.xx[i] != 0.0) printf("ERROR s->bl.xx value!\n");
+        if (s->bl.xy[i] != 0.0) printf("ERROR s->bl.xy value!\n");
+        if (s->bl.yy[i] != 0.0) printf("ERROR s->bl.yy value!\n");
+                                                      
+        if (s->br.zz[i] != 0.0) printf("ERROR s->br.zz value!\n");
+        if (s->br.xz[i] != 0.0) printf("ERROR s->br.xz value!\n");
+        if (s->br.yz[i] != 0.0) printf("ERROR s->br.yz value!\n");
+        if (s->br.xx[i] != 0.0) printf("ERROR s->br.xx value!\n");
+        if (s->br.xy[i] != 0.0) printf("ERROR s->br.xy value!\n");
+        if (s->br.yy[i] != 0.0) printf("ERROR s->br.yy value!\n");
 
         value = rho[i];
     }
@@ -332,33 +368,31 @@ void load_initial_model ( const real    waveletFreq,
                           v_t     *v,
                           real    *rho)
 {
-    const integer size = numberOfCells * sizeof(real);
-    
     /* initialize stress */
-    memset( s->tl.zz, 0, size);
-    memset( s->tl.xz, 0, size);
-    memset( s->tl.yz, 0, size);
-    memset( s->tl.xx, 0, size);
-    memset( s->tl.xy, 0, size);
-    memset( s->tl.yy, 0, size);
-    memset( s->tr.zz, 0, size);
-    memset( s->tr.xz, 0, size);
-    memset( s->tr.yz, 0, size);
-    memset( s->tr.xx, 0, size);
-    memset( s->tr.xy, 0, size);
-    memset( s->tr.yy, 0, size);
-    memset( s->bl.zz, 0, size);
-    memset( s->bl.xz, 0, size);
-    memset( s->bl.yz, 0, size);
-    memset( s->bl.xx, 0, size);
-    memset( s->bl.xy, 0, size);
-    memset( s->bl.yy, 0, size);
-    memset( s->br.zz, 0, size);
-    memset( s->br.xz, 0, size);
-    memset( s->br.yz, 0, size);
-    memset( s->br.xx, 0, size);
-    memset( s->br.xy, 0, size);
-    memset( s->br.yy, 0, size);
+    set_array_to_constant( s->tl.zz, 0, numberOfCells);
+    set_array_to_constant( s->tl.xz, 0, numberOfCells);
+    set_array_to_constant( s->tl.yz, 0, numberOfCells);
+    set_array_to_constant( s->tl.xx, 0, numberOfCells);
+    set_array_to_constant( s->tl.xy, 0, numberOfCells);
+    set_array_to_constant( s->tl.yy, 0, numberOfCells);
+    set_array_to_constant( s->tr.zz, 0, numberOfCells);
+    set_array_to_constant( s->tr.xz, 0, numberOfCells);
+    set_array_to_constant( s->tr.yz, 0, numberOfCells);
+    set_array_to_constant( s->tr.xx, 0, numberOfCells);
+    set_array_to_constant( s->tr.xy, 0, numberOfCells);
+    set_array_to_constant( s->tr.yy, 0, numberOfCells);
+    set_array_to_constant( s->bl.zz, 0, numberOfCells);
+    set_array_to_constant( s->bl.xz, 0, numberOfCells);
+    set_array_to_constant( s->bl.yz, 0, numberOfCells);
+    set_array_to_constant( s->bl.xx, 0, numberOfCells);
+    set_array_to_constant( s->bl.xy, 0, numberOfCells);
+    set_array_to_constant( s->bl.yy, 0, numberOfCells);
+    set_array_to_constant( s->br.zz, 0, numberOfCells);
+    set_array_to_constant( s->br.xz, 0, numberOfCells);
+    set_array_to_constant( s->br.yz, 0, numberOfCells);
+    set_array_to_constant( s->br.xx, 0, numberOfCells);
+    set_array_to_constant( s->br.xy, 0, numberOfCells);
+    set_array_to_constant( s->br.yy, 0, numberOfCells);
 
 #ifdef DO_NOT_PERFORM_IO
 
@@ -403,30 +437,30 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( v->br.w, numberOfCells );
 #else 
     /* initialize coefficients */
-    memset( c->c11, 1.0, size);
-    memset( c->c12, 1.0, size);
-    memset( c->c13, 1.0, size);
-    memset( c->c14, 1.0, size);
-    memset( c->c15, 1.0, size);
-    memset( c->c16, 1.0, size);
-    memset( c->c22, 1.0, size);
-    memset( c->c23, 1.0, size);
-    memset( c->c24, 1.0, size);
-    memset( c->c25, 1.0, size);
-    memset( c->c26, 1.0, size);
-    memset( c->c33, 1.0, size);
-    memset( c->c34, 1.0, size);
-    memset( c->c35, 1.0, size);
-    memset( c->c36, 1.0, size);
-    memset( c->c44, 1.0, size);
-    memset( c->c45, 1.0, size);
-    memset( c->c46, 1.0, size);
-    memset( c->c55, 1.0, size);
-    memset( c->c56, 1.0, size);
-    memset( c->c66, 1.0, size);
+    set_array_to_constant( c->c11, 1.0, numberOfCells);
+    set_array_to_constant( c->c12, 1.0, numberOfCells);
+    set_array_to_constant( c->c13, 1.0, numberOfCells);
+    set_array_to_constant( c->c14, 1.0, numberOfCells);
+    set_array_to_constant( c->c15, 1.0, numberOfCells);
+    set_array_to_constant( c->c16, 1.0, numberOfCells);
+    set_array_to_constant( c->c22, 1.0, numberOfCells);
+    set_array_to_constant( c->c23, 1.0, numberOfCells);
+    set_array_to_constant( c->c24, 1.0, numberOfCells);
+    set_array_to_constant( c->c25, 1.0, numberOfCells);
+    set_array_to_constant( c->c26, 1.0, numberOfCells);
+    set_array_to_constant( c->c33, 1.0, numberOfCells);
+    set_array_to_constant( c->c34, 1.0, numberOfCells);
+    set_array_to_constant( c->c35, 1.0, numberOfCells);
+    set_array_to_constant( c->c36, 1.0, numberOfCells);
+    set_array_to_constant( c->c44, 1.0, numberOfCells);
+    set_array_to_constant( c->c45, 1.0, numberOfCells);
+    set_array_to_constant( c->c46, 1.0, numberOfCells);
+    set_array_to_constant( c->c55, 1.0, numberOfCells);
+    set_array_to_constant( c->c56, 1.0, numberOfCells);
+    set_array_to_constant( c->c66, 1.0, numberOfCells);
 
     /* initialize rho */
-    memset( rho, 1.0, size );
+    set_array_to_constant( rho, 1.0, numberOfCells );
 
     /* load velocity model from external file */
     /* open initial model, binary file */
@@ -646,7 +680,8 @@ void read_snapshot(char *folder,
     #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
+                       async(H2D)
 
 #endif
 };
@@ -703,7 +738,7 @@ void propagate_shot (time_d        direction,
             /* ------------------------------------------------------------------------------ */
             /*                      VELOCITY COMPUTATION                                      */
             /* ------------------------------------------------------------------------------ */
-           
+
             if (gpu > 0) {
                 /* Phase 1. Computation of the left-most planes of the domain */
                 velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,

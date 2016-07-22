@@ -367,7 +367,7 @@ int main(int argc, const char* argv[])
 
                 kernel( RTM_KERNEL, waveletFreq, shot, 
                         ref_outfolder, opt_outfolder,
-                        ref_shotfolder, ref_shotfolder );
+                        ref_shotfolder, opt_shotfolder );
 
                 fprintf(stderr, "       %d-th shot processed\n", shot);
             }

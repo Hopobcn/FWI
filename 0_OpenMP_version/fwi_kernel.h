@@ -32,6 +32,10 @@ void check_domain_dimensions ( const integer dimmz,
 void set_array_to_random_real(real* restrict array,
                               const integer length);
 
+void set_array_to_constant(real* restrict array,
+                           const real value,
+                           const integer length);
+
 void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
