@@ -111,28 +111,6 @@ real rho_TL ( const real* restrict rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x,y+1,dimmz,dimmx)]));
 };
 
-extern void compute_component_vcell_TL_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
 void compute_component_vcell_TL (      real* restrict vptr,
                                  const real* restrict szptr,
                                  const real* restrict sxptr,
@@ -162,12 +140,12 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer end_out    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out = end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase) if (phase != TWO)
+    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
-                        async(phase)
+                        async(phase) wait(H2D)
     {
     #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
@@ -199,6 +177,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
 #endif
+
     #pragma acc update self(vptr[start_out:nelems_out]) wait(phase) asynch(D2H) if(phase != TWO)
 };
 
@@ -231,12 +210,12 @@ void compute_component_vcell_TR (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase) if (phase != TWO)
+    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
-                        async(phase)
+                        async(phase) wait(H2D)
     {
     #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
@@ -301,12 +280,12 @@ void compute_component_vcell_BR (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase) if (phase != TWO)
+    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
-                        async(phase)
+                        async(phase) wait(H2D)
     {
     #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
@@ -370,12 +349,12 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
     const integer nelems_out= end_out - start_out;
 
-    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(phase) if (phase != TWO)
+    #pragma acc update device(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in], vptr[start_in:nelems_in]) async(H2D)
 
 #ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
                         copyin(vptr[start_in:nelems_in]) \
-                        async(phase)
+                        async(phase) wait(H2D)
     {
     #pragma acc loop independent 
     for(integer y=ny0; y < nyf; y++)
