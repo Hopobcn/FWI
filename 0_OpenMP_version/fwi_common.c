@@ -380,7 +380,7 @@ inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, cha
 
   double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
 
-  fprintf(stderr, "Time %lf, elements %d bytes %d, MB %lf MB/s %lf\n", end, nmemb, size*nmemb, mbytes, mbytes / end);
+  // fprintf(stderr, "Time %lf, elements %d bytes %d, MB %lf MB/s %lf\n", end, nmemb, size*nmemb, mbytes, mbytes / end);
 
 	if( res != nmemb )
 	{
