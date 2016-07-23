@@ -133,15 +133,12 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    const integer start_in   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in     = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in  = end_in - start_in;
-    const integer start_out  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out = end_out - start_out;
+    const integer start   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end     = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems  = end - start;
 
-    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
-                        copyin(vptr[start_in:nelems_in]) \
+    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
+                        copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     {
     #pragma acc loop independent 
@@ -188,15 +185,12 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
-                        copyin(vptr[start_in:nelems_in]) \
+    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
+                        copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     {
     #pragma acc loop independent 
@@ -243,15 +237,12 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
-                        copyin(vptr[start_in:nelems_in]) \
+    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
+                        copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     {
     #pragma acc loop independent
@@ -298,15 +289,12 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start_in:nelems_in], sxptr[start_in:nelems_in], syptr[start_in:nelems_in], rho[start_in:nelems_in]) \
-                        copyin(vptr[start_in:nelems_in]) \
+    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
+                        copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     {
     #pragma acc loop independent 
@@ -592,17 +580,14 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
-                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
-                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
-                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
+    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
+                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
+                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -726,17 +711,14 @@ void compute_component_scell_TL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
-                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
-                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
-                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
+    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
+                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
+                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -859,17 +841,14 @@ void compute_component_scell_BR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
-                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
-                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
-                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
+    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
+                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
+                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \
@@ -992,17 +971,14 @@ void compute_component_scell_BL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-    const integer start_in  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end_in    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems_in = end_in - start_in;
-    const integer start_out = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0       );
-    const integer end_out   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf       );
-    const integer nelems_out= end_out - start_out;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start_in:nelems_in], syyptr[start_in:nelems_in], szzptr[start_in:nelems_in], syzptr[start_in:nelems_in], sxzptr[start_in:nelems_in], sxyptr[start_in:nelems_in]) \
-                        copyin(vxu[start_in:nelems_in], vxv[start_in:nelems_in], vxw[start_in:nelems_in])  \
-                        copyin(vyu[start_in:nelems_in], vyv[start_in:nelems_in], vyw[start_in:nelems_in])  \
-                        copyin(vzu[start_in:nelems_in], vzv[start_in:nelems_in], vzw[start_in:nelems_in])  \
+    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
+                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
+                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
                         present(cc11, cc12, cc13, cc14, cc15, cc16)             \
                         present(cc22, cc23, cc24, cc25, cc26)                   \
                         present(cc33, cc34, cc35, cc36)                         \

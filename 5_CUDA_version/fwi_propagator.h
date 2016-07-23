@@ -87,7 +87,7 @@ real stencil_Y(const integer off,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-
+#pragma acc routine seq
 real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -95,6 +95,7 @@ real rho_BL ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+#pragma acc routine seq
 real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -102,6 +103,7 @@ real rho_TR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+#pragma acc routine seq
 real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -109,6 +111,7 @@ real rho_BR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+#pragma acc routine seq
 real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,

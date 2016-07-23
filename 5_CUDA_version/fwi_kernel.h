@@ -45,7 +45,8 @@ void alloc_memory_shot( const integer numberOfCells,
 void free_memory_shot( coeff_t *c,
                        s_t     *s,
                        v_t     *v,
-                       real    **rho);
+                       real    **rho,
+                       const int ngpus );
 
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
@@ -60,7 +61,8 @@ void load_initial_model ( const real    waveletFreq,
                           coeff_t *c,
                           s_t     *s,
                           v_t     *v,
-                          real    *rho);
+                          real    *rho,
+                          int ngpus );
 
 void write_snapshot ( char          *folder,
                       const int     suffix,
@@ -92,7 +94,7 @@ void exchange_stress_boundaries   ( s_t s,
 
 /* --------------- WAVE PROPAGATOR FUNCTIONS --------------------------------- */
 
-void propagate_shot ( time_d        direction,
+void propagate_shot (time_d        direction,
                      v_t           v,
                      s_t           s,
                      coeff_t       coeffs,
@@ -114,6 +116,7 @@ void propagate_shot ( time_d        direction,
                      real          *dataflush,
                      integer       datalen,
                      integer       dimmz,
-                     integer       dimmx);
+                     integer       dimmx,
+                     integer       ngpus);
 
 #endif /* end of _FWI_KERNEL_H_ definition */
