@@ -249,7 +249,7 @@ void free_memory_shot( coeff_t *c,
                        real    **rho,
                        const int ngpus )
 {
-    #pragma omp parallel for schedule(static, 1)
+    //#pragma omp parallel for schedule(static, 1)
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
         
