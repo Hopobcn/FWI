@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 #ignore output files & executables
 *.o
+*.bin
 fwi.intel64
 fwi.test
 ModelGenerator
 
+#ignore logfiles
+fwi.log
+valgrind.*
+
 #ignore output folders
 1/
+Results/

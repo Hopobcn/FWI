@@ -131,7 +131,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
 
-    real* restrict _vptr  __attribute__ ((aligned (64))) = vptr;
+          real* restrict _vptr  __attribute__ ((aligned (64))) = vptr;
     const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
     const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
@@ -182,7 +182,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
 
-    real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+          real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
     const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
     const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
@@ -233,7 +233,7 @@ void compute_component_vcell_BR (      real* restrict  vptr,
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
     
-    real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+          real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
     const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
     const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
@@ -284,7 +284,7 @@ void compute_component_vcell_BL (      real* restrict  vptr,
     __assume( nz0 % HALO == 0);
     __assume( nzf % HALO == 0);
     
-    real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
+          real* restrict _vptr  __attribute__ ((aligned (64))) = vptr ;
     const real* restrict _szptr __attribute__ ((aligned (64))) = szptr;
     const real* restrict _sxptr __attribute__ ((aligned (64))) = sxptr;
     const real* restrict _syptr __attribute__ ((aligned (64))) = syptr;
@@ -301,7 +301,7 @@ void compute_component_vcell_BL (      real* restrict  vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BL(rho, z, x, y, dimmz, dimmx);
-                
+        
                 const real stx  = stencil_X( _SX, _sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, _syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, _szptr, dzi, z, x, y, dimmz, dimmx);
