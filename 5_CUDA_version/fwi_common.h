@@ -33,6 +33,9 @@
 #include <unistd.h>
 #include <omp.h>
 #include <openacc.h>
+#ifdef TRACE_CUDA
+#include <nvToolsExt.h>
+#endif
 
 /* data types definition */
 typedef float  real;
@@ -156,6 +159,14 @@ void fwi_writelog(const char *SourceFileName,
                   const char* MessageHeader,
                   const char *fmt,
                   ...);
+
+#ifdef TRACE_CUDA
+    #define PUSH_RANGE nvtxRangePush(__func__);
+    #define POP_RANGE  nvtxRangePop();
+#else
+    #define PUSH_RANGE
+    #define POP_RANGE
+#endif
 
 
 #endif // end of _FWI_COMMON_H_ definition

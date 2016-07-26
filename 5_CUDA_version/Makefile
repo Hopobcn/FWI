@@ -8,6 +8,8 @@ IO_STATS   ?=NO
 DEBUG      ?=NO
 # possible values <YES,NO>
 USE_CUDA   ?=YES
+# possible values <YES,NO>
+TRACE_CUDA ?=NO
 
 ifeq ($(COMPILER),PGI)
 	CC        = pgcc
@@ -39,6 +41,11 @@ endif
 
 ifeq ($(USE_CUDA),YES)
 	DEFINES += -DUSE_CUDA
+endif
+
+ifeq ($(TRACE_CUDA),YES)
+	DEFINES += -DTRACE_CUDA
+	CLIBS   += -lnvToolsExt
 endif
 
 TARGET=fwi.intel64 ModelGenerator

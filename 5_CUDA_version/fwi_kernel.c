@@ -27,6 +27,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f\n", randvalue);
 
+    #pragma omp parallel for firstprivate(randvalue)
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
 }
@@ -36,6 +37,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
  */
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
+    #pragma omp parallel for firstprivate(value)
     for( integer i = 0; i < length; i++ )
         array[i] = value;
 }
@@ -105,6 +107,8 @@ void alloc_memory_shot( const integer numberOfCells,
                         v_t     *v,
                         real    **rho)
 {
+    PUSH_RANGE
+
     const integer size = numberOfCells * sizeof(real);
 
     print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
@@ -184,6 +188,8 @@ void alloc_memory_shot( const integer numberOfCells,
 
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
+
+    POP_RANGE
 };
 
 void free_memory_shot( coeff_t *c,
@@ -192,6 +198,8 @@ void free_memory_shot( coeff_t *c,
                        real    **rho,
                        const int ngpus )
 {
+    PUSH_RANGE
+
     //#pragma omp parallel for schedule(static, 1)
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
@@ -296,6 +304,8 @@ void free_memory_shot( coeff_t *c,
 
     /* deallocate density array       */
     __free( (void*) *rho );
+
+    POP_RANGE
 };
 
 /*
@@ -309,6 +319,8 @@ void load_initial_model ( const real    waveletFreq,
                           real    *rho,
                           const int ngpus )
 {
+    PUSH_RANGE
+
     /* initialize stress */
     set_array_to_constant( s->tl.zz, 0, numberOfCells);
     set_array_to_constant( s->tl.xz, 0, numberOfCells);
@@ -556,6 +568,8 @@ void load_initial_model ( const real    waveletFreq,
                                copyin(rrho[0:datalen]) \
                                async(H2D)
     }
+
+    POP_RANGE
 };
 
 
@@ -567,6 +581,8 @@ void write_snapshot(char *folder,
                     v_t *v,
                     const integer numberOfCells)
 {
+    PUSH_RANGE
+
 #ifdef DO_NOT_PERFORM_IO
     print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
@@ -621,6 +637,8 @@ void write_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 #endif
+
+    POP_RANGE
 };
 
 /*
@@ -631,6 +649,8 @@ void read_snapshot(char *folder,
                    v_t *v,
                    const integer numberOfCells)
 {
+    PUSH_RANGE
+
 #ifdef DO_NOT_PERFORM_IO
     print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
@@ -686,6 +706,8 @@ void read_snapshot(char *folder,
                        device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
                        async(H2D)
 #endif
+
+    POP_RANGE
 };
 
 void propagate_shot(time_d        direction,
@@ -713,6 +735,8 @@ void propagate_shot(time_d        direction,
                     integer       dimmx,
                     integer       ngpus)
 {
+    PUSH_RANGE
+
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
@@ -852,7 +876,9 @@ void propagate_shot(time_d        direction,
     tvel_total    /= (double) timesteps;
     
     print_stats("Maingrid STRESS   computation took %lf seconds (%lf Mcells/s)", tstress_total,  megacells / tstress_total); 
-    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total); 
+    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total);
+
+    POP_RANGE
 };
 
 /*
