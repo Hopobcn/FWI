@@ -352,11 +352,11 @@ FILE* safe_fopen(const char *filename, char *mode, char* srcfilename, int linenu
 
 void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber)
 {
-  if ( fclose( stream ) != 0)
-  {
-    print_error("Cant close filename %s (called from %s - %d)", filename, srcfilename, linenumber);
-    abort();
-  }
+    if ( fclose( stream ) != 0)
+    {
+        print_error("Cant close filename %s (called from %s - %d)", filename, srcfilename, linenumber);
+        abort();
+    }
 
 /*if ( unlink(filename)  != 0)
   {
@@ -369,7 +369,7 @@ void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int li
 inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
-  print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
+    print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
 #else
     if( stream == NULL ){
         print_error("Invalid stream\n");

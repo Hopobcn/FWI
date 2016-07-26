@@ -25,9 +25,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 {
     const real randvalue = rand() / (1.0 * RAND_MAX);
 
-#ifdef DEBUG
-    fprintf(stderr, "Array is being initialized to %f\n", randvalue);
-#endif
+    print_debug("Array is being initialized to %f\n", randvalue);
 
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
@@ -49,9 +47,9 @@ void check_memory_shot( const integer numberOfCells,
                         real    *rho)
 {
 #ifdef DEBUG
-    fprintf(stderr, "Checking memory shot values\n");
+    print_debug("Checking memory shot values");
 
-    real value;
+    real UNUSED(value);
     for( int i=0; i < numberOfCells; i++)
     {
         value = c->c11[i];
@@ -79,33 +77,6 @@ void check_memory_shot( const integer numberOfCells,
         value = c->c55[i];
         value = c->c56[i];
         value = c->c66[i];
-#ifndef DO_NOT_PERFORM_IO
-        if (c->c11[i] != 1.0) printf("ERROR c->c11 != 1.0\n");
-        if (c->c12[i] != 1.0) printf("ERROR c->c12 != 1.0\n");
-        if (c->c13[i] != 1.0) printf("ERROR c->c13 != 1.0\n");
-        if (c->c14[i] != 1.0) printf("ERROR c->c14 != 1.0\n");
-        if (c->c15[i] != 1.0) printf("ERROR c->c15 != 1.0\n");
-        if (c->c16[i] != 1.0) printf("ERROR c->c16 != 1.0\n");
-                                                  
-        if (c->c22[i] != 1.0) printf("ERROR c->c22 != 1.0\n");
-        if (c->c23[i] != 1.0) printf("ERROR c->c23 != 1.0\n");
-        if (c->c24[i] != 1.0) printf("ERROR c->c24 != 1.0\n");
-        if (c->c25[i] != 1.0) printf("ERROR c->c25 != 1.0\n");
-        if (c->c26[i] != 1.0) printf("ERROR c->c26 != 1.0\n");
-                                                  
-        if (c->c33[i] != 1.0) printf("ERROR c->c33 != 1.0\n");
-        if (c->c34[i] != 1.0) printf("ERROR c->c34 != 1.0\n");
-        if (c->c35[i] != 1.0) printf("ERROR c->c35 != 1.0\n");
-        if (c->c36[i] != 1.0) printf("ERROR c->c36 != 1.0\n");
-                                                  
-        if (c->c44[i] != 1.0) printf("ERROR c->c44 != 1.0\n");
-        if (c->c45[i] != 1.0) printf("ERROR c->c45 != 1.0\n");
-        if (c->c46[i] != 1.0) printf("ERROR c->c46 != 1.0\n");
- 
-        if (c->c55[i] != 1.0) printf("ERROR c->c55 != 1.0\n");
-        if (c->c56[i] != 1.0) printf("ERROR c->c56 != 1.0\n");
-        if (c->c66[i] != 1.0) printf("ERROR c->c66 != 1.0\n");
-#endif
 
         value = v->tl.u[i];
         value = v->tl.v[i];
@@ -123,34 +94,6 @@ void check_memory_shot( const integer numberOfCells,
         value = v->br.v[i];
         value = v->br.w[i];
 
-        if (s->tl.zz[i] != 0.0) printf("ERROR s->tl.zz value!\n");
-        if (s->tl.xz[i] != 0.0) printf("ERROR s->tl.xz value!\n");
-        if (s->tl.yz[i] != 0.0) printf("ERROR s->tl.yz value!\n");
-        if (s->tl.xx[i] != 0.0) printf("ERROR s->tl.xx value!\n");
-        if (s->tl.xy[i] != 0.0) printf("ERROR s->tl.xy value!\n");
-        if (s->tl.yy[i] != 0.0) printf("ERROR s->tl.yy value!\n");
-                                                      
-        if (s->tr.zz[i] != 0.0) printf("ERROR s->tr.zz value!\n");
-        if (s->tr.xz[i] != 0.0) printf("ERROR s->tr.xz value!\n");
-        if (s->tr.yz[i] != 0.0) printf("ERROR s->tr.yz value!\n");
-        if (s->tr.xx[i] != 0.0) printf("ERROR s->tr.xx value!\n");
-        if (s->tr.xy[i] != 0.0) printf("ERROR s->tr.xy value!\n");
-        if (s->tr.yy[i] != 0.0) printf("ERROR s->tr.yy value!\n");
-                                                      
-        if (s->bl.zz[i] != 0.0) printf("ERROR s->bl.zz value!\n");
-        if (s->bl.xz[i] != 0.0) printf("ERROR s->bl.xz value!\n");
-        if (s->bl.yz[i] != 0.0) printf("ERROR s->bl.yz value!\n");
-        if (s->bl.xx[i] != 0.0) printf("ERROR s->bl.xx value!\n");
-        if (s->bl.xy[i] != 0.0) printf("ERROR s->bl.xy value!\n");
-        if (s->bl.yy[i] != 0.0) printf("ERROR s->bl.yy value!\n");
-                                                      
-        if (s->br.zz[i] != 0.0) printf("ERROR s->br.zz value!\n");
-        if (s->br.xz[i] != 0.0) printf("ERROR s->br.xz value!\n");
-        if (s->br.yz[i] != 0.0) printf("ERROR s->br.yz value!\n");
-        if (s->br.xx[i] != 0.0) printf("ERROR s->br.xx value!\n");
-        if (s->br.xy[i] != 0.0) printf("ERROR s->br.xy value!\n");
-        if (s->br.yy[i] != 0.0) printf("ERROR s->br.yy value!\n");
-
         value = rho[i];
     }
 #endif
@@ -164,7 +107,7 @@ void alloc_memory_shot( const integer numberOfCells,
 {
     const integer size = numberOfCells * sizeof(real);
 
-    fprintf(stderr, "ptr size = " I " bytes ("I" elements)\n", size, numberOfCells);
+    print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
 
     /* allocate coefficients */
     c->c11 = (real*) __malloc( ALIGN_REAL, size);
@@ -416,10 +359,7 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( c->c55, numberOfCells);
     set_array_to_random_real( c->c56, numberOfCells);
     set_array_to_random_real( c->c66, numberOfCells);
-
-    /* initialize rho */
-    set_array_to_random_real( rho, numberOfCells );
-
+    
     /* initalize velocity components */
     set_array_to_random_real( v->tl.u, numberOfCells );
     set_array_to_random_real( v->tl.v, numberOfCells );
@@ -433,7 +373,12 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( v->br.u, numberOfCells );
     set_array_to_random_real( v->br.v, numberOfCells );
     set_array_to_random_real( v->br.w, numberOfCells );
-#else 
+
+    /* initialize rho */
+    set_array_to_random_real( rho, numberOfCells );
+
+#else /* load velocity model from external file */
+    
     /* initialize coefficients */
     set_array_to_constant( c->c11, 1.0, numberOfCells);
     set_array_to_constant( c->c12, 1.0, numberOfCells);
@@ -460,14 +405,23 @@ void load_initial_model ( const real    waveletFreq,
     /* initialize rho */
     set_array_to_constant( rho, 1.0, numberOfCells );
 
-    /* load velocity model from external file */
-    /* open initial model, binary file */
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double tend_outer, tend_inner;
+    double iospeed_inner, iospeed_outer;
     char modelname[300];
+
+     /* open initial model, binary file */
     sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
 
-    fprintf(stderr, "Loading input model %s from disk (this could take a while)\n", modelname);
+    print_info("Loading input model %s from disk (this could take a while)", modelname);
 
+    /* start clock, take into account file opening */
+    tstart_outer = dtime();
     FILE* model = safe_fopen( modelname, "rb", __FILE__, __LINE__ );
+    
+    /* start clock, do not take into account file opening */
+    tstart_inner = dtime();
 
     /* initalize velocity components */
     safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
@@ -483,9 +437,24 @@ void load_initial_model ( const real    waveletFreq,
     safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
 
-    /* close model file */
-    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
+    /* stop inner timer */
+    tend_inner = dtime() - tstart_inner;
 
+    /* stop timer and compute statistics */
+    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
+    tend_outer = dtime() - tstart_outer;
+
+    //fprintf(stderr, "Number of cells %d\n", numberOfCells);
+    //fprintf(stderr, "sizeof real %lu\n", sizeof(real));
+    //fprintf(stderr, "bytes %lf\n", numberOfCells * sizeof(real) * 12.f);
+
+    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+
+    print_stats("Initial velocity model loaded (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif /* end of DDO_NOT_PERFORM_IO clause */
 
     const integer datalen = numberOfCells;
@@ -599,23 +568,30 @@ void write_snapshot(char *folder,
                     const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
+    print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
     #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
                        self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
 
-
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double iospeed_outer, iospeed_inner;
+    double tend_outer, tend_inner;
     char fname[300];
+    
+    /* open snapshot file and write results */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
+    tstart_outer = dtime();
     FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
 
+    tstart_inner = dtime();
     safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     safe_fwrite( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -628,9 +604,22 @@ void write_snapshot(char *folder,
     safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-    if ( fclose(snapshot)!=0 )
-        fprintf(stderr,"Error closing file %s\n", fname);
+    /* stop inner timer */
+    tend_inner = dtime();
 
+    /* close file and stop outer timer */
+    safe_fclose(fname, snapshot, __FILE__, __LINE__ );
+    tend_outer = dtime();
+
+    iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
+    iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
+
+#ifdef LOG_IO_STATS
+    print_stats("Write snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MB/s)", (tend_inner - tstart_inner), iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MB/s)", (tend_outer - tstart_outer), iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
+#endif
 #endif
 };
 
@@ -643,17 +632,25 @@ void read_snapshot(char *folder,
                    const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-    fprintf(stderr, "Warning: We are not doing any IO here (%s)\n", __FUNCTION__);
+    print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double iospeed_outer, iospeed_inner;
+    double tend_outer, tend_inner;
     char fname[300];
+
+    /* open file and read snapshot */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
+    tstart_outer = dtime();
     FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
 
+    tstart_inner = dtime();
     safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -661,13 +658,27 @@ void read_snapshot(char *folder,
     safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-    if ( fclose(snapshot)!=0 )
-        fprintf(stderr,"Error closing file %s\n", fname);
+    /* stop inner timer */
+    tend_inner = dtime() - tstart_inner;
+
+    /* close file and stop outer timer */
+    safe_fclose(fname, snapshot, __FILE__, __LINE__ );
+    tend_outer = dtime() - tstart_outer;
+
+    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+
+#ifdef LOG_IO_STATS
+    print_stats("Read snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
+#endif
 
     #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
@@ -677,34 +688,39 @@ void read_snapshot(char *folder,
 #endif
 };
 
-void propagate_shot (time_d        direction,
-                     v_t           v,
-                     s_t           s,
-                     coeff_t       coeffs,
-                     real          *rho,
-                     int           timesteps,
-                     int           ntbwd,
-                     real          dt,
-                     real          dzi,
-                     real          dxi,
-                     real          dyi,
-                     integer       nz0,
-                     integer       nzf,
-                     integer       nx0,
-                     integer       nxf,
-                     integer       ny0,
-                     integer       nyf,
-                     integer       stacki,
-                     char          *folder,
-                     real          *dataflush,
-                     integer       datalen,
-                     integer       dimmz,
-                     integer       dimmx,
-                     integer       ngpus)
+void propagate_shot(time_d        direction,
+                    v_t           v,
+                    s_t           s,
+                    coeff_t       coeffs,
+                    real          *rho,
+                    int           timesteps,
+                    int           ntbwd,
+                    real          dt,
+                    real          dzi,
+                    real          dxi,
+                    real          dyi,
+                    integer       nz0,
+                    integer       nzf,
+                    integer       nx0,
+                    integer       nxf,
+                    integer       ny0,
+                    integer       nyf,
+                    integer       stacki,
+                    char          *folder,
+                    real          *dataflush,
+                    integer       datalen,
+                    integer       dimmz,
+                    integer       dimmx,
+                    integer       ngpus)
 {
+    double tstress_start, tstress_total = 0.0;
+    double tvel_start, tvel_total = 0.0;
+    double megacells = 0.0;
+
+
     for(int t=0; t < timesteps; t++)
     {
-        fprintf(stderr, "Computing %d-th timestep\n", t);
+        if( t % 10 == 0 ) print_info("Computing %d-th timestep", t);
 
         /* perform IO */
         if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
@@ -758,6 +774,8 @@ void propagate_shot (time_d        direction,
                                     ONE_R);
             } 
             /* Phase 2. Computation of the central planes. */
+            if (gpu == 0) tvel_start = dtime();
+
             velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
                                 nz0 +   HALO,
                                 nzf -   HALO,
@@ -772,6 +790,8 @@ void propagate_shot (time_d        direction,
             exchange_velocity_boundaries( v, plane_size, gpu, ngpus, nyfi, ny0i);
 
             #pragma acc wait(ONE_L, ONE_R, TWO)
+            
+            if (gpu == 0) tvel_total += (dtime() - tvel_start);
 
             /* ------------------------------------------------------------------------------ */
             /*                        STRESS COMPUTATION                                      */
@@ -803,6 +823,8 @@ void propagate_shot (time_d        direction,
             }
 
             /* Phase 2 computation. Central planes of the domain */
+            if (gpu == 0) tstress_start = dtime();
+
             stress_propagator ( s, v, coeffs, rho, dt, dzi, dxi, dyi, 
                                 nz0 +   HALO,
                                 nzf -   HALO,
@@ -817,10 +839,20 @@ void propagate_shot (time_d        direction,
             exchange_stress_boundaries( s, plane_size, gpu, ngpus, nyfi, ny0i);
 
             #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+            
+            if (gpu == 0) tstress_total += (dtime() - tstress_start);
         } 
               /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
+
+    /* compute some statistics */
+    megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
+    tstress_total /= (double) timesteps;
+    tvel_total    /= (double) timesteps;
+    
+    print_stats("Maingrid STRESS   computation took %lf seconds (%lf Mcells/s)", tstress_total,  megacells / tstress_total); 
+    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total); 
 };
 
 /*

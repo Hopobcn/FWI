@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <assert.h>
 #include <math.h>
 #include <sys/time.h>
@@ -55,12 +56,12 @@ extern const size_t ALIGN_INT;
 extern const size_t ALIGN_INTEGER;
 extern const size_t ALIGN_REAL;
 
-#define TOGB(bytes) (bytes / (1024.f * 1024.f * 1024.f))
+double TOGB(size_t bytes);
 
 /*  Compiler compatiblity macros */
 #ifdef __GNUC__
-    /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
-        #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
+  /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
+    #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
 /*  Compiler macro to suppress unused variable warnings */
@@ -88,6 +89,7 @@ void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int l
 void  safe_fwrite ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
 void  safe_fread  ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
 integer roundup(integer number, integer multiple);
+
 
 int max_int( int a, int b);
 
@@ -140,6 +142,26 @@ void  __free   ( void *ptr );
 void create_output_volumes(char* outputfolder, integer VolumeMemory);
 
 int mkdir_p(const char *dir);
+
 void create_folder(const char *folder);
+
+
+#define print_error(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "ERROR ", M, ##__VA_ARGS__)
+#define print_info(M, ...)      fwi_writelog(__FILE__, __LINE__, __func__, "INFO  ", M, ##__VA_ARGS__)
+#define print_stats(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "STATS ", M, ##__VA_ARGS__)
+
+#ifdef DEBUG
+  #define print_debug(M, ...)  fwi_writelog(__FILE__, __LINE__, __func__, "DEBUG ", M, ##__VA_ARGS__)
+#else
+  #define print_debug(M, ...)
+#endif
+
+void fwi_writelog(const char *SourceFileName, 
+                  const int LineNumber,
+                  const char *FunctionName,
+                  const char* MessageHeader,
+                  const char *fmt,
+                  ...);
+
 
 #endif // end of _FWI_COMMON_H_ definition

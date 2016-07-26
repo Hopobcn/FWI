@@ -17,8 +17,8 @@ real stencil_Z ( const integer off,
                  const integer z,
                  const integer x,
                  const integer y,
-                 const int dimmz,
-                 const int dimmx)
+                 const integer dimmz,
+                 const integer dimmx)
 {
     return  ((C0 * ( ptr[IDX(z  +off,x,y,dimmz,dimmx)] - ptr[IDX(z-1+off,x,y,dimmz,dimmx)]) +
               C1 * ( ptr[IDX(z+1+off,x,y,dimmz,dimmx)] - ptr[IDX(z-2+off,x,y,dimmz,dimmx)]) +

@@ -1,11 +1,11 @@
 # possible values <INTEL,GNU>
-COMPILER   =GNU
+COMPILER   ?=GNU
 # possible values <YES,NO>
-PERFORM_IO =YES
+PERFORM_IO ?=YES
 # possible values <YES,NO>
-IO_STATS   =NO
+IO_STATS   ?=NO
 # possible values <YES,NO>
-DEBUG      =NO
+DEBUG      ?=NO
 
 
 ifeq ($(COMPILER),INTEL)
@@ -68,7 +68,7 @@ fwi_propagator.o:fwi_propagator.c
 .PHONY:all clean run debug memcheck input printvars
 
 clean:
-	rm -rf *.o *.optrpt $(TARGET) *.log Results/*
+	rm -rf *.o *.optrpt *.log $(TARGET) *.log Results/*
 
 input: ModelGenerator
 	./ModelGenerator ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt

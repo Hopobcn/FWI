@@ -361,7 +361,7 @@ int main(int argc, const char* argv[])
 
     tend = dtime() - tstart;
 
-    fprintf(stderr, "Program finished in %lf seconds\n", tend);
+    fprintf(stderr, "FWI Program finished in %lf seconds\n", tend);
 
     return 0;
 }

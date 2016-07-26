@@ -426,7 +426,7 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
-#endif /* end of DDO_NOT_PERFOM_IO clause */
+#endif /* end of DDO_NOT_PERFORM_IO clause */
 };
 
 

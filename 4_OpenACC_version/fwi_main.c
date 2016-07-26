@@ -23,13 +23,12 @@
  * /system/support/bscgeo/src/wavelet.c
  * functions can be used.
  */
-
 void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, char* outputfolder, char* shotfolder)
 {
     int stacki;
+    double start_t, end_t;
     real dt,dz,dx,dy;
-    integer dimmz, dimmx, dimmy;
-    int forw_steps, back_steps;
+    integer dimmz, dimmx, dimmy, forw_steps, back_steps;
 
     load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder, waveletFreq );
 
@@ -48,7 +47,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
     s_t     s;
     coeff_t coeffs;
 
-    fprintf(stderr, "Computing " I " planes, and " I " cells\n", dimmy, numberOfCells);
+    print_debug("The length of local arrays is " I " cells", numberOfCells);
 
     /* allocate shot memory */
     alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
@@ -61,9 +60,6 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
 
     /* inspects every array positions for leaks. Enabled when DEBUG flag is defined */
     check_memory_shot  ( numberOfCells, &coeffs, &s, &v, rho);
-
-    /* some variables for timming */
-    double start_t, end_t;
 
     switch( propagator )
     {
@@ -85,10 +81,10 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
 
         end_t = dtime();
 
-        fprintf(stdout, "Forward propagation finished in %lf seconds\n", \
-                         end_t - start_t );
+        print_stats("Forward propagation finished in %lf seconds", end_t - start_t );
 
         start_t = dtime();
+        
         propagate_shot ( BACKWARD,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
@@ -103,11 +99,11 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
 
         end_t = dtime();
 
-        fprintf(stdout, "Backward propagation finished in %lf seconds\n", \
-                         end_t - start_t );
+        print_stats("Backward propagation finished in %lf seconds", end_t - start_t );
 
 #ifdef DO_NOT_PERFORM_IO
-        fprintf(stderr, "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
+        print_info("Warning: we are not creating gradient nor preconditioner "
+                   "fields, because IO is not enabled for this execution" );
 #else
         char fnameGradient[300];
         char fnamePrecond[300];
@@ -117,10 +113,10 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
         FILE* fgradient = safe_fopen( fnameGradient, "wb", __FILE__, __LINE__ );
         FILE* fprecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
 
-        fprintf(stderr, "Storing local preconditioner field in %s\n", fnameGradient );
+        print_info("Storing local preconditioner field in %s", fnameGradient );
         safe_fwrite( io_buffer, sizeof(real), numberOfCells * 12, fgradient, __FILE__, __LINE__ );
 
-        fprintf(stderr, "Storing local gradient field in %s\n", fnamePrecond);
+        print_info("Storing local gradient field in %s", fnamePrecond);
         safe_fwrite( io_buffer, sizeof(real), numberOfCells * 12, fprecond , __FILE__, __LINE__ );
 
         safe_fclose( fnameGradient, fgradient, __FILE__, __LINE__ );
@@ -147,14 +143,13 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
 
         end_t = dtime();
 
-        fprintf(stdout, "Forward Modelling finished in %lf seconds\n",  \
-                         end_t - start_t );
+        print_stats("Forward Modelling finished in %lf seconds", end_t - start_t );
        
         break;
     }
     default:
     {
-        fprintf(stderr, "Invalid propagation identifier\n");
+        print_error("Invalid propagation identifier");
         abort();
     }
     } /* end case */
@@ -162,17 +157,16 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
     // liberamos la memoria alocatada en el shot
     free_memory_shot  ( &coeffs, &s, &v, &rho, ngpus );
     __free( io_buffer );
-
-    fprintf(stderr, "Shot memory free'd\n");
 };
 
 void gather_shots( char* outputfolder, const real waveletFreq, const int nshots, const int numberOfCells )
 {
 #ifdef DO_NOT_PERFORM_IO
-    fprintf(stderr, "Warning: we are not doing any IO here (%s)\n", __FUNCTION__ );
+    print_info("Warning: we are not gathering the results because the IO is disabled "
+               "for this execution");
 #else
     /* ---------  GLOBAL PRECONDITIONER ACCUMULATION --------- */
-    fprintf(stderr, "Gathering local preconditioner fields\n");
+    print_info("Gathering local preconditioner fields");
 
     /* variables for timming */
     double start_t, end_t;
@@ -192,7 +186,7 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
         sprintf( readfilename, "%s/shot.%2.1f.%05d/precond_%05d.dat", 
                 outputfolder, waveletFreq, shot, shot);
 
-        fprintf(stderr, "Reading preconditioner file %s\n", readfilename );
+        print_info("Reading preconditioner file '%s'", readfilename );
 
         FILE* freadfile = safe_fopen( readfilename, "rb", __FILE__, __LINE__ );
         safe_fread ( readbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, freadfile, __FILE__, __LINE__ );
@@ -203,6 +197,7 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 #endif
         for( int i = 0; i < numberOfCells * WRITTEN_FIELDS; i++)
             sumbuffer[i] += readbuffer[i];
+
         fclose (freadfile);
     }
 
@@ -214,14 +209,12 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for preconditioner %s (freq %2.1f) "
-                    "completed in: %lf seconds\n",
-                    precondfilename, waveletFreq, end_t - start_t  );
-
-
+    print_stats("Gatering process for preconditioner %s (freq %2.1f) " 
+                "completed in: %lf seconds",  
+                precondfilename, waveletFreq, end_t - start_t  );
 
     /* ---------  GLOBAL GRADIENT ACCUMULATION --------- */
-    fprintf(stderr, "Gathering local gradient fields\n");
+    print_info("Gathering local gradient fields");
 
     start_t = dtime();
 
@@ -234,7 +227,7 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
         sprintf( readfilename, "%s/shot.%2.1f.%05d/gradient_%05d.dat", 
                 outputfolder, waveletFreq, shot, shot);
 
-        fprintf(stderr, "Reading gradient file %s\n", readfilename );
+        print_info("Reading gradient file %s", readfilename );
 
         FILE* freadfile = safe_fopen( readfilename, "rb", __FILE__, __LINE__ );
         safe_fread ( readbuffer, sizeof(real), numberOfCells * WRITTEN_FIELDS, freadfile, __FILE__, __LINE__ );
@@ -257,9 +250,9 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
     end_t = dtime();
 
-    fprintf(stderr, "Gatering process for gradient %s (freq %2.1f) " 
-                    "completed in: %lf seconds\n",    
-                    precondfilename, waveletFreq, end_t - start_t );
+    print_stats("Gatering process for gradient %s (freq %2.1f) "        
+                "completed in: %lf seconds", 
+                precondfilename, waveletFreq, end_t - start_t  );
 
     __free(  sumbuffer);
     __free( readbuffer);
@@ -268,6 +261,9 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
 int main(int argc, const char* argv[])
 {
+    double tstart, tend;
+    tstart = dtime();
+
     real lenz,lenx,leny,vmin,srclen,rcvlen;
     char outputfolder[200];
 
@@ -290,6 +286,7 @@ int main(int argc, const char* argv[])
     {
         /* Process one frequency at a time */
         real waveletFreq = frequencies[i];
+        fprintf(stderr, "Freq: %2.1f ------------------------\n", waveletFreq); 
 
         /* Deltas of space, 16 grid point per Hz */
         real dx = vmin / (16.0 * waveletFreq);
@@ -301,35 +298,26 @@ int main(int argc, const char* argv[])
         integer dimmy = roundup(ceil( leny / dy ) + 2*HALO, HALO);
         integer dimmx = roundup(ceil( lenx / dx ) + 2*HALO, HALO);
 
-        fprintf(stderr, "Domain dimensions (dimm x, y, z) %d %d %d delta of space (dx,dy,dz) %f %f %f vim %f\n",
-                         dimmx, dimmy, dimmz, dx, dy, dz, vmin); 
-
         /* compute delta T */
         real dt = 68e-6 * dx;
 
         /* dynamic I/O */
-        int stacki = floor(  0.25 / (2.5 * waveletFreq * dt) );
-
-        fprintf(stderr, "Stack(i) vale is %d\n", stacki);
+        integer stacki = floor( 0.25 / (2.5 * waveletFreq * dt) );
 
         const integer numberOfCells = dimmz * dimmx * dimmx;
         const integer VolumeMemory  = numberOfCells * sizeof(real) * 58;
 
-        fprintf(stderr, "Local domain size is " I " bytes (%f GB)\n", \
-                         VolumeMemory, TOGB(VolumeMemory) );
+        print_stats("Local domain size is " I " bytes (%f GB)", 
+                    VolumeMemory, TOGB(VolumeMemory) );
 
         /* compute time steps */
         int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
         int back_steps = max_int ( IT_FACTOR * (rcvlen/dt), 1);
 
-        fprintf(stderr, "stacki value is %d. "              \
-                        "forward propagation steps: %d "    \
-                        "backward propagation steps: %d\n", \
-                        stacki, forw_steps, back_steps);
-
         for(int grad=0; grad<ngrads; grad++) /* iteracion de inversion */
         {
             fprintf(stderr, "Processing %d-th gradient iteration.\n", grad);
+            print_info("Processing %d-gradient iteration", grad);
 
             for(int shot=0; shot<nshots; shot++)
             {
@@ -344,15 +332,19 @@ int main(int argc, const char* argv[])
 
                 kernel( RTM_KERNEL, waveletFreq, shot, ngpus, outputfolder, shotfolder);
 
-                fprintf(stderr, "       %d-th shot processed\n", shot);
-                // update_shot()
+                fprintf(stderr, "\tGradient loop processed for the %d-th shot\n", shot);
+                print_info("\tGradient loop processed for %d-th shot", shot);
+                
+                //update_shot()
             }
 
             gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );
 
             for(int test=0; test<ntest; test++)
             {
-                fprintf(stderr, "Processing %d-th test iteration.\n", test);
+                fprintf(stderr, "\tProcessing %d-th test iteration.\n", test);
+                print_info("\tProcessing %d-th test iteration", test);
+                
                 for(int shot=0; shot<nshots; shot++)
                 {
                     char shotfolder[200];
@@ -367,15 +359,16 @@ int main(int argc, const char* argv[])
 
                     kernel( FM_KERNEL , waveletFreq, shot, ngpus, outputfolder, shotfolder);
                 
-                    fprintf(stderr, "       %d-th shot processed\n", shot);
+                    fprintf(stderr, "\t\tTest loop processed for the %d-th shot\n", shot);
+                    print_info("\t\tTest loop processed for the %d-th shot", shot);
                 }
-            }
-        } /* end of test loop */
-
+            } /* end of test loop */
+        } /* end of gradient loop */
     } /* end of frequency loop */
 
+    tend = dtime() - tstart;
 
-    fprintf(stderr, "-------- FWI program Finished ------------------- \n");
+    fprintf(stderr, "FWI Program finished in %lf seconds\n", tend);
 
     return 0;
 }
