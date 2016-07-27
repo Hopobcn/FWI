@@ -27,7 +27,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f\n", randvalue);
 
-    #pragma omp parallel for firstprivate(randvalue)
+    #pragma acc kernels copyin(array[0:length])
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
 }
@@ -37,7 +37,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
  */
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
-    #pragma omp parallel for firstprivate(value)
+    #pragma acc kernels copyin(array[0:length])
     for( integer i = 0; i < length; i++ )
         array[i] = value;
 }
@@ -105,7 +105,8 @@ void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-                        real    **rho)
+                        real    **rho,
+                        const int ngpus)
 {
     PUSH_RANGE
 
@@ -189,6 +190,104 @@ void alloc_memory_shot( const integer numberOfCells,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
+    const integer datalen = numberOfCells;
+
+    const real* cc11 = c->c11;
+    const real* cc12 = c->c12;
+    const real* cc13 = c->c13;
+    const real* cc14 = c->c14;
+    const real* cc15 = c->c15;
+    const real* cc16 = c->c16;
+                             
+    const real* cc22 = c->c22;
+    const real* cc23 = c->c23;
+    const real* cc24 = c->c24;
+    const real* cc25 = c->c25;
+    const real* cc26 = c->c26;
+                             
+    const real* cc33 = c->c33;
+    const real* cc34 = c->c34;
+    const real* cc35 = c->c35;
+    const real* cc36 = c->c36;
+                             
+    const real* cc44 = c->c44;
+    const real* cc45 = c->c45;
+    const real* cc46 = c->c46;
+                             
+    const real* cc55 = c->c55;
+    const real* cc56 = c->c56;
+                       
+    const real* cc66 = c->c66;
+          
+    const real* vtlu = v->tl.u;
+    const real* vtlv = v->tl.v;
+    const real* vtlw = v->tl.w;
+                              
+    const real* vtru = v->tr.u;
+    const real* vtrv = v->tr.v;
+    const real* vtrw = v->tr.w;
+                              
+    const real* vblu = v->bl.u;
+    const real* vblv = v->bl.v;
+    const real* vblw = v->bl.w;
+                              
+    const real* vbru = v->br.u;
+    const real* vbrv = v->br.v;
+    const real* vbrw = v->br.w;
+       
+    const real* stlzz = s->tl.zz;
+    const real* stlxz = s->tl.xz;
+    const real* stlyz = s->tl.yz;
+    const real* stlxx = s->tl.xx;
+    const real* stlxy = s->tl.xy;
+    const real* stlyy = s->tl.yy;
+                                
+    const real* strzz = s->tr.zz;
+    const real* strxz = s->tr.xz;
+    const real* stryz = s->tr.yz;
+    const real* strxx = s->tr.xx;
+    const real* strxy = s->tr.xy;
+    const real* stryy = s->tr.yy;
+                                
+    const real* sblzz = s->bl.zz;
+    const real* sblxz = s->bl.xz;
+    const real* sblyz = s->bl.yz;
+    const real* sblxx = s->bl.xx;
+    const real* sblxy = s->bl.xy;
+    const real* sblyy = s->bl.yy;
+                                
+    const real* sbrzz = s->br.zz;
+    const real* sbrxz = s->br.xz;
+    const real* sbryz = s->br.yz;
+    const real* sbrxx = s->br.xx;
+    const real* sbrxy = s->br.xy;
+    const real* sbryy = s->br.yy;
+
+    const real* rrho  = *rho;
+
+    //#pragma omp parallel for schedule(static, 1)    
+    for (int gpu = 0; gpu < ngpus; gpu++)
+    {
+        acc_set_device_num(gpu, acc_device_nvidia);
+       
+        #pragma acc enter data create(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
+                               create(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
+                               create(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
+                               create(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
+                               create(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
+                               create(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
+                               create(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
+                               create(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
+                               create(cc11[0:datalen], cc12[0:datalen], cc13[0:datalen], cc14[0:datalen], cc15[0:datalen], cc16[0:datalen]) \
+                               create(cc22[0:datalen], cc23[0:datalen], cc24[0:datalen], cc25[0:datalen], cc26[0:datalen]) \
+                               create(cc33[0:datalen], cc34[0:datalen], cc35[0:datalen], cc36[0:datalen]) \
+                               create(cc44[0:datalen], cc45[0:datalen], cc46[0:datalen]) \
+                               create(cc55[0:datalen], cc56[0:datalen]) \
+                               create(cc66[0:datalen]) \
+                               create(rrho[0:datalen])
+    }
+
+
     POP_RANGE
 };
 
@@ -203,8 +302,6 @@ void free_memory_shot( coeff_t *c,
     //#pragma omp parallel for schedule(static, 1)
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
-        
-
         acc_set_device_num(gpu, acc_device_nvidia);
         
         #pragma acc wait
@@ -223,7 +320,6 @@ void free_memory_shot( coeff_t *c,
                               delete(c->c55, c->c56) \
                               delete(c->c66) \
                               delete(rho)
-        
     }
 
 
@@ -321,101 +417,107 @@ void load_initial_model ( const real    waveletFreq,
 {
     PUSH_RANGE
 
-    /* initialize stress */
-    set_array_to_constant( s->tl.zz, 0, numberOfCells);
-    set_array_to_constant( s->tl.xz, 0, numberOfCells);
-    set_array_to_constant( s->tl.yz, 0, numberOfCells);
-    set_array_to_constant( s->tl.xx, 0, numberOfCells);
-    set_array_to_constant( s->tl.xy, 0, numberOfCells);
-    set_array_to_constant( s->tl.yy, 0, numberOfCells);
-    set_array_to_constant( s->tr.zz, 0, numberOfCells);
-    set_array_to_constant( s->tr.xz, 0, numberOfCells);
-    set_array_to_constant( s->tr.yz, 0, numberOfCells);
-    set_array_to_constant( s->tr.xx, 0, numberOfCells);
-    set_array_to_constant( s->tr.xy, 0, numberOfCells);
-    set_array_to_constant( s->tr.yy, 0, numberOfCells);
-    set_array_to_constant( s->bl.zz, 0, numberOfCells);
-    set_array_to_constant( s->bl.xz, 0, numberOfCells);
-    set_array_to_constant( s->bl.yz, 0, numberOfCells);
-    set_array_to_constant( s->bl.xx, 0, numberOfCells);
-    set_array_to_constant( s->bl.xy, 0, numberOfCells);
-    set_array_to_constant( s->bl.yy, 0, numberOfCells);
-    set_array_to_constant( s->br.zz, 0, numberOfCells);
-    set_array_to_constant( s->br.xz, 0, numberOfCells);
-    set_array_to_constant( s->br.yz, 0, numberOfCells);
-    set_array_to_constant( s->br.xx, 0, numberOfCells);
-    set_array_to_constant( s->br.xy, 0, numberOfCells);
-    set_array_to_constant( s->br.yy, 0, numberOfCells);
+    #pragma omp parallel for schedule(static, 1) 
+    for (int gpu = 0; gpu < ngpus; gpu++)
+    {
+        acc_set_device_num(gpu, acc_device_nvidia);
+
+        /* initialize stress */
+        set_array_to_constant( s->tl.zz, 0, numberOfCells);
+        set_array_to_constant( s->tl.xz, 0, numberOfCells);
+        set_array_to_constant( s->tl.yz, 0, numberOfCells);
+        set_array_to_constant( s->tl.xx, 0, numberOfCells);
+        set_array_to_constant( s->tl.xy, 0, numberOfCells);
+        set_array_to_constant( s->tl.yy, 0, numberOfCells);
+        set_array_to_constant( s->tr.zz, 0, numberOfCells);
+        set_array_to_constant( s->tr.xz, 0, numberOfCells);
+        set_array_to_constant( s->tr.yz, 0, numberOfCells);
+        set_array_to_constant( s->tr.xx, 0, numberOfCells);
+        set_array_to_constant( s->tr.xy, 0, numberOfCells);
+        set_array_to_constant( s->tr.yy, 0, numberOfCells);
+        set_array_to_constant( s->bl.zz, 0, numberOfCells);
+        set_array_to_constant( s->bl.xz, 0, numberOfCells);
+        set_array_to_constant( s->bl.yz, 0, numberOfCells);
+        set_array_to_constant( s->bl.xx, 0, numberOfCells);
+        set_array_to_constant( s->bl.xy, 0, numberOfCells);
+        set_array_to_constant( s->bl.yy, 0, numberOfCells);
+        set_array_to_constant( s->br.zz, 0, numberOfCells);
+        set_array_to_constant( s->br.xz, 0, numberOfCells);
+        set_array_to_constant( s->br.yz, 0, numberOfCells);
+        set_array_to_constant( s->br.xx, 0, numberOfCells);
+        set_array_to_constant( s->br.xy, 0, numberOfCells);
+        set_array_to_constant( s->br.yy, 0, numberOfCells);
 
 #ifdef DO_NOT_PERFORM_IO
 
-    /* initialize coefficients */
-    set_array_to_random_real( c->c11, numberOfCells);
-    set_array_to_random_real( c->c12, numberOfCells);
-    set_array_to_random_real( c->c13, numberOfCells);
-    set_array_to_random_real( c->c14, numberOfCells);
-    set_array_to_random_real( c->c15, numberOfCells);
-    set_array_to_random_real( c->c16, numberOfCells);
-    set_array_to_random_real( c->c22, numberOfCells);
-    set_array_to_random_real( c->c23, numberOfCells);
-    set_array_to_random_real( c->c24, numberOfCells);
-    set_array_to_random_real( c->c25, numberOfCells);
-    set_array_to_random_real( c->c26, numberOfCells);
-    set_array_to_random_real( c->c33, numberOfCells);
-    set_array_to_random_real( c->c34, numberOfCells);
-    set_array_to_random_real( c->c35, numberOfCells);
-    set_array_to_random_real( c->c36, numberOfCells);
-    set_array_to_random_real( c->c44, numberOfCells);
-    set_array_to_random_real( c->c45, numberOfCells);
-    set_array_to_random_real( c->c46, numberOfCells);
-    set_array_to_random_real( c->c55, numberOfCells);
-    set_array_to_random_real( c->c56, numberOfCells);
-    set_array_to_random_real( c->c66, numberOfCells);
-    
-    /* initalize velocity components */
-    set_array_to_random_real( v->tl.u, numberOfCells );
-    set_array_to_random_real( v->tl.v, numberOfCells );
-    set_array_to_random_real( v->tl.w, numberOfCells );
-    set_array_to_random_real( v->tr.u, numberOfCells );
-    set_array_to_random_real( v->tr.v, numberOfCells );
-    set_array_to_random_real( v->tr.w, numberOfCells );
-    set_array_to_random_real( v->bl.u, numberOfCells );
-    set_array_to_random_real( v->bl.v, numberOfCells );
-    set_array_to_random_real( v->bl.w, numberOfCells );
-    set_array_to_random_real( v->br.u, numberOfCells );
-    set_array_to_random_real( v->br.v, numberOfCells );
-    set_array_to_random_real( v->br.w, numberOfCells );
+        /* initialize coefficients */
+        set_array_to_random_real( c->c11, numberOfCells);
+        set_array_to_random_real( c->c12, numberOfCells);
+        set_array_to_random_real( c->c13, numberOfCells);
+        set_array_to_random_real( c->c14, numberOfCells);
+        set_array_to_random_real( c->c15, numberOfCells);
+        set_array_to_random_real( c->c16, numberOfCells);
+        set_array_to_random_real( c->c22, numberOfCells);
+        set_array_to_random_real( c->c23, numberOfCells);
+        set_array_to_random_real( c->c24, numberOfCells);
+        set_array_to_random_real( c->c25, numberOfCells);
+        set_array_to_random_real( c->c26, numberOfCells);
+        set_array_to_random_real( c->c33, numberOfCells);
+        set_array_to_random_real( c->c34, numberOfCells);
+        set_array_to_random_real( c->c35, numberOfCells);
+        set_array_to_random_real( c->c36, numberOfCells);
+        set_array_to_random_real( c->c44, numberOfCells);
+        set_array_to_random_real( c->c45, numberOfCells);
+        set_array_to_random_real( c->c46, numberOfCells);
+        set_array_to_random_real( c->c55, numberOfCells);
+        set_array_to_random_real( c->c56, numberOfCells);
+        set_array_to_random_real( c->c66, numberOfCells);
+        
+        /* initalize velocity components */
+        set_array_to_random_real( v->tl.u, numberOfCells );
+        set_array_to_random_real( v->tl.v, numberOfCells );
+        set_array_to_random_real( v->tl.w, numberOfCells );
+        set_array_to_random_real( v->tr.u, numberOfCells );
+        set_array_to_random_real( v->tr.v, numberOfCells );
+        set_array_to_random_real( v->tr.w, numberOfCells );
+        set_array_to_random_real( v->bl.u, numberOfCells );
+        set_array_to_random_real( v->bl.v, numberOfCells );
+        set_array_to_random_real( v->bl.w, numberOfCells );
+        set_array_to_random_real( v->br.u, numberOfCells );
+        set_array_to_random_real( v->br.v, numberOfCells );
+        set_array_to_random_real( v->br.w, numberOfCells );
 
-    /* initialize rho */
-    set_array_to_random_real( rho, numberOfCells );
-
+        /* initialize rho */
+        set_array_to_random_real( rho, numberOfCells );
+    }
 #else /* load velocity model from external file */
     
-    /* initialize coefficients */
-    set_array_to_constant( c->c11, 1.0, numberOfCells);
-    set_array_to_constant( c->c12, 1.0, numberOfCells);
-    set_array_to_constant( c->c13, 1.0, numberOfCells);
-    set_array_to_constant( c->c14, 1.0, numberOfCells);
-    set_array_to_constant( c->c15, 1.0, numberOfCells);
-    set_array_to_constant( c->c16, 1.0, numberOfCells);
-    set_array_to_constant( c->c22, 1.0, numberOfCells);
-    set_array_to_constant( c->c23, 1.0, numberOfCells);
-    set_array_to_constant( c->c24, 1.0, numberOfCells);
-    set_array_to_constant( c->c25, 1.0, numberOfCells);
-    set_array_to_constant( c->c26, 1.0, numberOfCells);
-    set_array_to_constant( c->c33, 1.0, numberOfCells);
-    set_array_to_constant( c->c34, 1.0, numberOfCells);
-    set_array_to_constant( c->c35, 1.0, numberOfCells);
-    set_array_to_constant( c->c36, 1.0, numberOfCells);
-    set_array_to_constant( c->c44, 1.0, numberOfCells);
-    set_array_to_constant( c->c45, 1.0, numberOfCells);
-    set_array_to_constant( c->c46, 1.0, numberOfCells);
-    set_array_to_constant( c->c55, 1.0, numberOfCells);
-    set_array_to_constant( c->c56, 1.0, numberOfCells);
-    set_array_to_constant( c->c66, 1.0, numberOfCells);
+        /* initialize coefficients */
+        set_array_to_constant( c->c11, 1.0, numberOfCells);
+        set_array_to_constant( c->c12, 1.0, numberOfCells);
+        set_array_to_constant( c->c13, 1.0, numberOfCells);
+        set_array_to_constant( c->c14, 1.0, numberOfCells);
+        set_array_to_constant( c->c15, 1.0, numberOfCells);
+        set_array_to_constant( c->c16, 1.0, numberOfCells);
+        set_array_to_constant( c->c22, 1.0, numberOfCells);
+        set_array_to_constant( c->c23, 1.0, numberOfCells);
+        set_array_to_constant( c->c24, 1.0, numberOfCells);
+        set_array_to_constant( c->c25, 1.0, numberOfCells);
+        set_array_to_constant( c->c26, 1.0, numberOfCells);
+        set_array_to_constant( c->c33, 1.0, numberOfCells);
+        set_array_to_constant( c->c34, 1.0, numberOfCells);
+        set_array_to_constant( c->c35, 1.0, numberOfCells);
+        set_array_to_constant( c->c36, 1.0, numberOfCells);
+        set_array_to_constant( c->c44, 1.0, numberOfCells);
+        set_array_to_constant( c->c45, 1.0, numberOfCells);
+        set_array_to_constant( c->c46, 1.0, numberOfCells);
+        set_array_to_constant( c->c55, 1.0, numberOfCells);
+        set_array_to_constant( c->c56, 1.0, numberOfCells);
+        set_array_to_constant( c->c66, 1.0, numberOfCells);
 
-    /* initialize rho */
-    set_array_to_constant( rho, 1.0, numberOfCells );
+        /* initialize rho */
+        set_array_to_constant( rho, 1.0, numberOfCells );
+    }
 
     /* local variables */
     double tstart_outer, tstart_inner;
@@ -467,37 +569,9 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
-#endif /* end of DDO_NOT_PERFORM_IO clause */
 
     const integer datalen = numberOfCells;
 
-    const real* cc11 = c->c11;
-    const real* cc12 = c->c12;
-    const real* cc13 = c->c13;
-    const real* cc14 = c->c14;
-    const real* cc15 = c->c15;
-    const real* cc16 = c->c16;
-                             
-    const real* cc22 = c->c22;
-    const real* cc23 = c->c23;
-    const real* cc24 = c->c24;
-    const real* cc25 = c->c25;
-    const real* cc26 = c->c26;
-                             
-    const real* cc33 = c->c33;
-    const real* cc34 = c->c34;
-    const real* cc35 = c->c35;
-    const real* cc36 = c->c36;
-                             
-    const real* cc44 = c->c44;
-    const real* cc45 = c->c45;
-    const real* cc46 = c->c46;
-                             
-    const real* cc55 = c->c55;
-    const real* cc56 = c->c56;
-                       
-    const real* cc66 = c->c66;
-          
     const real* vtlu = v->tl.u;
     const real* vtlv = v->tl.v;
     const real* vtlw = v->tl.w;
@@ -513,61 +587,19 @@ void load_initial_model ( const real    waveletFreq,
     const real* vbru = v->br.u;
     const real* vbrv = v->br.v;
     const real* vbrw = v->br.w;
-       
-    const real* stlzz = s->tl.zz;
-    const real* stlxz = s->tl.xz;
-    const real* stlyz = s->tl.yz;
-    const real* stlxx = s->tl.xx;
-    const real* stlxy = s->tl.xy;
-    const real* stlyy = s->tl.yy;
-                                
-    const real* strzz = s->tr.zz;
-    const real* strxz = s->tr.xz;
-    const real* stryz = s->tr.yz;
-    const real* strxx = s->tr.xx;
-    const real* strxy = s->tr.xy;
-    const real* stryy = s->tr.yy;
-                                
-    const real* sblzz = s->bl.zz;
-    const real* sblxz = s->bl.xz;
-    const real* sblyz = s->bl.yz;
-    const real* sblxx = s->bl.xx;
-    const real* sblxy = s->bl.xy;
-    const real* sblyy = s->bl.yy;
-                                
-    const real* sbrzz = s->br.zz;
-    const real* sbrxz = s->br.xz;
-    const real* sbryz = s->br.yz;
-    const real* sbrxx = s->br.xx;
-    const real* sbrxy = s->br.xy;
-    const real* sbryy = s->br.yy;
-
-    const real* rrho  = rho;
 
     //#pragma omp parallel for schedule(static, 1)    
     for (int gpu = 0; gpu < ngpus; gpu++)
     {
-        
-
         acc_set_device_num(gpu, acc_device_nvidia);
        
-        #pragma acc enter data copyin(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
-                               copyin(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
-                               copyin(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
-                               copyin(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
-                               copyin(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
-                               copyin(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
-                               copyin(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
-                               copyin(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
-                               copyin(cc11[0:datalen], cc12[0:datalen], cc13[0:datalen], cc14[0:datalen], cc15[0:datalen], cc16[0:datalen]) \
-                               copyin(cc22[0:datalen], cc23[0:datalen], cc24[0:datalen], cc25[0:datalen], cc26[0:datalen]) \
-                               copyin(cc33[0:datalen], cc34[0:datalen], cc35[0:datalen], cc36[0:datalen]) \
-                               copyin(cc44[0:datalen], cc45[0:datalen], cc46[0:datalen]) \
-                               copyin(cc55[0:datalen], cc56[0:datalen]) \
-                               copyin(cc66[0:datalen]) \
-                               copyin(rrho[0:datalen]) \
-                               async(H2D)
+        #pragma acc update device(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
+                           device(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
+                           device(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
+                           device(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
+                           async(H2D)
     }
+#endif /* end of DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
 };

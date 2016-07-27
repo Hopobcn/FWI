@@ -50,7 +50,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, int ngpus, c
     print_debug("The length of local arrays is " I " cells", numberOfCells);
 
     /* allocate shot memory */
-    alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
+    alloc_memory_shot ( numberOfCells, &coeffs, &s, &v, &rho, ngpus );
 
     /* load initial model from a binary file */
     load_initial_model ( waveletFreq, numberOfCells, &coeffs, &s, &v, rho, ngpus );

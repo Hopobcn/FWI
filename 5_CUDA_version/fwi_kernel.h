@@ -40,7 +40,8 @@ void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
-                        real    **rho);
+                        real    **rho,
+                        const int ngpus);
 
 void free_memory_shot( coeff_t *c,
                        s_t     *s,
