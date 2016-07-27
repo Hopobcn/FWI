@@ -15,7 +15,7 @@ ifeq ($(COMPILER),PGI)
 	CC        = pgcc
 	NVCC      = nvcc
 	CFLAGS    = -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX
-	NVFLAGS   = -std=c++11 -O3 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
+	NVFLAGS   = -std=c++11 -O3 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
 	CINCS     = -I$(CUDA_HOME)/include #-I$(ACC_HOME)/include
 	CLIBS     = -lm -L$(CUDA_HOME)/lib64 -lcuda -lcudart
 else
@@ -41,6 +41,13 @@ endif
 
 ifeq ($(USE_CUDA),YES)
 	DEFINES += -DUSE_CUDA
+
+	# SCELL optimized kernels:
+	DEFINES += -DSCELL_TL -DSCELL_BL
+	#DEFINES += -DSCELL_TR -DSCELL_BR
+
+	# VCELL optimized kernels:
+	DEFINES += -DVCELL_TL
 endif
 
 ifeq ($(TRACE_CUDA),YES)
