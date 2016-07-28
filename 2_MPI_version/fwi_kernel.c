@@ -18,6 +18,28 @@
 
 #include "fwi_kernel.h"
 
+/*
+ * Initializes an array of length "length" to a random number.
+ */
+void set_array_to_random_real( real* restrict array, const integer length)
+{
+    const real randvalue = rand() / (1.0 * RAND_MAX);
+
+    print_debug("Array is being initialized to %f", randvalue);
+
+    for( integer i = 0; i < length; i++ )
+        array[i] = randvalue;
+}
+
+/*
+ * Initializes an array of length "length" to a constant floating point value.
+ */
+void set_array_to_constant( real* restrict array, const real value, const integer length)
+{
+    for( integer i = 0; i < length; i++ )
+        array[i] = value;
+}
+
 void check_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
@@ -25,9 +47,9 @@ void check_memory_shot( const integer numberOfCells,
                         real    *rho)
 {
 #ifdef DEBUG
-    log_info ( "Checking memory shot values");
+    print_debug("Checking memory shot values");
 
-    real value;
+    real UNUSED(value);
     for( int i=0; i < numberOfCells; i++)
     {
         value = c->c11[i];
@@ -72,34 +94,6 @@ void check_memory_shot( const integer numberOfCells,
         value = v->br.v[i];
         value = v->br.w[i];
 
-        value = s->tl.zz[i];
-        value = s->tl.xz[i];
-        value = s->tl.yz[i];
-        value = s->tl.xx[i];
-        value = s->tl.xy[i];
-        value = s->tl.yy[i];
-
-        value = s->tr.zz[i];
-        value = s->tr.xz[i];
-        value = s->tr.yz[i];
-        value = s->tr.xx[i];
-        value = s->tr.xy[i];
-        value = s->tr.yy[i];
-
-        value = s->bl.zz[i];
-        value = s->bl.xz[i];
-        value = s->bl.yz[i];
-        value = s->bl.xx[i];
-        value = s->bl.xy[i];
-        value = s->bl.yy[i];
-
-        value = s->br.zz[i];
-        value = s->br.xz[i];
-        value = s->br.yz[i];
-        value = s->br.xx[i];
-        value = s->br.xy[i];
-        value = s->br.yy[i];
-
         value = rho[i];
     }
 #endif
@@ -113,7 +107,7 @@ void alloc_memory_shot( const integer numberOfCells,
 {
     const integer size = numberOfCells * sizeof(real);
 
-    log_info ( "ptr size = " I " bytes ("I" elements)", size, numberOfCells);
+    print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
 
     /* allocate coefficients */
     c->c11 = (real*) __malloc( ALIGN_REAL, size);
@@ -283,220 +277,335 @@ void load_initial_model ( const real    waveletFreq,
                           const integer dimmz,
                           const integer dimmx,
                           const integer dimmy,
-                          coeff_t       *c,
-                          s_t           *s,
-                          v_t           *v,
-                          real          *rho)
+                          coeff_t *c,
+                          s_t     *s,
+                          v_t     *v,
+                          real    *rho)
 {
-    /* primero tengo que situarme en mi mundo MPI */
-    int rankLocal, rankSize;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rankLocal );
-    MPI_Comm_size( MPI_COMM_WORLD, &rankSize  );
+    const int numberOfCells = dimmz * dimmx * dimmy;
 
-    //log_info("Loading initial velocity model");
+    /* initialize stress */
+    set_array_to_constant( s->tl.zz, 0, numberOfCells);
+    set_array_to_constant( s->tl.xz, 0, numberOfCells);
+    set_array_to_constant( s->tl.yz, 0, numberOfCells);
+    set_array_to_constant( s->tl.xx, 0, numberOfCells);
+    set_array_to_constant( s->tl.xy, 0, numberOfCells);
+    set_array_to_constant( s->tl.yy, 0, numberOfCells);
+    set_array_to_constant( s->tr.zz, 0, numberOfCells);
+    set_array_to_constant( s->tr.xz, 0, numberOfCells);
+    set_array_to_constant( s->tr.yz, 0, numberOfCells);
+    set_array_to_constant( s->tr.xx, 0, numberOfCells);
+    set_array_to_constant( s->tr.xy, 0, numberOfCells);
+    set_array_to_constant( s->tr.yy, 0, numberOfCells);
+    set_array_to_constant( s->bl.zz, 0, numberOfCells);
+    set_array_to_constant( s->bl.xz, 0, numberOfCells);
+    set_array_to_constant( s->bl.yz, 0, numberOfCells);
+    set_array_to_constant( s->bl.xx, 0, numberOfCells);
+    set_array_to_constant( s->bl.xy, 0, numberOfCells);
+    set_array_to_constant( s->bl.yy, 0, numberOfCells);
+    set_array_to_constant( s->br.zz, 0, numberOfCells);
+    set_array_to_constant( s->br.xz, 0, numberOfCells);
+    set_array_to_constant( s->br.yz, 0, numberOfCells);
+    set_array_to_constant( s->br.xx, 0, numberOfCells);
+    set_array_to_constant( s->br.xy, 0, numberOfCells);
+    set_array_to_constant( s->br.yy, 0, numberOfCells);
 
-    /* Number of cells for HALO planes and computational volume */
-    const integer cellsInHalo   = (dimmz + 2 * HALO ) * (dimmx + 2*HALO);
-    const integer cellsInVolume = (dimmz + 2 * HALO ) * (dimmx + 2*HALO) * ( dimmz/rankSize );  
-    const integer cellsInArray  = (dimmz + 2 * HALO ) + (dimmx + 2*HALO) * ((dimmz/rankSize) + 2*HALO); 
+#ifdef DO_NOT_PERFORM_IO
 
+    /* initialize coefficients */
+    set_array_to_random_real( c->c11, numberOfCells);
+    set_array_to_random_real( c->c12, numberOfCells);
+    set_array_to_random_real( c->c13, numberOfCells);
+    set_array_to_random_real( c->c14, numberOfCells);
+    set_array_to_random_real( c->c15, numberOfCells);
+    set_array_to_random_real( c->c16, numberOfCells);
+    set_array_to_random_real( c->c22, numberOfCells);
+    set_array_to_random_real( c->c23, numberOfCells);
+    set_array_to_random_real( c->c24, numberOfCells);
+    set_array_to_random_real( c->c25, numberOfCells);
+    set_array_to_random_real( c->c26, numberOfCells);
+    set_array_to_random_real( c->c33, numberOfCells);
+    set_array_to_random_real( c->c34, numberOfCells);
+    set_array_to_random_real( c->c35, numberOfCells);
+    set_array_to_random_real( c->c36, numberOfCells);
+    set_array_to_random_real( c->c44, numberOfCells);
+    set_array_to_random_real( c->c45, numberOfCells);
+    set_array_to_random_real( c->c46, numberOfCells);
+    set_array_to_random_real( c->c55, numberOfCells);
+    set_array_to_random_real( c->c56, numberOfCells);
+    set_array_to_random_real( c->c66, numberOfCells);
+    
+    /* initalize velocity components */
+    set_array_to_random_real( v->tl.u, numberOfCells );
+    set_array_to_random_real( v->tl.v, numberOfCells );
+    set_array_to_random_real( v->tl.w, numberOfCells );
+    set_array_to_random_real( v->tr.u, numberOfCells );
+    set_array_to_random_real( v->tr.v, numberOfCells );
+    set_array_to_random_real( v->tr.w, numberOfCells );
+    set_array_to_random_real( v->bl.u, numberOfCells );
+    set_array_to_random_real( v->bl.v, numberOfCells );
+    set_array_to_random_real( v->bl.w, numberOfCells );
+    set_array_to_random_real( v->br.u, numberOfCells );
+    set_array_to_random_real( v->br.v, numberOfCells );
+    set_array_to_random_real( v->br.w, numberOfCells );
 
-    /* Size in bytes for HALO planes and computational volume   */
-    const integer UNUSED(bytesForHalo)     = cellsInHalo   * sizeof(real);
-    const integer UNUSED(bytesForVolume)   = cellsInVolume * sizeof(real);
+    /* initialize rho */
+    set_array_to_random_real( rho, numberOfCells );
+
+#else /* load velocity model from external file */
     
     /* initialize coefficients */
-    memset( c->c11, 0, cellsInArray );
-    memset( c->c12, 0, cellsInArray );
-    memset( c->c13, 0, cellsInArray );
-    memset( c->c14, 0, cellsInArray );
-    memset( c->c15, 0, cellsInArray );
-    memset( c->c16, 0, cellsInArray );
-    memset( c->c22, 0, cellsInArray );
-    memset( c->c23, 0, cellsInArray );
-    memset( c->c24, 0, cellsInArray );
-    memset( c->c25, 0, cellsInArray );
-    memset( c->c26, 0, cellsInArray );
-    memset( c->c33, 0, cellsInArray );
-    memset( c->c34, 0, cellsInArray );
-    memset( c->c35, 0, cellsInArray );
-    memset( c->c36, 0, cellsInArray );
-    memset( c->c44, 0, cellsInArray );
-    memset( c->c45, 0, cellsInArray );
-    memset( c->c46, 0, cellsInArray );
-    memset( c->c55, 0, cellsInArray );
-    memset( c->c56, 0, cellsInArray );
-    memset( c->c66, 0, cellsInArray );
-      
-    /* initialize stress */
-    memset( s->tl.zz, 0, cellsInArray );
-    memset( s->tl.xz, 0, cellsInArray );
-    memset( s->tl.yz, 0, cellsInArray );
-    memset( s->tl.xx, 0, cellsInArray );
-    memset( s->tl.xy, 0, cellsInArray );
-    memset( s->tl.yy, 0, cellsInArray );
-    memset( s->tr.zz, 0, cellsInArray );
-    memset( s->tr.xz, 0, cellsInArray );
-    memset( s->tr.yz, 0, cellsInArray );
-    memset( s->tr.xx, 0, cellsInArray );
-    memset( s->tr.xy, 0, cellsInArray );
-    memset( s->tr.yy, 0, cellsInArray );
-    memset( s->bl.zz, 0, cellsInArray );
-    memset( s->bl.xz, 0, cellsInArray );
-    memset( s->bl.yz, 0, cellsInArray );
-    memset( s->bl.xx, 0, cellsInArray );
-    memset( s->bl.xy, 0, cellsInArray );
-    memset( s->bl.yy, 0, cellsInArray );
-    memset( s->br.zz, 0, cellsInArray );
-    memset( s->br.xz, 0, cellsInArray );
-    memset( s->br.yz, 0, cellsInArray );
-    memset( s->br.xx, 0, cellsInArray );
-    memset( s->br.xy, 0, cellsInArray );
-    memset( s->br.yy, 0, cellsInArray );
+    set_array_to_constant( c->c11, 1.0, numberOfCells);
+    set_array_to_constant( c->c12, 1.0, numberOfCells);
+    set_array_to_constant( c->c13, 1.0, numberOfCells);
+    set_array_to_constant( c->c14, 1.0, numberOfCells);
+    set_array_to_constant( c->c15, 1.0, numberOfCells);
+    set_array_to_constant( c->c16, 1.0, numberOfCells);
+    set_array_to_constant( c->c22, 1.0, numberOfCells);
+    set_array_to_constant( c->c23, 1.0, numberOfCells);
+    set_array_to_constant( c->c24, 1.0, numberOfCells);
+    set_array_to_constant( c->c25, 1.0, numberOfCells);
+    set_array_to_constant( c->c26, 1.0, numberOfCells);
+    set_array_to_constant( c->c33, 1.0, numberOfCells);
+    set_array_to_constant( c->c34, 1.0, numberOfCells);
+    set_array_to_constant( c->c35, 1.0, numberOfCells);
+    set_array_to_constant( c->c36, 1.0, numberOfCells);
+    set_array_to_constant( c->c44, 1.0, numberOfCells);
+    set_array_to_constant( c->c45, 1.0, numberOfCells);
+    set_array_to_constant( c->c46, 1.0, numberOfCells);
+    set_array_to_constant( c->c55, 1.0, numberOfCells);
+    set_array_to_constant( c->c56, 1.0, numberOfCells);
+    set_array_to_constant( c->c66, 1.0, numberOfCells);
 
-#ifdef DO_NOT_PERFORM_IO 
-    /* initalize velocity components */
-    memset( v->tl.u, 0, cellsInArray );
-    memset( v->tl.v, 0, cellsInArray );
-    memset( v->tl.w, 0, cellsInArray );
-    memset( v->tr.u, 0, cellsInArray );
-    memset( v->tr.v, 0, cellsInArray );
-    memset( v->tr.w, 0, cellsInArray );
-    memset( v->bl.u, 0, cellsInArray );
-    memset( v->bl.v, 0, cellsInArray );
-    memset( v->bl.w, 0, cellsInArray );
-    memset( v->br.u, 0, cellsInArray );
-    memset( v->br.v, 0, cellsInArray );
-    memset( v->br.w, 0, cellsInArray );
+    /* initialize rho */
+    set_array_to_constant( rho, 1.0, numberOfCells );
 
-#else
-    /* open initial model, binary file */
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double tend_outer, tend_inner;
+    double iospeed_inner, iospeed_outer;
     char modelname[300];
+
+     /* open initial model, binary file */
     sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
 
-    log_info ("Loading input model %s from disk (this could take a while)", modelname);
+    print_info("Loading input model %s from disk (this could take a while)", modelname);
 
+    /* start clock, take into account file opening */
+    tstart_outer = dtime();
     FILE* model = safe_fopen( modelname, "rb", __FILE__, __LINE__ );
+    
+    /* start clock, do not take into account file opening */
+    tstart_inner = dtime();
 
-    /* seek to the correct position given by HALO planes */
-    fseek ( model, bytesForVolume * rankLocal, SEEK_SET);
+    /* MPI */
+    int mpi_rank, num_subdomains;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank );
+    MPI_Comm_size( MPI_COMM_WORLD, &num_subdomains );
+
+    const integer cellsInVolume = (dimmz) * (dimmx) * ( (dimmz-2*HALO)/num_subdomains );  
+    const integer bytesForVolume   = cellsInVolume * sizeof(real);
+
+    /* seek to the correct position corresponding to mpi_rank */
+    fseek ( model, bytesForVolume * mpi_rank + HALO, SEEK_SET);
     
     /* initalize velocity components */
-    safe_fread( v->tl.u, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.v, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.w, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.u, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.v, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.w, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.u, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.v, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.w, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.u, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.v, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.w, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
     
-    /* initialize density array  */
-    safe_fread(      rho, sizeof(real), bytesForVolume, model, __FILE__, __LINE__ );
+    /* stop inner timer */
+    tend_inner = dtime() - tstart_inner;
 
-    /* close model file */
+    /* stop timer and compute statistics */
     safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
+    tend_outer = dtime() - tstart_outer;
 
-    /* 
-     * The elements on the HALO are not initialized here because they're going to be
-     * exchanged at the beginning of the wave propagator 
-     */
+    //fprintf(stderr, "Number of cells %d\n", numberOfCells);
+    //fprintf(stderr, "sizeof real %lu\n", sizeof(real));
+    //fprintf(stderr, "bytes %lf\n", numberOfCells * sizeof(real) * 12.f);
 
+    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
 
-
+    print_stats("Initial velocity model loaded (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif /* end of DDO_NOT_PERFORM_IO clause */
 };
 
+
+/*
+ * Saves the complete velocity field to disk.
+ */
 void write_snapshot(char *folder,
                     int suffix,
-                    real *data,
-                    const integer numberOfCells,
-                    const int nfields)
+                    v_t *v,
+                    const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-    log_error ( "Warning, We are not doing any IO here (%s)", __FUNCTION__);
+    print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double iospeed_outer, iospeed_inner;
+    double tend_outer, tend_inner;
     char fname[300];
+    
+    /* open snapshot file and write results */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
-    
+
+    tstart_outer = dtime();
     FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
+
+    tstart_inner = dtime();
+    safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    safe_fwrite( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     
-    safe_fwrite(data, sizeof(real), numberOfCells * nfields, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     
-    if ( fclose(snapshot)!=0)
-        log_error ("Error closing file %s", fname);
-        /* not a critical error ? */
+    safe_fwrite( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    /* stop inner timer */
+    tend_inner = dtime();
+
+    /* close file and stop outer timer */
+    safe_fclose(fname, snapshot, __FILE__, __LINE__ );
+    tend_outer = dtime();
+
+    iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
+    iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
+
+#ifdef LOG_IO_STATS
+    print_stats("Write snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MB/s)", (tend_inner - tstart_inner), iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MB/s)", (tend_outer - tstart_outer), iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
+#endif
 #endif
 };
 
+/*
+ * Reads the complete velocity field from disk.
+ */
 void read_snapshot(char *folder,
                    int suffix,
-                   real *data,
-                   const integer numberOfCells,
-                   const int nfields)
+                   v_t *v,
+                   const integer numberOfCells)
 {
 #ifdef DO_NOT_PERFORM_IO
-    log_error ( "Warning: We are not doing any IO here (%s)", __FUNCTION__);
+    print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
+    /* local variables */
+    double tstart_outer, tstart_inner;
+    double iospeed_outer, iospeed_inner;
+    double tend_outer, tend_inner;
     char fname[300];
+
+    /* open file and read snapshot */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
-    
+
+    tstart_outer = dtime();
     FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
-    
-    safe_fread(data, sizeof(real), numberOfCells * nfields, snapshot, __FILE__, __LINE__ );
-    
-    if ( fclose(snapshot)!=0 || unlink(fname) != 0)
-    {
-        log_error ("Error closing or unliking file %s", fname);
-                abort();
-    }
+
+    tstart_inner = dtime();
+    safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+
+    /* stop inner timer */
+    tend_inner = dtime() - tstart_inner;
+
+    /* close file and stop outer timer */
+    safe_fclose(fname, snapshot, __FILE__, __LINE__ );
+    tend_outer = dtime() - tstart_outer;
+
+    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+
+#ifdef LOG_IO_STATS
+    print_stats("Read snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
+    print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
+    print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
+#endif
 #endif
 };
 
-void propagate_shot ( time_d        direction,
-                      v_t           v,
-                      s_t           s,
-                      coeff_t       coeffs,
-                      real          *rho,
-                      int           timesteps,
-                      int           ntbwd,
-                      real          dt,
-                      real          dzi,
-                      real          dxi,
-                      real          dyi,
-                      integer       nz0,
-                      integer       nzf,
-                      integer       nx0,
-                      integer       nxf,
-                      integer       ny0,
-                      integer       nyf,
-                      integer       stacki,
-                      char          *folder,
-                      real          *dataflush,
-                      integer       datalen,
-                      integer       dimmz,
-                      integer       dimmx)
+void propagate_shot(time_d        direction,
+                    v_t           v,
+                    s_t           s,
+                    coeff_t       coeffs,
+                    real          *rho,
+                    int           timesteps,
+                    int           ntbwd,
+                    real          dt,
+                    real          dzi,
+                    real          dxi,
+                    real          dyi,
+                    integer       nz0,
+                    integer       nzf,
+                    integer       nx0,
+                    integer       nxf,
+                    integer       ny0,
+                    integer       nyf,
+                    integer       stacki,
+                    char          *folder,
+                    real          *dataflush,
+                    integer       datalen,
+                    integer       dimmz,
+                    integer       dimmx)
 {
-    /* local variables */
-    integer cellsInHalo;   // number of cells being exchanged using MPI 
+    double tstress_start, tstress_total = 0.0;
+    double tvel_start, tvel_total = 0.0;
+    double megacells = 0.0;
+    
     int     rank;          // mpi local rank
-    
-    
-    /* Initialize local variables */
-    cellsInHalo = 10;  // (dimmz + 2*HALO) * (dimmx + 2*HALO) * HALO * sizeof(real); 
-    MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
+    int     nranks;        // num mpi ranks
 
+    /* Initialize local variables */
+    MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
+    MPI_Comm_size ( MPI_COMM_WORLD, &nranks );
+
+    const integer plane_size = dimmz * dimmx;
 
     for(int t=0; t < timesteps; t++)
     {
-        log_info ( "Computing %d-th timestep", t);
+        if( t % 10 == 0 ) print_info("Computing %d-th timestep", t);
 
         /* perform IO */
-        //if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, dataflush, datalen);
+        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
 
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
@@ -504,36 +613,40 @@ void propagate_shot ( time_d        direction,
       
         /* Phase 1. Computation of the left-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0,
-                            nzf,
-                            nx0,
-                            nxf,
-                            ny0,
-                            ny0 + HALO,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            ny0 +   HALO,
+                            ny0 + 2*HALO,
                             dimmz, dimmx);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
-                            nz0,
-                            nzf,
-                            nx0,
-                            nxf,
-                            nyf - HALO,
-                            nyf,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            nyf - 2*HALO,
+                            nyf -   HALO,
                             dimmz, dimmx);
     
         /* Boundary exchange for velocity values */
-        exchange_velocity_boundaries( &v, cellsInHalo, nyf, ny0);
+        exchange_velocity_boundaries( v, plane_size, rank, nranks, nyf, ny0);
 
         /* Phase 2. Computation of the central planes. */
-        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi, 
-                            nz0,
-                            nzf,
-                            nx0,
-                            nxf,
-                            ny0 + HALO,
-                            nyf - HALO,
+        tvel_start = dtime();
+
+        velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
+                            nz0 +   HALO,
+                            nzf -   HALO,
+                            nx0 +   HALO,
+                            nxf -   HALO,
+                            ny0 +   HALO,
+                            nyf -   HALO,
                             dimmz, dimmx);
+
+        tvel_total += (dtime() - tvel_start);
 
         /* ------------------------------------------------------------------------------ */
         /*                        STRESS COMPUTATION                                      */
@@ -541,41 +654,52 @@ void propagate_shot ( time_d        direction,
 
         /* Phase 1. Computation of the left-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
-                          nz0,
-                          nzf,
-                          nx0,
-                          nxf,
-                          ny0,
-                          ny0 + HALO,
+                          nz0 +   HALO,
+                          nzf -   HALO,
+                          nx0 +   HALO,
+                          nxf -   HALO,
+                          ny0 +   HALO,
+                          ny0 + 2*HALO,
                           dimmz, dimmx);
       
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
-                          nz0,
-                          nzf,
-                          nx0,
-                          nxf,
-                          nyf - HALO,
-                          nyf,
+                          nz0 +   HALO,
+                          nzf -   HALO,
+                          nx0 +   HALO,
+                          nxf -   HALO,
+                          nyf - 2*HALO,
+                          nyf -   HALO,
                           dimmz, dimmx);
 
         /* Boundary exchange for stress values */
-        exchange_stress_boundaries( &s, cellsInHalo, nyf, ny0);
+        exchange_stress_boundaries( s, plane_size, rank, nranks, nyf, ny0);
 
         /* Phase 2 computation. Central planes of the domain */
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
-                          nz0,
-                          nzf,
-                          nx0,
-                          nxf,
-                          ny0 + HALO,
-                          nyf - HALO,
+        tstress_start = dtime();
+
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+                          nz0 +   HALO,
+                          nzf -   HALO,
+                          nx0 +   HALO,
+                          nxf -   HALO,
+                          ny0 +   HALO,
+                          nyf -   HALO,
                           dimmz, dimmx);
-        
-            /* perform IO */
-        // if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, dataflush, datalen);
+
+        tstress_total += (dtime() - tstress_start);
+
+        /* perform IO */
+        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
-    //log_info ( "Kernel finished successfully.");
+    
+    /* compute some statistics */
+    megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
+    tstress_total /= (double) timesteps;
+    tvel_total    /= (double) timesteps;
+    
+    print_stats("Maingrid STRESS   computation took %lf seconds (%lf Mcells/s)", tstress_total,  megacells / tstress_total); 
+    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total); 
 };
 
 /*
@@ -583,90 +707,65 @@ NAME:exchange_boundaries
 PURPOSE: data exchanges between the boundary layers of the analyzed volume
 
 v                   (in) struct containing velocity arrays (4 points / cell x 3 components / point = 12 arrays)
-numElement          (in) Number of elements to exchange
-idxt                (in) identifier related to the folder
+plane_size          (in) Number of elements per plane to exchange
+rank                (in) rank id (CPU id)
+nranks              (in) number of CPUs
 nyf                 (in) final plane to be exchanged
 ny0                 (in) intial plane to be exchanged
 
 RETURN none
 */
-void exchange_velocity_boundaries ( v_t *v, 
-                                    integer nCells, 
-                                    integer nyf, 
-                                    integer ny0 )
+void exchange_velocity_boundaries ( v_t v, 
+                                    const integer plane_size, 
+                                    const integer rank,
+                                    const integer nranks,
+                                    const integer nyf, 
+                                    const integer ny0 )
 {
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("Exchanging velocity boundaries. Number of cells " I "", nCells);
-#endif
-
-    const uint64_t UNUSED(idxA) = (nyf-HALO)* nCells;
-    const uint64_t UNUSED(idxB) = nyf       * nCells;
-    const uint64_t UNUSED(idxC) = ny0       * nCells;
-
-    int rank, ranksize;
-    MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
-    MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
-
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("         Rank %d out of rank %d", rank, ranksize );
-#endif
-
-    if ( rank != 0 )  //task to exchange velocities boundaries
-    {
-        EXCHANGE( &v->tl.u[0], &v->tl.u[0], rank-1, rank, nCells );
+    const integer num_planes = HALO;
+    const integer nelems     = num_planes * plane_size;
+    const integer left       = ny0-HALO;
+    const integer right      = nyf+HALO;
     
-        /*
-        //v tl u v w
-        exchange_buffer ( &v->tl.u[0], &v->tl.u[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->tl.v[0], &v->tl.v[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->tl.w[0], &v->tl.w[0], rank-1, numberOfCells);
-        
-        //v tr u v w
-        exchange_buffer ( &v->tr.u[0], &v->tr.u[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->tr.v[0], &v->tr.v[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->tr.w[0], &v->tr.w[0], rank-1, numberOfCells);
-        
-        //v b u v w
-        exchange_buffer ( &v->bl.u[0], &v->bl.u[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->bl.v[0], &v->bl.v[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->bl.w[0], &v->bl.w[0], rank-1, numberOfCells);
-        
-        //v b1 u v w
-        exchange_buffer ( &v->br.u[0], &v->br.u[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->br.v[0], &v->br.v[0], rank-1, numberOfCells);
-        exchange_buffer ( &v->br.w[0], &v->br.w[0], rank-1, numberOfCells);
-        */
+    if ( rank != 0 )
+    {
+        // [RANK-1] <---> [RANK] communication
+        EXCHANGE( &v.tl.u[ny0], &v.tl.u[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tl.v[ny0], &v.tl.v[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tl.w[ny0], &v.tl.w[left], rank-1, rank, nelems );
+
+        EXCHANGE( &v.tr.u[ny0], &v.tr.u[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tr.v[ny0], &v.tr.v[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tr.w[ny0], &v.tr.w[left], rank-1, rank, nelems );
+
+        EXCHANGE( &v.bl.u[ny0], &v.bl.u[left], rank-1, rank, nelems );
+        EXCHANGE( &v.bl.v[ny0], &v.bl.v[left], rank-1, rank, nelems );
+        EXCHANGE( &v.bl.w[ny0], &v.bl.w[left], rank-1, rank, nelems );
+
+        EXCHANGE( &v.br.u[ny0], &v.br.u[left], rank-1, rank, nelems );
+        EXCHANGE( &v.br.v[ny0], &v.br.v[left], rank-1, rank, nelems );
+        EXCHANGE( &v.br.w[ny0], &v.br.w[left], rank-1, rank, nelems );
     }
 
-    if ( rank != ranksize -1 )  //task to exchange stress boundaries
+    if ( rank != nranks -1 )  //task to exchange stress boundaries
     {
-        EXCHANGE( &v->tl.u[0], &v->tl.u[0], rank+1, rank, nCells );
-  
-        /*
-        //v tl u v w
-        exchange_buffer ( &v->tl.u[0], &v->tl.u[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->tl.v[0], &v->tl.v[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->tl.w[0], &v->tl.w[0], rank+1, numberOfCells);
-        
-        //v tr u v w
-        exchange_buffer ( &v->tr.u[0], &v->tr.u[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->tr.v[0], &v->tr.v[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->tr.w[0], &v->tr.w[0], rank+1, numberOfCells);
-        
-        //v b u v w
-        exchange_buffer ( &v->bl.u[0], &v->bl.u[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->bl.v[0], &v->bl.v[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->bl.w[0], &v->bl.w[0], rank+1, numberOfCells);
-        
-        //v b1 u v w
-        exchange_buffer ( &v->br.u[0], &v->br.u[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->br.v[0], &v->br.v[0], rank+1, numberOfCells);
-        exchange_buffer ( &v->br.w[0], &v->br.w[0], rank+1, numberOfCells);
-        */
+        //                [RANK] <---> [RANK+1] communication
+        EXCHANGE( &v.tl.u[nyf], &v.tl.u[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tl.v[nyf], &v.tl.v[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tl.w[nyf], &v.tl.w[right], rank+1, rank, nelems );
+
+        EXCHANGE( &v.tr.u[nyf], &v.tr.u[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tr.v[nyf], &v.tr.v[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tr.w[nyf], &v.tr.w[right], rank+1, rank, nelems );
+
+        EXCHANGE( &v.bl.u[nyf], &v.bl.u[right], rank+1, rank, nelems );
+        EXCHANGE( &v.bl.v[nyf], &v.bl.v[right], rank+1, rank, nelems );
+        EXCHANGE( &v.bl.w[nyf], &v.bl.w[right], rank+1, rank, nelems );
+
+        EXCHANGE( &v.br.u[nyf], &v.br.u[right], rank+1, rank, nelems );
+        EXCHANGE( &v.br.v[nyf], &v.br.v[right], rank+1, rank, nelems );
+        EXCHANGE( &v.br.w[nyf], &v.br.w[right], rank+1, rank, nelems );
     }
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("Velocity boundaries exchanged successfully");
-#endif
 };
 
 /*
@@ -674,114 +773,88 @@ NAME:exchange_stress_boundaries
 PURPOSE: data exchanges between the boundary layers of the analyzed volume
 
 s                   (in) struct containing stress arrays (4 points / cell x 6 components / point = 24 arrays)
-numElement          (in) Number of elements to exchange
-idxt                (in) identifier related to the folder
+plane_size          (in) Number of elements per plane to exchange
+rank                (in) rank id (CPU id)
+nranks              (in) number of CPUs
 nyf                 (in) final plane to be exchanged
 ny0                 (in) intial plane to be exchanged
 
 RETURN none
 */
-void exchange_stress_boundaries ( s_t *s, 
-                                  integer nCells, 
-                                  integer nyf, 
-                                  integer ny0 )
+void exchange_stress_boundaries ( s_t s, 
+                                  const integer plane_size, 
+                                  const integer rank,
+                                  const integer nranks,
+                                  const integer nyf, 
+                                  const integer ny0 )
 {
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("Exchanging stress boundaries");
-#endif
+    const integer num_planes = HALO;
+    const integer nelems     = num_planes * plane_size;
+    const integer left       = ny0-HALO;
+    const integer right      = nyf+HALO;
 
-    const uint64_t UNUSED(idxA) = (nyf-HALO)* nCells;
-    const uint64_t UNUSED(idxB) = nyf       * nCells;
-    const uint64_t UNUSED(idxC) = ny0       * nCells;
-
-    int rank, ranksize;
-    MPI_Comm_rank ( MPI_COMM_WORLD, &rank    );
-    MPI_Comm_size ( MPI_COMM_WORLD, &ranksize);
-
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("         Rank %d out of rank %d", rank, ranksize );
-#endif
-
-    if ( rank != 0 ) //task to exchange velocities boundaries
+    if ( rank != 0 )
     {
-        EXCHANGE( &s->tl.zz[0], &s->tl.zz[0], rank-1, rank, nCells );
+        // [RANK-1] <---> [RANK] communication
+        EXCHANGE( &s.tl.zz[ny0], &s.tl.zz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xz[ny0], &s.tl.xz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.yz[ny0], &s.tl.yz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xx[ny0], &s.tl.xx[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xy[ny0], &s.tl.xy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.yy[ny0], &s.tl.yy[left], rank-1, rank, nelems );
 
-        /* 
-        //s tl zz xz yz xx xy yy
-        exchange_buffer ( &s->tl.zz[0], &s->tl.zz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tl.xz[0], &s->tl.xz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tl.yz[0], &s->tl.yz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tl.xx[0], &s->tl.xx[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tl.xy[0], &s->tl.xy[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tl.yy[0], &s->tl.yy[0], rank-1, numberOfCells);
-        
-        //s tr zz xz yz xx xy yy
-        exchange_buffer ( &s->tr.zz[0], &s->tr.zz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tr.xz[0], &s->tr.xz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tr.yz[0], &s->tr.yz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tr.xx[0], &s->tr.xx[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tr.xy[0], &s->tr.xy[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->tr.yy[0], &s->tr.yy[0], rank-1, numberOfCells);
-        
-        //s b zz xz yz xx xy yy
-        exchange_buffer ( &s->bl.zz[0], &s->bl.zz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->bl.xz[0], &s->bl.xz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->bl.yz[0], &s->bl.yz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->bl.xx[0], &s->bl.xx[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->bl.xy[0], &s->bl.xy[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->bl.yy[0], &s->bl.yy[0], rank-1, numberOfCells);
-        
-        //s b1 zz xz yz xx xy yy
-        exchange_buffer ( &s->br.zz[0], &s->br.zz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->br.xz[0], &s->br.xz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->br.yz[0], &s->br.yz[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->br.xx[0], &s->br.xx[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->br.xy[0], &s->br.xy[0], rank-1, numberOfCells);
-        exchange_buffer ( &s->br.yy[0], &s->br.yy[0], rank-1, numberOfCells);
-        */
+        EXCHANGE( &s.tr.zz[ny0], &s.tr.zz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xz[ny0], &s.tr.xz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.yz[ny0], &s.tr.yz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xx[ny0], &s.tr.xx[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xy[ny0], &s.tr.xy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.yy[ny0], &s.tr.yy[left], rank-1, rank, nelems );
+
+        EXCHANGE( &s.bl.zz[ny0], &s.bl.zz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xz[ny0], &s.bl.xz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.yz[ny0], &s.bl.yz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xx[ny0], &s.bl.xx[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xy[ny0], &s.bl.xy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.yy[ny0], &s.bl.yy[left], rank-1, rank, nelems );
+
+        EXCHANGE( &s.br.zz[ny0], &s.br.zz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xz[ny0], &s.br.xz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.yz[ny0], &s.br.yz[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xx[ny0], &s.br.xx[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xy[ny0], &s.br.xy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.yy[ny0], &s.br.yy[left], rank-1, rank, nelems );
     }
-
-    if ( rank != ranksize -1 )  //task to exchange stress boundaries
+    
+    if ( rank != nranks-1 )
     {
-        EXCHANGE( &s->tl.zz[0], &s->tl.zz[0], rank+1, rank, nCells );
+        //                [RANK] <---> [RANK+1] communication
+        EXCHANGE( &s.tl.zz[nyf], &s.tl.zz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xz[nyf], &s.tl.xz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.yz[nyf], &s.tl.yz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xx[nyf], &s.tl.xx[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xy[nyf], &s.tl.xy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.yy[nyf], &s.tl.yy[right], rank+1, rank, nelems );
 
-        /* 
-        //s tl zz xz yz xx xy yy
-        exchange_buffer ( &s->tl.zz[0], &s->tl.zz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tl.xz[0], &s->tl.xz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tl.yz[0], &s->tl.yz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tl.xx[0], &s->tl.xx[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tl.xy[0], &s->tl.xy[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tl.yy[0], &s->tl.yy[0], rank+1, numberOfCells);
-        
-        //s tr zz xz yz xx xy yy
-        exchange_buffer ( &s->tr.zz[0], &s->tr.zz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tr.xz[0], &s->tr.xz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tr.yz[0], &s->tr.yz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tr.xx[0], &s->tr.xx[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tr.xy[0], &s->tr.xy[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->tr.yy[0], &s->tr.yy[0], rank+1, numberOfCells);
-        
-        //s b zz xz yz xx xy yy  
-        exchange_buffer ( &s->bl.zz[0], &s->bl.zz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->bl.xz[0], &s->bl.xz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->bl.yz[0], &s->bl.yz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->bl.xx[0], &s->bl.xx[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->bl.xy[0], &s->bl.xy[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->bl.yy[0], &s->bl.yy[0], rank+1, numberOfCells);
-        
-        //s b1 zz xz yz xx xy yy
-        exchange_buffer ( &s->br.zz[0], &s->br.zz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->br.xz[0], &s->br.xz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->br.yz[0], &s->br.yz[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->br.xx[0], &s->br.xx[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->br.xy[0], &s->br.xy[0], rank+1, numberOfCells);
-        exchange_buffer ( &s->br.yy[0], &s->br.yy[0], rank+1, numberOfCells);
-        */
+        EXCHANGE( &s.tr.zz[nyf], &s.tr.zz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xz[nyf], &s.tr.xz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.yz[nyf], &s.tr.yz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xx[nyf], &s.tr.xx[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xy[nyf], &s.tr.xy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.yy[nyf], &s.tr.yy[right], rank+1, rank, nelems );
+
+        EXCHANGE( &s.bl.zz[nyf], &s.bl.zz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xz[nyf], &s.bl.xz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.yz[nyf], &s.bl.yz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xx[nyf], &s.bl.xx[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xy[nyf], &s.bl.xy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.yy[nyf], &s.bl.yy[right], rank+1, rank, nelems );
+
+        EXCHANGE( &s.br.zz[nyf], &s.br.zz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xz[nyf], &s.br.xz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.yz[nyf], &s.br.yz[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xx[nyf], &s.br.xx[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xy[nyf], &s.br.xy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.yy[nyf], &s.br.yy[right], rank+1, rank, nelems );
     }
-
-#if defined(DEBUG) && defined(DEBUG_MPI)
-    log_info ("Stress boundaries exchanged successfully");
-#endif
 };
 

@@ -1,56 +1,77 @@
-CC      = gcc
-MPICC   = mpicc
-CFLAGS  = -std=c99 -g -O3
-INCS    =
-LIBS    = -lm
-DEFINES = -DDO_NOT_PERFORM_IO -DOUTPUT_TO_STDERR -DDEBUG # -DDEBUG_MPI
-LDFLAGS = 
-
-ifeq ($(CC), gcc)
-    CFLAGS += -fopenmp -march=native -Wall -fopt-info #-fopt-info-vec-missed
-else
-ifeq ($(CC), icc)
-    CFLAGS += -openmp -mavx -qopt-report=2
-   #CFLAGS += -openmp -xHost -qopt-assume-safe-padding
-else
-ifeq ($(CC), mcc)
-    CFLAGS = --opmss --Wn,-std=gnu99 --Wn,-xHost
-endif
-endif
-endif
-
+# possible values <INTEL,GNU>
+COMPILER   ?=GNU
+# possible values <YES,NO>
+PERFORM_IO ?=YES
+# possible values <YES,NO>
+IO_STATS   ?=NO
+# possible values <YES,NO>
+DEBUG      ?=NO
+# Num MPI ranks 
 NCPUS ?= 2
+
+ifeq ($(COMPILER),INTEL)
+	CC        = icc
+	MPICC     = impi
+	# CFLAGS    = -std=c99 -O2 -restrict -qopenmp #-qopt-report=2
+	# -opt-streaming-cache-evict=0 -opt-streaming-stores always
+	CFLAGS    = -std=c99 -xHost -qopenmp -restrict -prec-div -fp-model precise -ftz -opt-prefetch-distance=64
+	CINCS     =
+	CLIBS     = -lm
+else
+	CC        = gcc
+	MPICC     = mpicc
+	CFLAGS    = -std=c99 -O3 -march=native -fopenmp -Wall #-fopt-info -fopt-info-vec-missed
+	CINCS     =
+	CLIBS     = -lm
+endif
+
+ifeq ($(PERFORM_IO),NO)
+	DEFINES  += -DDO_NOT_PERFORM_IO
+endif
+
+ifeq ($(IO_STATS),NO)
+	DEFINES  +=
+	CFLAGS   += -Wno-unused-variable -Wno-unused-but-set-variable
+else
+	DEFINES  += -DLOG_IO_STATS
+	CFLAGS   +=
+endif
+
+ifeq ($(DEBUG),YES)
+	DEFINES  += -DDEBUG
+	CFLAGS   += -g
+endif
 
 TARGET=fwi.intel64 ModelGenerator
 
 all:$(TARGET)
 
 fwi.intel64:fwi_main.o fwi_common.o fwi_kernel.o fwi_propagator.o
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -o $@ $(CLIBS) 
 
 ModelGenerator:fwi_generatemodel.o fwi_common.o fwi_kernel.o fwi_propagator.o
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -o $@ $(LIBS) $(LDFLAGS)
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -o $@ $(CLIBS)
 
 fwi_generatemodel.o:fwi_generatemodel.c 
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
 fwi_main.o:fwi_main.c 
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
 fwi_common.o:fwi_common.c
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
 fwi_kernel.o:fwi_kernel.c
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
 fwi_propagator.o:fwi_propagator.c
-	$(MPICC) $(DEFINES) $(CFLAGS) $(INCS) $+ -c
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
 
-.PHONY:all clean run debug memcheck input
+.PHONY:all clean run irun debug memcheck input
 
 clean:
-	rm -rf *.o *.optrpt $(TARGET) *.row *.prv *.pcf InputModels/* results/* *.err *.out core* mpi_*
+	rm -rf *.o *.optrpt *.log $(TARGET) *.row *.prv *.pcf InputModels/* results/* *.err *.out core* mpi_*
 
 input: ModelGenerator
 	./ModelGenerator ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt

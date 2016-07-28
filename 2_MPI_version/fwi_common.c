@@ -1,26 +1,9 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fwi_common.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  10/12/15 10:38:45
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (),
- *   Organization:
- *
- * =====================================================================================
- */
-
 #include "fwi_common.h"
 
-/* extern variables declared in the header */
-const integer  WRITTEN_FIELDS =  13;
-const integer  HALO           =  8; // have to be greater than 4!
+/* extern variables declared in the header file */
+const integer  WRITTEN_FIELDS =   12; /* >= 12.  */
+const integer  HALO           =    4; /* >= 4    */ 
+const integer  SIMD_LENGTH    =    8; /* # of real elements fitting into regs */
 const real     IT_FACTOR      = 0.02;
 const real     IO_CHUNK_SIZE  = 1024.f * 1024.f;
 
@@ -110,13 +93,18 @@ int max_int( int a, int b)
     return ((a >= b) ? a : b);
 };
 
-double dtime(void)
+inline double dtime(void)
 {
     double tseconds = 0.0;
     struct timeval mytime;
     gettimeofday( &mytime, (struct timezone*) 0);
-    tseconds = (double) (mytime.tv_sec + mytime.tv_usec * 1.0e-6);
+    tseconds = (double) (mytime.tv_sec + (double) mytime.tv_usec * 1.0e-6);
     return (tseconds);
+};
+
+inline double TOGB(size_t bytes)
+{
+    return (bytes / (1024.f * 1024.f * 1024.f));
 };
 
 void read_fwi_parameters (const char *fname,
@@ -128,21 +116,47 @@ void read_fwi_parameters (const char *fname,
                           real *rcvlen,
                           char *outputfolder)
 {
-    //log_info("Loading simulation parameters");
-
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
-    
+
     CHECK( fscanf( fp, "%f\n", (real*) lenz   ) );
     CHECK( fscanf( fp, "%f\n", (real*) lenx   ) );
     CHECK( fscanf( fp, "%f\n", (real*) leny   ) );
     CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
     CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
     CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
-    CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
     
-    fclose(fp);
+    /* these three values are not needed for the shared memory implementation */
+    int NotNeededValue;
+    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+ 
+    /* Recover the value of the output directory path */
+    CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
 
-    //log_info("Simulation parameters loaded successfully");
+    print_debug("Len (z,x,y) (%f,%f,%f) vmin %f scrlen %f rcvlen %f outputfolder '%s'",
+      *lenz, *lenx, *leny, *vmin, *srclen, *rcvlen, outputfolder );
+
+    fclose(fp);
+};
+
+/*
+  This function is intended to round up a number (number) to the nearest multiple of the register
+  size. In this way, we assure that the dimensions of the domain are suited to the most aggressive
+  compiler optimizations.
+ */
+integer roundup(integer number, integer multiple)
+{
+    if (multiple == 0)
+        return number;
+
+    int remainder = number % multiple;
+    if (remainder == 0)
+        return number;
+
+    return number + multiple - remainder;
 };
 
 /*
@@ -156,13 +170,13 @@ void read_fwi_parameters (const char *fname,
  */
 void create_output_volumes(char *outputfolder, integer VolumeMemory)
 {
-    log_info ( "Creating output files in %s", outputfolder);
+    print_debug("Creating output files in %s", outputfolder);
 
 #ifdef DO_NOT_PERFORM_IO
-    log_error ( "Warning: we are not doing any IO here (%s).", __FUNCTION__);
+    print_info("Warning: we are not doing any IO here.");
 #else
     char fnamePrecond[300], fnameGradient[300];
-    
+
     sprintf( fnameGradient, "%s/resultGradient.res", outputfolder);
     sprintf( fnamePrecond , "%s/resultPrecond.res", outputfolder);
 
@@ -170,9 +184,9 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
     FILE *fPrecond  = safe_fopen( fnamePrecond , "wb", __FILE__, __LINE__ );
 
     int numIts = ceil( VolumeMemory / IO_CHUNK_SIZE );
-    
+
     /* create buffer array */
-    real *tmparray = (real*) __malloc( ALIGN_INT, IO_CHUNK_SIZE );
+    real *tmparray = (real*) __malloc( ALIGN_REAL, IO_CHUNK_SIZE );
 
     /* perform the accumulation of the chunks */
     for (int i=0; i<numIts; i++) {
@@ -186,7 +200,6 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
     safe_fclose( fnameGradient, fGradient, __FILE__, __LINE__ );
     safe_fclose( fnamePrecond , fPrecond , __FILE__, __LINE__ );
 #endif
-    //log_info ("Output volumes created correctly");
 }
 
 /*
@@ -202,10 +215,10 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
 void create_folder(const char *folder)
 {
     if (mkdir_p(folder) != 0) {
-        log_error ( "Error  creating folder %s (%s)", folder, strerror(errno));
+        print_error("cant create folder %s (Err code: %s)", folder, strerror(errno));
         exit(-1);
     }
-    log_info ( "Folder created %s", folder );
+    print_debug("Folder '%s' created",folder);
 };
 
 /*
@@ -231,7 +244,7 @@ int mkdir_p(const char *dir)
             *p = 0;
             int rc = mkdir(tmp, S_IRWXU);
             if (rc != 0 && errno != EEXIST) {
-                fprintf(stderr,"Error creating folder %s (%s)", tmp, strerror(errno));
+                print_error("Error creating folder %s (Err code %s)", tmp, strerror(errno));
                 return -1;
             }
 
@@ -241,31 +254,34 @@ int mkdir_p(const char *dir)
 
     int rc = mkdir(tmp, S_IRWXU);
     if (rc != 0 && errno != EEXIST) {
-        fprintf(stderr,"Error creating folder %s (%s)", tmp, strerror(errno));
+        print_error("Error creating folder %s (Err code %s)", tmp, strerror(errno));
         return -1;
     }
 
     return 0;
 }
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
-                           int    *nt_fwd,
-                           int    *nt_bwd,
+                           int     *nt_fwd,
+                           int     *nt_bwd,
                            real    *dz,
                            real    *dx,
                            real    *dy,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder)
+                           char    *outputfolder, 
+                           real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", 
+            outputfolder, waveletFreq, shotid);
 
-    log_info ( "Storing parameters for shot %d into %s", shotid, name);
+    print_debug("Storing parameters for shot %d into %s", shotid, name);
+
     FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
 
     fprintf(fp, "%f\n",  (real   ) *dz     );
@@ -279,12 +295,10 @@ void store_shot_parameters( int     shotid,
     fprintf(fp, "%f\n",  (real   ) *dt     );
     fprintf(fp, "%d\n",  (int    ) *stacki );
 
-    safe_fclose( name,  fp, __FILE__, __LINE__ );
-    
-    //log_info ( "Shot parameters stored correctly" );
+    fclose(fp);
 };
 
-void load_shot_parameters( int    shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -295,12 +309,13 @@ void load_shot_parameters( int    shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder)
+                          char    *outputfolder,
+                          real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%05d.dat",outputfolder, shotid);
-    log_info ( "Storing parameters for shot %d into %s", shotid, name);
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", outputfolder, waveletFreq, shotid);
+    print_debug("Loading parameters for freq %d shot %d from %s", waveletFreq, shotid, name);
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
 
@@ -322,7 +337,7 @@ void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
 {
     int count  = 0;
     real freq;
-    
+
     FILE *freqfile = safe_fopen( filename, "r", __FILE__, __LINE__);
 
     while( 1 )
@@ -335,9 +350,9 @@ void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
         }
         else if (errno != 0)
         {
-            log_error ( "Error while reading freqlist file"); 
+            print_error("Error while reading freqlist file");
             break;
-        }   
+        }
         else if ( n == EOF )
         {
             break;
@@ -365,22 +380,21 @@ void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
         }
         else if (errno != 0)
         {
-            log_error ("Error while reading freqlist file"); 
+            print_error("Error while reading freqlist file");
             break;
-        }   
+        }
         else if ( n == EOF )
         {
             break;
         }
     }
-    fclose( freqfile ); 
+    fclose( freqfile );
 
     *nfreqs = count;
 
-    log_info ( "There are %d wavelet frequencies to process)", *nfreqs );
-
+    print_info("A total of %d frequencies were found...", *nfreqs );
     for( int i=0; i<count; i++)
-        log_info ("     %.2f Hz", (*freqlist)[i] );
+        print_info("     %.2f Hz", (*freqlist)[i] );
 };
 
 void* __malloc( size_t alignment, const integer size)
@@ -388,9 +402,9 @@ void* __malloc( size_t alignment, const integer size)
     void *buffer;
     int error;
     
-    if( (error=posix_memalign( &buffer, alignment, size)) != 0) 
+    if( (error=posix_memalign( &buffer, alignment, size)) != 0)
     {
-        log_error ( "Cant allocate buffer correctly");
+        print_error("Cant allocate buffer correctly");
         abort();
     }
     
@@ -407,7 +421,7 @@ FILE* safe_fopen(const char *filename, char *mode, char* srcfilename, int linenu
     FILE* temp = fopen( filename, mode);
     
     if( temp == NULL){
-        log_error ( "%s:%d Cant open filename %s, openmode '%s'", srcfilename, linenumber, filename, mode);
+        print_error("Cant open filename %s, openmode '%s' (called from %s - %d)", filename, mode, srcfilename, linenumber);
         exit(-1);
     }
     return temp;
@@ -415,11 +429,11 @@ FILE* safe_fopen(const char *filename, char *mode, char* srcfilename, int linenu
 
 void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber)
 {
-  if ( fclose( stream ) != 0)
-  {
-    log_error ( "%s:%d: Cant close file %s correctly!", srcfilename, linenumber, filename );
-    abort();
-  }
+    if ( fclose( stream ) != 0)
+    {
+        print_error("Cant close filename %s (called from %s - %d)", filename, srcfilename, linenumber);
+        abort();
+    }
 
 /*if ( unlink(filename)  != 0)
   {
@@ -429,28 +443,42 @@ void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int li
 };
 
 
-void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
+inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
-    log_error ( "Warning: we are not doing any IO here (%s).\n", __FUNCTION__);
+    print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
 #else
-    size_t res = fwrite( ptr, size, nmemb, stream);
+    if( stream == NULL ){
+        print_error("Invalid stream\n");
+        abort();
+    }
+    size_t res;
+    
+    double start = dtime();
+    res = fwrite( ptr, size, nmemb, stream);
+    double end = dtime() - start;
+    
+    double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
+   
+#ifdef LOG_IO_STATS
+    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", end, nmemb, size*nmemb, mbytes, mbytes / end);
+#endif
 
     if( res != nmemb )
     {
-        log_error ( "%s:%d: Error while fwrite", srcfilename, linenumber );
+        print_error("Error while fwrite (called from %s - %d)", srcfilename, linenumber );
         abort();
     }
 #endif
 };
 
-void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
+inline void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
-    log_error ( "Warning: we are not doing any IO here (%s).\n", __FUNCTION__);
+    print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
 #else
-    if( stream == NULL ) {
-        log_error ( "stream is not longer valid" );
+    if( stream == NULL ){
+        print_error("Invalid\n");
         abort();
     }
 
@@ -458,8 +486,37 @@ void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfi
 
     if( res != nmemb )
     {
-        log_error ( "%s:%d: Error while fread", srcfilename, linenumber);
+        print_error("Cant fread (called from %s - %d)", srcfilename, linenumber);
+        print_error("Trying to read %lu elements, only %lu were recovered", nmemb, res);
         abort();
     }
 #endif
+};
+
+
+
+void fwi_writelog(const char *SourceFileName, 
+                  const int LineNumber,
+                  const char *FunctionName,
+                  const char* MessageHeader,
+                  const char *fmt,
+                  ...)
+{
+    /* locate myself into the MPI world */
+    int mpi_rank;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+
+    char LogFileName[50];
+    sprintf(LogFileName, "fwi.%02d.log", mpi_rank);
+    
+    FILE *fp = safe_fopen ( LogFileName, "a", __FILE__, __LINE__ );
+    
+    va_list args;
+    va_start(args, fmt);
+    fprintf(fp, "%s:%s:%d:%s: ", MessageHeader, SourceFileName, LineNumber, FunctionName );
+    vfprintf(fp, fmt, args);
+    fprintf(fp, "\n");
+    va_end(args);
+    
+    safe_fclose ( LogFileName, fp, __FILE__, __LINE__);
 };

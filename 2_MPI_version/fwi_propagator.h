@@ -31,7 +31,7 @@ typedef struct {
     real *c44, *c45, *c46;
     real *c55, *c56;
     real *c66;
-}coeff_t;
+} coeff_t;
 
 #define C0 1.2f
 #define C1 1.4f
@@ -50,17 +50,17 @@ integer IDX (const integer z,
              const integer dimmz, 
              const integer dimmx);
 
-real stencil_Z (const offset_t off,
-                real* restrict ptr,
-                const real    dzi,
-                const integer z,
-                const integer x,
-                const integer y,
-                const integer dimmz,
-                const integer dimmx);
+real stencil_Z(const offset_t off,
+               const real* restrict ptr,
+               const real    dzi,
+               const integer z,
+               const integer x,
+               const integer y,
+               const integer dimmz,
+               const integer dimmx);
 
 real stencil_X(const offset_t off,
-               real* restrict ptr,
+               const real* restrict ptr,
                const real dxi,
                const integer z,
                const integer x,
@@ -69,7 +69,7 @@ real stencil_X(const offset_t off,
                const integer dimmx);
 
 real stencil_Y(const offset_t off,
-               real* restrict ptr,
+               const real* restrict ptr,
                const real dyi,
                const integer z,
                const integer x,
@@ -86,39 +86,39 @@ real stencil_Y(const offset_t off,
 
 
 
-real rho_BL ( real* restrict rho,
+real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
               const integer dimmz,
               const integer dimmx);
 
-real rho_TR ( real* restrict rho,
+real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
               const integer dimmz,
               const integer dimmx);
 
-real rho_BR ( real* restrict rho,
+real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
               const integer dimmz,
               const integer dimmx);
 
-real rho_TL ( real* restrict rho,
+real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
               const integer dimmz,
               const integer dimmx);
 
-void compute_component_vcell_TL (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
+void compute_component_vcell_TL (      real* restrict _vptr,
+                                 const real* restrict _szptr,
+                                 const real* restrict _sxptr,
+                                 const real* restrict _syptr,
+                                 const real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -136,11 +136,11 @@ void compute_component_vcell_TL (real* restrict vptr,
                                  const integer  dimmx);
 
 
-void compute_component_vcell_TR (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
+void compute_component_vcell_TR (      real* restrict _vptr,
+                                 const real* restrict _szptr,
+                                 const real* restrict _sxptr,
+                                 const real* restrict _syptr,
+                                 const real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -158,11 +158,11 @@ void compute_component_vcell_TR (real* restrict vptr,
                                  const integer  dimmx);
 
 
-void compute_component_vcell_BR (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
+void compute_component_vcell_BR (      real* restrict _vptr,
+                                 const real* restrict _szptr,
+                                 const real* restrict _sxptr,
+                                 const real* restrict _syptr,
+                                 const real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -179,11 +179,11 @@ void compute_component_vcell_BR (real* restrict vptr,
                                  const integer  dimmz,
                                  const integer  dimmx);
 
-void compute_component_vcell_BL (real* restrict vptr,
-                                 real* restrict szptr,
-                                 real* restrict sxptr,
-                                 real* restrict syptr,
-                                 real* restrict rho,
+void compute_component_vcell_BL (      real* restrict _vptr,
+                                 const real* restrict _szptr,
+                                 const real* restrict _sxptr,
+                                 const real* restrict _syptr,
+                                 const real* restrict rho,
                                  const real     dt,
                                  const real     dzi,
                                  const real     dxi,
@@ -227,96 +227,96 @@ void velocity_propagator(v_t       v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-void stress_update( real* restrict sptr,
-                    const real       c1,
-                    const real       c2,
-                    const real       c3,
-                    const real       c4,
-                    const real       c5,
-                    const real       c6,
-                    const integer z,
-                    const integer x,
-                    const integer y,
-                    const real dt,
-                    const real u_x,
-                    const real u_y,
-                    const real u_z,
-                    const real v_x,
-                    const real v_y,
-                    const real v_z,
-                    const real w_x,
-                    const real w_y,
-                    const real w_z,
-                    const integer dimmz,
-                    const integer dimmx);
+void stress_update(real* restrict sptr,
+                   const real       c1,
+                   const real       c2,
+                   const real       c3,
+                   const real       c4,
+                   const real       c5,
+                   const real       c6,
+                   const integer z,
+                   const integer x,
+                   const integer y,
+                   const real dt,
+                   const real u_x,
+                   const real u_y,
+                   const real u_z,
+                   const real v_x,
+                   const real v_y,
+                   const real v_z,
+                   const real w_x,
+                   const real w_y,
+                   const real w_z,
+                   const integer dimmz,
+                   const integer dimmx);
 
-void stress_propagator( s_t           s,
-                        v_t           v,
-                        coeff_t       coeffs,
-                        real          *rho,
-                        const real    dt,
-                        const real    dzi,
-                        const real    dxi,
-                        const real    dyi,
-                        const integer nz0,
-                        const integer nzf,
-                        const integer nx0,
-                        const integer nxf,
-                        const integer ny0,
-                        const integer nyf,
-                        const integer dimmz,
-                        const integer dimmx );
+void stress_propagator(s_t           s,
+                       v_t           v,
+                       coeff_t       coeffs,
+                       real          *rho,
+                       const real    dt,
+                       const real    dzi,
+                       const real    dxi,
+                       const real    dyi,
+                       const integer nz0,
+                       const integer nzf,
+                       const integer nx0,
+                       const integer nxf,
+                       const integer ny0,
+                       const integer nyf,
+                       const integer dimmz,
+                       const integer dimmx );
 
-real cell_coeff_BR ( real* restrict ptr, 
+real cell_coeff_BR ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
 
-real cell_coeff_TL ( real* restrict ptr, 
+real cell_coeff_TL ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
 
-real cell_coeff_BL ( real* restrict ptr, 
+real cell_coeff_BL ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
 
-real cell_coeff_TR ( real* restrict ptr, 
+real cell_coeff_TR ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
 
-real cell_coeff_ARTM_BR ( real* restrict ptr, 
+real cell_coeff_ARTM_BR ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
 
-real cell_coeff_ARTM_TL ( real* restrict ptr, 
+real cell_coeff_ARTM_TL ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
 
-real cell_coeff_ARTM_BL ( real* restrict ptr, 
+real cell_coeff_ARTM_BL ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
 
-real cell_coeff_ARTM_TR ( real* restrict ptr, 
+real cell_coeff_ARTM_TR ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 

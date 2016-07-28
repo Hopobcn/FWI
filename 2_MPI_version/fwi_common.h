@@ -23,9 +23,9 @@
 // http://stackoverflow.com/questions/32438554/warning-implicit-declaration-of-posix-memalign
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdarg.h>
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <math.h>
 #include <sys/time.h>
 #include <string.h>
@@ -49,6 +49,7 @@ typedef enum {FORWARD   , BACKWARD, FWMODEL}  time_d;
 /* simulation parameters */
 extern const integer WRITTEN_FIELDS;
 extern const integer HALO;
+extern const integer SIMD_LENGTH;
 extern const real    IT_FACTOR;
 extern const real    IO_CHUNK_SIZE;
 
@@ -59,13 +60,12 @@ extern const size_t ALIGN_REAL;
 /* (MPI-local) file for logging */
 extern FILE* logfile;
 
-
-#define TOGB(bytes) (bytes / (1024.f * 1024.f * 1024.f))
+double TOGB(size_t bytes);
 
 /*  Compiler compatiblity macros */
 #ifdef __GNUC__
-    /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
-        #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
+  /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
+    #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
 /*  Compiler macro to suppress unused variable warnings */
@@ -89,6 +89,7 @@ FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int lin
 void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
 void  safe_fwrite ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
 void  safe_fread  ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
+integer roundup(integer number, integer multiple);
 
 void log_info  (const char *fmt, ...);
 void log_error (const char *fmt, ...);
@@ -106,7 +107,7 @@ void read_fwi_parameters (const char *fname,
                           real *rcvlen,
                           char *outputfolder);
 
-void store_shot_parameters( int     shotid,
+void store_shot_parameters(int     shotid,
                            int     *stacki,
                            real    *dt,
                            int     *nt_fwd,
@@ -117,9 +118,10 @@ void store_shot_parameters( int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder);
+                           char    *outputfolder,
+                           real    waveletFreq);
 
-void load_shot_parameters( int     shotid,
+void load_shot_parameters(int     shotid,
                           int     *stacki,
                           real    *dt,
                           int     *nt_fwd,
@@ -130,7 +132,8 @@ void load_shot_parameters( int     shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
-                          char    *outputfolder);
+                          char    *outputfolder,
+                          real    waveletFreq);
 
 void load_freqlist (  const char*  filename,
                             int*   nfreqs,
@@ -142,7 +145,26 @@ void  __free   ( void *ptr );
 void create_output_volumes(char* outputfolder, integer VolumeMemory);
 
 int mkdir_p(const char *dir);
+
 void create_folder(const char *folder);
 
-#endif // end of _FWI_COMMON_H_ definition
 
+#define print_error(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "ERROR ", M, ##__VA_ARGS__)
+#define print_info(M, ...)      fwi_writelog(__FILE__, __LINE__, __func__, "INFO  ", M, ##__VA_ARGS__)
+#define print_stats(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "STATS ", M, ##__VA_ARGS__)
+
+#ifdef DEBUG
+  #define print_debug(M, ...)  fwi_writelog(__FILE__, __LINE__, __func__, "DEBUG ", M, ##__VA_ARGS__)
+#else
+  #define print_debug(M, ...)
+#endif
+
+void fwi_writelog(const char *SourceFileName, 
+                  const int LineNumber,
+                  const char *FunctionName,
+                  const char* MessageHeader,
+                  const char *fmt,
+                  ...);
+
+
+#endif // end of _FWI_COMMON_H_ definition
