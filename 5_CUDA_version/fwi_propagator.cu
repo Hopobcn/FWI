@@ -400,7 +400,7 @@ void compute_component_vcell_TL_cuda ( float* vptr,
 
     cudaStream_t s = (cudaStream_t) stream;
 
-#ifdef OPTIMIZED
+#ifdef VCELL_TL
     compute_component_vcell_TL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
