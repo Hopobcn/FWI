@@ -137,6 +137,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer end     = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems  = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
@@ -161,6 +162,16 @@ void compute_component_vcell_TL (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
+    {
+        compute_component_vcell_TL_cuda(vptr, szptr, sxptr, syptr, rho,
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                _SZ, _SX, _SY, dimmz, dimmx, stream);
+    }
+#endif
 };
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -189,6 +200,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
@@ -213,6 +225,16 @@ void compute_component_vcell_TR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
+    {
+        compute_component_vcell_TR_cuda(vptr, szptr, sxptr, syptr, rho,
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                _SZ, _SX, _SY, dimmz, dimmx, stream);
+    }
+#endif
 };
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -241,6 +263,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
@@ -265,6 +288,16 @@ void compute_component_vcell_BR (      real* restrict vptr,
         }
     }
     } /* end acc kernels */
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
+    {
+        compute_component_vcell_BR_cuda(vptr, szptr, sxptr, syptr, rho,
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                _SZ, _SX, _SY, dimmz, dimmx, stream);
+    }
+#endif
 };
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -293,6 +326,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
@@ -317,6 +351,16 @@ void compute_component_vcell_BL (      real* restrict vptr,
         }
     }
     } /* end acc loop */
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
+    {
+        compute_component_vcell_BL_cuda(vptr, szptr, sxptr, syptr, rho,
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                _SZ, _SX, _SY, dimmz, dimmx, stream);
+    }
+#endif
 };
 
 void velocity_propagator(v_t           v,
@@ -584,6 +628,7 @@ void compute_component_scell_TR (s_t             s,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
@@ -648,6 +693,24 @@ void compute_component_scell_TR (s_t             s,
         }
     }
     } /* end acc kernels */ 
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    {
+        compute_component_scell_TR_cuda(
+            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
+            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
+            cc11, cc12, cc13, cc14, cc15, cc16,
+            cc22, cc23, cc24, cc25, cc26,
+            cc33, cc34, cc35, cc36,
+            cc44, cc45, cc45,
+            cc55, cc56,
+            cc66,
+            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
+            stream);
+    }
+#endif
 };
 
 void compute_component_scell_TL (s_t             s,
@@ -715,6 +778,7 @@ void compute_component_scell_TL (s_t             s,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
@@ -777,6 +841,24 @@ void compute_component_scell_TL (s_t             s,
             }
         }
     }
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    {
+        compute_component_scell_TL_cuda(
+            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
+            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
+            cc11, cc12, cc13, cc14, cc15, cc16,
+            cc22, cc23, cc24, cc25, cc26,
+            cc33, cc34, cc35, cc36,
+            cc44, cc45, cc45,
+            cc55, cc56,
+            cc66,
+            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
+            stream);
+    }
+#endif
 };
 
 
@@ -845,6 +927,7 @@ void compute_component_scell_BR (s_t             s,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
@@ -908,6 +991,24 @@ void compute_component_scell_BR (s_t             s,
             }
         }
     }
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    {
+        compute_component_scell_BR_cuda(
+            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
+            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
+            cc11, cc12, cc13, cc14, cc15, cc16,
+            cc22, cc23, cc24, cc25, cc26,
+            cc33, cc34, cc35, cc36,
+            cc44, cc45, cc45,
+            cc55, cc56,
+            cc66,
+            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
+            stream);
+    }
+#endif
 };
 
 void compute_component_scell_BL (s_t             s,
@@ -975,6 +1076,7 @@ void compute_component_scell_BL (s_t             s,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
+#ifndef USE_CUDA
     #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
@@ -1037,4 +1139,22 @@ void compute_component_scell_BL (s_t             s,
             }
         }
     }
+#else
+    void* stream = acc_get_cuda_stream(phase);
+
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    {
+        compute_component_scell_BL_cuda(
+            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
+            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
+            cc11, cc12, cc13, cc14, cc15, cc16,
+            cc22, cc23, cc24, cc25, cc26,
+            cc33, cc34, cc35, cc36,
+            cc44, cc45, cc45,
+            cc55, cc56,
+            cc66,
+            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
+            stream);
+    }
+#endif
 };

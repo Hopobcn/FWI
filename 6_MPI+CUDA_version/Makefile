@@ -1,40 +1,28 @@
 # possible values <PGI>
-COMPILER   ?=PGI
+COMPILER    =PGI
 # possible values <YES,NO>
 PERFORM_IO ?=YES
 # possible values <YES,NO>
 IO_STATS   ?=NO
 # possible values <YES,NO>
 DEBUG      ?=NO
+# possible values <YES,NO>
+USE_CUDA   ?=YES
+# possible values <YES,NO>
+TRACE_CUDA ?=NO
 # Num MPI ranks 
 NCPUS ?= 2
 
 ifeq ($(COMPILER),PGI)
 	CC        = pgcc
+	NVCC      = nvcc
 	MPICC     = mpicc
 	CFLAGS    =  -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX
-	CINCS     =
-	CLIBS     = -lm
-else
-ifeq ($(COMPILER),INTEL)
-	CC        = icc
-	MPICC     = impi
-	# CFLAGS    = -std=c99 -O2 -restrict -qopenmp #-qopt-report=2
-	# -opt-streaming-cache-evict=0 -opt-streaming-stores always
-	CFLAGS    = -std=c99 -xHost -qopenmp -restrict -prec-div -fp-model precise -ftz -opt-prefetch-distance=64
-	CINCS     =
-	CLIBS     = -lm
-else
-ifeq ($(COMPILER),GNU)
-	CC        = gcc
-	MPICC     = mpicc
-	CFLAGS    = -std=c99 -O3 -march=native -fopenmp -Wall #-fopt-info -fopt-info-vec-missed
-	CINCS     =
-	CLIBS     = -lm
+	NVFLAGS   = -std=c++11 -O3 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
+	CINCS     = -I$(CUDA_HOME)/include #-I$(ACC_HOME)/include
+	CLIBS     = -lm -L$(CUDA_HOME)/lib64 -lcuda -lcudart
 else
 	$(error $(COMPILER) not supported)
-endif
-endif
 endif
 
 ifeq ($(PERFORM_IO),NO)
@@ -54,31 +42,51 @@ ifeq ($(DEBUG),YES)
 	CFLAGS   += -g
 endif
 
+ifeq ($(USE_CUDA),YES)
+	DEFINES += -DUSE_CUDA
+
+	# SCELL optimized kernels:
+	DEFINES += -DSCELL_TL
+	DEFINES += -DSCELL_BL
+	#DEFINES += -DSCELL_BR
+	#DEFINES += -DSCELL_TR
+
+	# VCELL optimized kernels:
+	DEFINES += -DVCELL_TL
+endif
+
+ifeq ($(TRACE_CUDA),YES)
+	DEFINES += -DTRACE_CUDA
+	CLIBS   += -lnvToolsExt
+endif
+
 TARGET=fwi.intel64 ModelGenerator
 
 all:$(TARGET)
 
-fwi.intel64:fwi_main.o fwi_common.o fwi_kernel.o fwi_propagator.o
-	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -o $@ $(CLIBS) 
-
-ModelGenerator:fwi_generatemodel.o fwi_common.o fwi_kernel.o fwi_propagator.o
+fwi.intel64: fwi_main.o fwi_common.o fwi_kernel.o fwi_propagator.o fwi_propagator_cuda.o
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -o $@ $(CLIBS)
 
-fwi_generatemodel.o:fwi_generatemodel.c 
+ModelGenerator: fwi_generatemodel.o fwi_common.o fwi_kernel.o fwi_propagator.o fwi_propagator_cuda.o
+	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -o $@ $(CLIBS)
+
+fwi_generatemodel.o: fwi_generatemodel.c
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
-fwi_main.o:fwi_main.c 
+fwi_main.o: fwi_main.c
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
-fwi_common.o:fwi_common.c
+fwi_common.o: fwi_common.c
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
-fwi_kernel.o:fwi_kernel.c
+fwi_kernel.o: fwi_kernel.c
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
-fwi_propagator.o:fwi_propagator.c
+fwi_propagator.o: fwi_propagator.c
 	$(MPICC) $(DEFINES) $(CFLAGS) $(CINCS) $+ -c
 
+fwi_propagator_cuda.o: fwi_propagator.cu
+	$(NVCC) $(DEFINES) $(NVFLAGS) $(CINCS) $^ -c -o $@ 2>&1| c++filt --no-params
 
 .PHONY:all clean run irun debug memcheck input
 
@@ -89,13 +97,21 @@ input: ModelGenerator
 	./ModelGenerator ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 run: fwi.intel64
-	bsub < jobscript.sh
+	bsub < jobscript_mt.sh
 
 irun: fwi.intel64
 	mpirun -np $(NCPUS) ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 debug: fwi.intel64
-	mpirun -np $(NCPUS) xterm -e gdb --args fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+	mpirun -np $(NCPUS) xterm -e cuda-gdb --args fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
 memcheck: fwi.intel64
 	valgrind ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+profile: profile-gpu
+
+profile-cpu: fwi.intel64
+	mpirun -np $(NCPUS) nvprof -o fwi.%q{OMPI_COMM_WORLD_RANK}.nvprof --cpu-profiling on --cpu-profiling-mode top-down ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+
+profile-gpu: fwi.intel64
+	mpirun -np $(NCPUS) nvprof -o fwi.%q{OMPI_COMM_WORLD_RANK}.nvprof ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+

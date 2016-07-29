@@ -107,6 +107,8 @@ void alloc_memory_shot( const integer numberOfCells,
                         v_t     *v,
                         real    **rho)
 {
+    PUSH_RANGE
+
     const integer size = numberOfCells * sizeof(real);
 
     print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
@@ -278,6 +280,7 @@ void alloc_memory_shot( const integer numberOfCells,
                            create(cc55[0:datalen], cc56[0:datalen]) \
                            create(cc66[0:datalen]) \
                            create(rrho[0:datalen])
+    POP_RANGE
 };
 
 void free_memory_shot( coeff_t *c,
@@ -285,6 +288,8 @@ void free_memory_shot( coeff_t *c,
                        v_t     *v,
                        real    **rho)
 {
+    PUSH_RANGE
+
     #pragma acc wait
     #pragma acc exit data delete(v->tl.u, v->tl.v, v->tl.w) \
                           delete(v->tr.u, v->tr.v, v->tr.w) \
@@ -379,6 +384,8 @@ void free_memory_shot( coeff_t *c,
 
     /* deallocate density array       */
     __free( (void*) *rho );
+
+    POP_RANGE
 };
 
 /*
@@ -393,6 +400,8 @@ void load_initial_model ( const real    waveletFreq,
                           v_t     *v,
                           real    *rho)
 {
+    PUSH_RANGE
+
     const int numberOfCells = dimmz * dimmx * dimmy;
 
     /* initialize stress */
@@ -577,6 +586,8 @@ void load_initial_model ( const real    waveletFreq,
                        device(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
                        async(H2D)
 #endif /* end of DDO_NOT_PERFORM_IO clause */
+
+    POP_RANGE
 };
 
 
@@ -588,6 +599,8 @@ void write_snapshot(char *folder,
                     v_t *v,
                     const integer numberOfCells)
 {
+    PUSH_RANGE
+
 #ifdef DO_NOT_PERFORM_IO
     print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
@@ -642,6 +655,8 @@ void write_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 #endif
+
+    POP_RANGE
 };
 
 /*
@@ -652,6 +667,8 @@ void read_snapshot(char *folder,
                    v_t *v,
                    const integer numberOfCells)
 {
+    PUSH_RANGE
+
 #ifdef DO_NOT_PERFORM_IO
     print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
@@ -707,6 +724,8 @@ void read_snapshot(char *folder,
                        device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
                        async(H2D)
 #endif
+
+    POP_RANGE
 };
 
 void propagate_shot(time_d        direction,
@@ -733,6 +752,8 @@ void propagate_shot(time_d        direction,
                     integer       dimmz,
                     integer       dimmx)
 {
+    PUSH_RANGE
+
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
@@ -748,6 +769,8 @@ void propagate_shot(time_d        direction,
 
     for(int t=0; t < timesteps; t++)
     {
+        PUSH_RANGE
+
         if( t % 10 == 0 ) print_info("Computing %d-th timestep", t);
 
         /* perform IO */
@@ -850,6 +873,10 @@ void propagate_shot(time_d        direction,
 
         /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
+
+        MPI_Barrier( MPI_COMM_WORLD );
+
+        POP_RANGE
     }
     
     /* compute some statistics */
@@ -858,7 +885,9 @@ void propagate_shot(time_d        direction,
     tvel_total    /= (double) timesteps;
     
     print_stats("Maingrid STRESS   computation took %lf seconds (%lf Mcells/s)", tstress_total,  megacells / tstress_total); 
-    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total); 
+    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total);
+
+    POP_RANGE
 };
 
 /*
@@ -881,6 +910,8 @@ void exchange_velocity_boundaries ( v_t v,
                                     const integer nyf, 
                                     const integer ny0 )
 {
+    PUSH_RANGE
+
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
     const integer left       = ny0-HALO;
@@ -925,6 +956,8 @@ void exchange_velocity_boundaries ( v_t v,
         EXCHANGE( &v.br.v[nyf], &v.br.v[right], rank+1, rank, nelems );
         EXCHANGE( &v.br.w[nyf], &v.br.w[right], rank+1, rank, nelems );
     }
+
+    POP_RANGE
 };
 
 /*
@@ -947,6 +980,8 @@ void exchange_stress_boundaries ( s_t s,
                                   const integer nyf, 
                                   const integer ny0 )
 {
+    PUSH_RANGE
+
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
     const integer left       = ny0-HALO;
@@ -1015,5 +1050,7 @@ void exchange_stress_boundaries ( s_t s,
         EXCHANGE( &s.br.xy[nyf], &s.br.xy[right], rank+1, rank, nelems );
         EXCHANGE( &s.br.yy[nyf], &s.br.yy[right], rank+1, rank, nelems );
     }
+
+    POP_RANGE
 };
 
