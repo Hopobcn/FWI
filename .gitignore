@@ -7,8 +7,9 @@ fwi.test
 ModelGenerator
 
 #ignore logfiles
-fwi.log
+*.log
 valgrind.*
+*.nvprof
 
 #ignore output folders
 1/
