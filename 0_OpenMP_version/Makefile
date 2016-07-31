@@ -12,7 +12,7 @@ ifeq ($(COMPILER),INTEL)
 	CC        = icc
 	# CFLAGS    = -std=c99 -O2 -restrict -qopenmp #-qopt-report=2
 	# -opt-streaming-cache-evict=0 -opt-streaming-stores always
-	CFLAGS    = -std=c99 -xHost -qopenmp -restrict -prec-div -fp-model precise -ftz -opt-prefetch-distance=64
+	CFLAGS    = -std=c99 -xHost -qopenmp -restrict -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64
 	CINCS     =
 	CLIBS     = -lm
 else
@@ -81,3 +81,4 @@ debug: fwi.intel64
 
 memcheck: fwi.intel64
 	valgrind --leak-check=full ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt > valgrind.log 2>&1
+

@@ -11,7 +11,7 @@ NCPUS ?= 2
 
 ifeq ($(COMPILER),INTEL)
 	CC        = icc
-	MPICC     = impi
+	MPICC     = mpicc
 	# CFLAGS    = -std=c99 -O2 -restrict -qopenmp #-qopt-report=2
 	# -opt-streaming-cache-evict=0 -opt-streaming-stores always
 	CFLAGS    = -std=c99 -xHost -qopenmp -restrict -prec-div -fp-model precise -ftz -opt-prefetch-distance=64

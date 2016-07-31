@@ -13,14 +13,23 @@ TRACE_CUDA ?=NO
 # Num MPI ranks 
 NCPUS ?= 2
 
+HOST=$(shell hostname)
+
 ifeq ($(COMPILER),PGI)
 	CC        = pgcc
 	NVCC      = nvcc
 	MPICC     = mpicc
+	
+	ifeq ($(HOST),hulk)
+		HOST_CC   = gcc-4.9
+	else
+		HOST_CC   = /apps/GCC/4.9.3/bin/gcc
+	endif
+	
 	CFLAGS    =  -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX
-	NVFLAGS   = -std=c++11 -O3 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
-	CINCS     = -I$(CUDA_HOME)/include #-I$(ACC_HOME)/include
-	CLIBS     = -lm -L$(CUDA_HOME)/lib64 -lcuda -lcudart
+	NVFLAGS   = -std=c++11 -ccbin $(HOST_CC) -O3 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
+	CINCS     = -I$(CUDA_HOME)/include -I$(MPI_HOME)/include #-I$(ACC_HOME)/include
+	CLIBS     = -lm -L$(CUDA_HOME)/lib64 -lcuda -lcudart -L$(MPI_HOME)/lib64 -lmpi
 else
 	$(error $(COMPILER) not supported)
 endif
