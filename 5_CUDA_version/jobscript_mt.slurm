@@ -2,12 +2,12 @@
 
 # @ job_name      = fwi.openacc-cuda
 # @ initialdir    = .
-# @ output        = 1/%j.out
-# @ error         = 1/%j.err
+# @ output        = Results/%j.out
+# @ error         = Results/%j.err
 # @ total_tasks   = 1
-# @ cpus_per_task = 16
+# @ cpus_per_task = 4
 # @ gpus_per_node = 4
-# @ wall_clock_limit = 00:01:00
+# @ wall_clock_limit = 01:00:00
 # @ features = k80
 ulimit -c unlimited
 

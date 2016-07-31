@@ -1,18 +1,19 @@
 #!/bin/bash
 
-# @ job_name      = fwi.openacc
+# @ job_name      = fwi.mpi
 # @ initialdir    = .
 # @ output        = Results/%j.out
 # @ error         = Results/%j.err
-# @ total_tasks   = 1
-# @ cpus_per_task = 4
+# @ total_tasks   = 16
+# @ cpus_per_task = 1
 # @ gpus_per_node = 4
 # @ wall_clock_limit = 01:00:00
 # @ features = k80
 ulimit -c unlimited
 
+NPROCS=12
 source environment_mt.sh
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=1
 
-./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+mpirun -np ${NPROCS} ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
