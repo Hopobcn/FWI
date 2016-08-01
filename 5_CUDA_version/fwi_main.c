@@ -311,8 +311,8 @@ int main(int argc, const char* argv[])
                     waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
 
         /* compute time steps */
-        int forw_steps = 5; //max_int ( IT_FACTOR * (srclen/dt), 1);
-        int back_steps = 5; //max_int ( IT_FACTOR * (rcvlen/dt), 1);
+        int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
+        int back_steps = max_int ( IT_FACTOR * (rcvlen/dt), 1);
 
         for(int grad=0; grad<ngrads; grad++) /* iteracion de inversion */
         {
