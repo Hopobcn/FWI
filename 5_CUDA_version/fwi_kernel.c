@@ -906,9 +906,9 @@ void propagate_shot(time_d        direction,
     megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
     tstress_total /= (double) timesteps;
     tvel_total    /= (double) timesteps;
-    
-    print_stats("Maingrid STRESS   computation took %lf seconds (%lf Mcells/s)", tstress_total,  megacells / tstress_total); 
-    print_stats("Maingrid VELOCITY computation took %lf seconds (%lf Mcells/s)", tvel_total, megacells / tvel_total);
+  
+    print_stats("Maingrid STRESS   computation took %lf seconds - %lf Mcells/s", tstress_total,  megacells / tstress_total); 
+    print_stats("Maingrid VELOCITY computation took %lf seconds - %lf Mcells/s", tvel_total, megacells / tvel_total); 
 
     POP_RANGE
 };

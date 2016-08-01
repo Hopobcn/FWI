@@ -305,10 +305,10 @@ int main(int argc, const char* argv[])
         integer stacki = floor( 0.25 / (2.5 * waveletFreq * dt) );
 
         const integer numberOfCells = dimmz * dimmx * dimmx;
-        const integer VolumeMemory  = numberOfCells * sizeof(real) * 58;
+        const size_t VolumeMemory  = numberOfCells * sizeof(real) * 58;
 
-        print_stats("Local domain size is " I " bytes (%f GB)", 
-                    VolumeMemory, TOGB(VolumeMemory) );
+        print_stats("Local domain size for freq %f [%d][%d][%d] is %lu bytes (%lf GB)", 
+                    waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
 
         /* compute time steps */
         int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);

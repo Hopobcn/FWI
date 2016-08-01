@@ -336,8 +336,8 @@ int main(int argc, char* argv[])
         const integer numberOfCells = dimmz * dimmx * dimmx;
         const size_t VolumeMemory  = numberOfCells * sizeof(real) * 58;
 
-        print_stats("Local domain size for freq. %f is (%d,%d,%d) mem: %u bytes (%f GB)", 
-                   waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
+        print_stats("Local domain size for freq %f [%d][%d][%d] is %lu bytes (%lf GB)", 
+                    waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
 
         /* compute time steps */
         int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
