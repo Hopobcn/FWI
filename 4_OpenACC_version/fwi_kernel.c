@@ -746,6 +746,7 @@ void propagate_shot(time_d        direction,
                     integer       dimmx,
                     integer       ngpus)
 {
+    double tglobal_start, tglobal_total = 0.0;
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
@@ -761,6 +762,8 @@ void propagate_shot(time_d        direction,
         const int num_planes_per_gpu = (nyf-2*HALO) / ngpus;
         const int remainder          = (nyf-2*HALO) % ngpus;
         
+        tglobal_start = dtime();
+
         #pragma omp parallel for schedule(static, 1)
         for (int gpu = 0; gpu < ngpus; gpu++)
         {
@@ -875,15 +878,20 @@ void propagate_shot(time_d        direction,
             
             if (gpu == 0) tstress_total += (dtime() - tstress_start);
         } 
+
+        tglobal_total += (dtime() - tglobal_start);
+
               /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
     }
 
     /* compute some statistics */
     megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
+    tglobal_total /= (double) timesteps;
     tstress_total /= (double) timesteps;
     tvel_total    /= (double) timesteps;
     
+    print_stats("Maingrid GLOBAL   computation took %lf seconds - %lf Mcells/s", tglobal_total, (2*megacells) / tglobal_total); 
     print_stats("Maingrid STRESS   computation took %lf seconds - %lf Mcells/s", tstress_total,  megacells / tstress_total); 
     print_stats("Maingrid VELOCITY computation took %lf seconds - %lf Mcells/s", tvel_total, megacells / tvel_total); 
 };
@@ -918,46 +926,46 @@ void exchange_velocity_boundaries ( v_t v,
     {
         // update CPU with left HALO
  
-        #pragma acc update device(v.tl.u[ny0:nelems]) asynch(H2D) wait(ONE_L)
-        #pragma acc update device(v.tl.v[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.tl.w[ny0:nelems]) asynch(H2D)
+        #pragma acc update self(v.tl.u[ny0:nelems]) asynch(D2H) wait(ONE_L)
+        #pragma acc update self(v.tl.v[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.tl.w[ny0:nelems]) asynch(D2H)
  
-        #pragma acc update device(v.tr.u[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.tr.v[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.tr.w[ny0:nelems]) asynch(H2D)
+        #pragma acc update self(v.tr.u[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.tr.v[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.tr.w[ny0:nelems]) asynch(D2H)
        
-        #pragma acc update device(v.bl.u[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.bl.v[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.bl.w[ny0:nelems]) asynch(H2D)
+        #pragma acc update self(v.bl.u[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.bl.v[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.bl.w[ny0:nelems]) asynch(D2H)
        
-        #pragma acc update device(v.br.u[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.br.v[ny0:nelems]) asynch(H2D)
-        #pragma acc update device(v.br.w[ny0:nelems]) asynch(H2D)
+        #pragma acc update self(v.br.u[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.br.v[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(v.br.w[ny0:nelems]) asynch(D2H)
     }
 
     if ( gpu != ngpus-1 )
     {
         // update CPU with right HALO 
  
-        #pragma acc update device(v.tl.u[nyf:nelems]) asynch(H2D) wait(ONE_R)
-        #pragma acc update device(v.tl.v[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.tl.w[nyf:nelems]) asynch(H2D)
+        #pragma acc update self(v.tl.u[nyf:nelems]) asynch(D2H) wait(ONE_R)
+        #pragma acc update self(v.tl.v[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.tl.w[nyf:nelems]) asynch(D2H)
  
-        #pragma acc update device(v.tr.u[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.tr.v[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.tr.w[nyf:nelems]) asynch(H2D)
+        #pragma acc update self(v.tr.u[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.tr.v[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.tr.w[nyf:nelems]) asynch(D2H)
        
-        #pragma acc update device(v.bl.u[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.bl.v[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.bl.w[nyf:nelems]) asynch(H2D)
+        #pragma acc update self(v.bl.u[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.bl.v[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.bl.w[nyf:nelems]) asynch(D2H)
        
-        #pragma acc update device(v.br.u[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.br.v[nyf:nelems]) asynch(H2D)
-        #pragma acc update device(v.br.w[nyf:nelems]) asynch(H2D)
+        #pragma acc update self(v.br.u[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.br.v[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(v.br.w[nyf:nelems]) asynch(D2H)
     }
 
     // wait for D2H completion & synchronize all host threads
-    #pragma acc wait(H2D)
+    #pragma acc wait(D2H)
     #pragma omp barrier
 
     if ( gpu != 0 )
@@ -1031,66 +1039,66 @@ void exchange_stress_boundaries ( s_t s,
     {
         // update CPU with left HALO
  
-        #pragma acc update device(s.tl.zz[ny0:nelems]) asynch(D2H) wait(ONE_L)
-        #pragma acc update device(s.tl.xz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.yz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.xx[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.xy[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.yy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.zz[ny0:nelems]) asynch(D2H) wait(ONE_L)
+        #pragma acc update self(s.tl.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.tr.zz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.yz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xx[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xy[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.yy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.bl.zz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.yz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xx[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xy[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.yy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.yy[ny0:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.br.zz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.yz[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xx[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xy[ny0:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.yy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.zz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.yz[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xx[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xy[ny0:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.yy[ny0:nelems]) asynch(D2H)
     }
 
     if ( gpu != ngpus -1 )  
     {
         // update CPU with right HALO 
  
-        #pragma acc update device(s.tl.zz[nyf:nelems]) asynch(D2H) wait(ONE_R)
-        #pragma acc update device(s.tl.xz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.yz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.xx[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.xy[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tl.yy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.zz[nyf:nelems]) asynch(D2H) wait(ONE_R)
+        #pragma acc update self(s.tl.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tl.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.tr.zz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.yz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xx[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.xy[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.tr.yy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.tr.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.bl.zz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.yz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xx[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.xy[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.bl.yy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.bl.yy[nyf:nelems]) asynch(D2H)
 
-        #pragma acc update device(s.br.zz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.yz[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xx[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.xy[nyf:nelems]) asynch(D2H)
-        #pragma acc update device(s.br.yy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.zz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.yz[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xx[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.xy[nyf:nelems]) asynch(D2H)
+        #pragma acc update self(s.br.yy[nyf:nelems]) asynch(D2H)
     }
    
     // wait for D2H completion & synchronize all host threads

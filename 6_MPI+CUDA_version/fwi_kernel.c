@@ -754,6 +754,7 @@ void propagate_shot(time_d        direction,
 {
     PUSH_RANGE
 
+    double tglobal_start, tglobal_total = 0.0;
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
@@ -776,8 +777,10 @@ void propagate_shot(time_d        direction,
         /* perform IO */
         if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
 
+        tglobal_start = dtime();
+
         /* wait read_snapshot H2D copies */
-            #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
 
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
@@ -871,6 +874,8 @@ void propagate_shot(time_d        direction,
 
         tstress_total += (dtime() - tstress_start);
 
+        tglobal_total += (dtime() - tglobal_start);
+
         /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
 
@@ -881,9 +886,11 @@ void propagate_shot(time_d        direction,
     
     /* compute some statistics */
     megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
+    tglobal_total /= (double) timesteps;
     tstress_total /= (double) timesteps;
     tvel_total    /= (double) timesteps;
  
+    print_stats("Maingrid GLOBAL   computation took %lf seconds - %lf Mcells/s", tglobal_total, (2*megacells) / tglobal_total);
     print_stats("Maingrid STRESS   computation took %lf seconds - %lf Mcells/s", tstress_total,  megacells / tstress_total); 
     print_stats("Maingrid VELOCITY computation took %lf seconds - %lf Mcells/s", tvel_total, megacells / tvel_total); 
 
