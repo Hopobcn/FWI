@@ -44,6 +44,14 @@ fwi_kernel.o:fwi_kernel.c
 clean:
 	rm -rf *.o *.optrpt $(TARGET) fname* InputModels/* results/*
 
-test: fwi.test
+test: test6
+
+test4: fwi.test
+	./fwi.test ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt ../0_OpenMP_version ../4_OpenACC_version
+
+test5: fwi.test
 	./fwi.test ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt ../0_OpenMP_version ../5_CUDA_version
+
+test6: fwi.test
+	./fwi.test ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt ../0_OpenMP_version ../6_MPI+CUDA_version
 
