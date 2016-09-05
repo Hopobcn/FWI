@@ -5,8 +5,8 @@
 #BSUB -eo output.err
 #BSUB -R "span[ptile=16]"
 #BSUB -x
-#BSUB -W 00:10
-#BSUB -q mic
+#BSUB -W 06:00
+#BSUB -q bsc_cs
 #BSUB -J fwi.ompss
 ulimit -c unlimited
 

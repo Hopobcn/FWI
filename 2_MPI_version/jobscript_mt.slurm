@@ -4,16 +4,15 @@
 # @ initialdir    = .
 # @ output        = Results/%j.out
 # @ error         = Results/%j.err
-# @ total_tasks   = 16
-# @ cpus_per_task = 1
+# @ total_tasks   = 8
+# @ cpus_per_task = 2
 # @ gpus_per_node = 4
-# @ wall_clock_limit = 01:00:00
+# @ wall_clock_limit = 10:00:00
 # @ features = k80
 ulimit -c unlimited
 
-NPROCS=12
+NPROCS=16
 source environment_mt.sh
-export OMP_NUM_THREADS=1
+export OMP_NUM_THREADS=2
 
-mpirun -np ${NPROCS} ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
-
+mpirun -np 8 ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt

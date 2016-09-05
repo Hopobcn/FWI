@@ -7,7 +7,7 @@
 # @ total_tasks   = 1
 # @ cpus_per_task = 16
 # @ gpus_per_node = 4
-# @ wall_clock_limit = 01:00:00
+# @ wall_clock_limit = 10:00:00
 # @ features = k80
 ulimit -c unlimited
 

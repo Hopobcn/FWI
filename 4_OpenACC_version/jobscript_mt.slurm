@@ -5,14 +5,14 @@
 # @ output        = Results/%j.out
 # @ error         = Results/%j.err
 # @ total_tasks   = 1
-# @ cpus_per_task = 4
+# @ cpus_per_task = 16
 # @ gpus_per_node = 4
-# @ wall_clock_limit = 01:00:00
+# @ wall_clock_limit = 03:00:00
 # @ features = k80
 ulimit -c unlimited
 
 source environment_mt.sh
 export OMP_NUM_THREADS=4
 
-./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+./fwi.intel64 ../SetupPar ams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 

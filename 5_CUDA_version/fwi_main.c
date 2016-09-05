@@ -269,7 +269,7 @@ int main(int argc, const char* argv[])
 
     read_fwi_parameters( argv[1], &lenz, &lenx, &leny, &vmin, &srclen, &rcvlen, outputfolder);
 
-    const int nshots = 2;
+    const int nshots = 1;
     const int ngrads = 1;
     const int ntest  = 1;
 

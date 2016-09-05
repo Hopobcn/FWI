@@ -5,15 +5,17 @@
 # @ output        = Results/%j.out
 # @ error         = Results/%j.err
 # @ total_tasks   = 4
-# @ cpus_per_task = 4
+# @ tasks_per_node= 4
+# @ cpus_per_task = 1
 # @ gpus_per_node = 4
 # @ wall_clock_limit = 01:00:00
 # @ features = k80
 ulimit -c unlimited
 
-NPROCS=4
+NTASKS=32
 source environment_mt.sh
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=1
 
-mpirun -np ${NPROCS} ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+mpirun -np $NTASKS ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+./gather2plot.py $NTASKS
 
