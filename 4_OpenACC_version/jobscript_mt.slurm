@@ -14,5 +14,5 @@ ulimit -c unlimited
 source environment_mt.sh
 export OMP_NUM_THREADS=4
 
-./fwi.intel64 ../SetupPar ams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
+./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
 
