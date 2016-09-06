@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import csv
 import argparse
 import numpy as np
 
@@ -64,12 +65,12 @@ def main():
                 
                 j += 1
 
-    with open('fwi.mpi-cuda.csv', 'w') as csvfile:
+    with open('fwi.mpicuda.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
 
-        for freq in range(0, nfreqs):
-            time   = np.array(rt[freq]).astype(np.float)
-            metric = np.array(rm[freq]).astype(np.float)
+        for fid in range(0, nfreqs):
+            time   = np.array(rt[fid]).astype(np.float)
+            metric = np.array(rm[fid]).astype(np.float)
 
             writer.writerow( (str(freqs[fid]).rstrip(), str(np.mean(metric))) )
 
