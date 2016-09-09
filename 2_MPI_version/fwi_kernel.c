@@ -730,47 +730,51 @@ void exchange_velocity_boundaries ( v_t v,
 {
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
-    const integer left       = ny0-HALO;
-    const integer right      = nyf+HALO;
+
+    const integer left_recv  = ny0;
+    const integer left_send  = ny0+HALO;
+
+    const integer right_recv = nyf-HALO;
+    const integer right_send = nyf-2*HALO;
     
     if ( rank != 0 )
     {
         // [RANK-1] <---> [RANK] communication
-        EXCHANGE( &v.tl.u[ny0], &v.tl.u[left], rank-1, rank, nelems );
-        EXCHANGE( &v.tl.v[ny0], &v.tl.v[left], rank-1, rank, nelems );
-        EXCHANGE( &v.tl.w[ny0], &v.tl.w[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tl.u[left_send], &v.tl.u[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.tl.v[left_send], &v.tl.v[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.tl.w[left_send], &v.tl.w[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &v.tr.u[ny0], &v.tr.u[left], rank-1, rank, nelems );
-        EXCHANGE( &v.tr.v[ny0], &v.tr.v[left], rank-1, rank, nelems );
-        EXCHANGE( &v.tr.w[ny0], &v.tr.w[left], rank-1, rank, nelems );
+        EXCHANGE( &v.tr.u[left_send], &v.tr.u[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.tr.v[left_send], &v.tr.v[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.tr.w[left_send], &v.tr.w[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &v.bl.u[ny0], &v.bl.u[left], rank-1, rank, nelems );
-        EXCHANGE( &v.bl.v[ny0], &v.bl.v[left], rank-1, rank, nelems );
-        EXCHANGE( &v.bl.w[ny0], &v.bl.w[left], rank-1, rank, nelems );
+        EXCHANGE( &v.bl.u[left_send], &v.bl.u[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.bl.v[left_send], &v.bl.v[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.bl.w[left_send], &v.bl.w[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &v.br.u[ny0], &v.br.u[left], rank-1, rank, nelems );
-        EXCHANGE( &v.br.v[ny0], &v.br.v[left], rank-1, rank, nelems );
-        EXCHANGE( &v.br.w[ny0], &v.br.w[left], rank-1, rank, nelems );
+        EXCHANGE( &v.br.u[left_send], &v.br.u[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.br.v[left_send], &v.br.v[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &v.br.w[left_send], &v.br.w[left_recv], rank-1, rank, nelems );
     }
 
     if ( rank != nranks -1 )  //task to exchange stress boundaries
     {
         //                [RANK] <---> [RANK+1] communication
-        EXCHANGE( &v.tl.u[nyf], &v.tl.u[right], rank+1, rank, nelems );
-        EXCHANGE( &v.tl.v[nyf], &v.tl.v[right], rank+1, rank, nelems );
-        EXCHANGE( &v.tl.w[nyf], &v.tl.w[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tl.u[right_send], &v.tl.u[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.tl.v[right_send], &v.tl.v[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.tl.w[right_send], &v.tl.w[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &v.tr.u[nyf], &v.tr.u[right], rank+1, rank, nelems );
-        EXCHANGE( &v.tr.v[nyf], &v.tr.v[right], rank+1, rank, nelems );
-        EXCHANGE( &v.tr.w[nyf], &v.tr.w[right], rank+1, rank, nelems );
+        EXCHANGE( &v.tr.u[right_send], &v.tr.u[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.tr.v[right_send], &v.tr.v[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.tr.w[right_send], &v.tr.w[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &v.bl.u[nyf], &v.bl.u[right], rank+1, rank, nelems );
-        EXCHANGE( &v.bl.v[nyf], &v.bl.v[right], rank+1, rank, nelems );
-        EXCHANGE( &v.bl.w[nyf], &v.bl.w[right], rank+1, rank, nelems );
+        EXCHANGE( &v.bl.u[right_send], &v.bl.u[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.bl.v[right_send], &v.bl.v[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.bl.w[right_send], &v.bl.w[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &v.br.u[nyf], &v.br.u[right], rank+1, rank, nelems );
-        EXCHANGE( &v.br.v[nyf], &v.br.v[right], rank+1, rank, nelems );
-        EXCHANGE( &v.br.w[nyf], &v.br.w[right], rank+1, rank, nelems );
+        EXCHANGE( &v.br.u[right_send], &v.br.u[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.br.v[right_send], &v.br.v[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &v.br.w[right_send], &v.br.w[right_recv], rank+1, rank, nelems );
     }
 };
 
@@ -796,71 +800,75 @@ void exchange_stress_boundaries ( s_t s,
 {
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
-    const integer left       = ny0-HALO;
-    const integer right      = nyf+HALO;
+
+    const integer left_recv  = ny0;
+    const integer left_send  = ny0+HALO;
+
+    const integer right_recv = nyf-HALO;
+    const integer right_send = nyf-2*HALO;
 
     if ( rank != 0 )
     {
         // [RANK-1] <---> [RANK] communication
-        EXCHANGE( &s.tl.zz[ny0], &s.tl.zz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tl.xz[ny0], &s.tl.xz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tl.yz[ny0], &s.tl.yz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tl.xx[ny0], &s.tl.xx[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tl.xy[ny0], &s.tl.xy[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tl.yy[ny0], &s.tl.yy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.zz[left_send], &s.tl.zz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xz[left_send], &s.tl.xz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.yz[left_send], &s.tl.yz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xx[left_send], &s.tl.xx[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.xy[left_send], &s.tl.xy[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tl.yy[left_send], &s.tl.yy[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &s.tr.zz[ny0], &s.tr.zz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tr.xz[ny0], &s.tr.xz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tr.yz[ny0], &s.tr.yz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tr.xx[ny0], &s.tr.xx[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tr.xy[ny0], &s.tr.xy[left], rank-1, rank, nelems );
-        EXCHANGE( &s.tr.yy[ny0], &s.tr.yy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.zz[left_send], &s.tr.zz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xz[left_send], &s.tr.xz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.yz[left_send], &s.tr.yz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xx[left_send], &s.tr.xx[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.xy[left_send], &s.tr.xy[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.tr.yy[left_send], &s.tr.yy[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &s.bl.zz[ny0], &s.bl.zz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.bl.xz[ny0], &s.bl.xz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.bl.yz[ny0], &s.bl.yz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.bl.xx[ny0], &s.bl.xx[left], rank-1, rank, nelems );
-        EXCHANGE( &s.bl.xy[ny0], &s.bl.xy[left], rank-1, rank, nelems );
-        EXCHANGE( &s.bl.yy[ny0], &s.bl.yy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.zz[left_send], &s.bl.zz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xz[left_send], &s.bl.xz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.yz[left_send], &s.bl.yz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xx[left_send], &s.bl.xx[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.xy[left_send], &s.bl.xy[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.bl.yy[left_send], &s.bl.yy[left_recv], rank-1, rank, nelems );
 
-        EXCHANGE( &s.br.zz[ny0], &s.br.zz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.br.xz[ny0], &s.br.xz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.br.yz[ny0], &s.br.yz[left], rank-1, rank, nelems );
-        EXCHANGE( &s.br.xx[ny0], &s.br.xx[left], rank-1, rank, nelems );
-        EXCHANGE( &s.br.xy[ny0], &s.br.xy[left], rank-1, rank, nelems );
-        EXCHANGE( &s.br.yy[ny0], &s.br.yy[left], rank-1, rank, nelems );
+        EXCHANGE( &s.br.zz[left_send], &s.br.zz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xz[left_send], &s.br.xz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.br.yz[left_send], &s.br.yz[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xx[left_send], &s.br.xx[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.br.xy[left_send], &s.br.xy[left_recv], rank-1, rank, nelems );
+        EXCHANGE( &s.br.yy[left_send], &s.br.yy[left_recv], rank-1, rank, nelems );
     }
     
     if ( rank != nranks-1 )
     {
         //                [RANK] <---> [RANK+1] communication
-        EXCHANGE( &s.tl.zz[nyf], &s.tl.zz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tl.xz[nyf], &s.tl.xz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tl.yz[nyf], &s.tl.yz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tl.xx[nyf], &s.tl.xx[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tl.xy[nyf], &s.tl.xy[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tl.yy[nyf], &s.tl.yy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.zz[right_send], &s.tl.zz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xz[right_send], &s.tl.xz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.yz[right_send], &s.tl.yz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xx[right_send], &s.tl.xx[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.xy[right_send], &s.tl.xy[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tl.yy[right_send], &s.tl.yy[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &s.tr.zz[nyf], &s.tr.zz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tr.xz[nyf], &s.tr.xz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tr.yz[nyf], &s.tr.yz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tr.xx[nyf], &s.tr.xx[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tr.xy[nyf], &s.tr.xy[right], rank+1, rank, nelems );
-        EXCHANGE( &s.tr.yy[nyf], &s.tr.yy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.zz[right_send], &s.tr.zz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xz[right_send], &s.tr.xz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.yz[right_send], &s.tr.yz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xx[right_send], &s.tr.xx[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.xy[right_send], &s.tr.xy[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.tr.yy[right_send], &s.tr.yy[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &s.bl.zz[nyf], &s.bl.zz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.bl.xz[nyf], &s.bl.xz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.bl.yz[nyf], &s.bl.yz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.bl.xx[nyf], &s.bl.xx[right], rank+1, rank, nelems );
-        EXCHANGE( &s.bl.xy[nyf], &s.bl.xy[right], rank+1, rank, nelems );
-        EXCHANGE( &s.bl.yy[nyf], &s.bl.yy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.zz[right_send], &s.bl.zz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xz[right_send], &s.bl.xz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.yz[right_send], &s.bl.yz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xx[right_send], &s.bl.xx[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.xy[right_send], &s.bl.xy[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.bl.yy[right_send], &s.bl.yy[right_recv], rank+1, rank, nelems );
 
-        EXCHANGE( &s.br.zz[nyf], &s.br.zz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.br.xz[nyf], &s.br.xz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.br.yz[nyf], &s.br.yz[right], rank+1, rank, nelems );
-        EXCHANGE( &s.br.xx[nyf], &s.br.xx[right], rank+1, rank, nelems );
-        EXCHANGE( &s.br.xy[nyf], &s.br.xy[right], rank+1, rank, nelems );
-        EXCHANGE( &s.br.yy[nyf], &s.br.yy[right], rank+1, rank, nelems );
+        EXCHANGE( &s.br.zz[right_send], &s.br.zz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xz[right_send], &s.br.xz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.br.yz[right_send], &s.br.yz[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xx[right_send], &s.br.xx[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.br.xy[right_send], &s.br.xy[right_recv], rank+1, rank, nelems );
+        EXCHANGE( &s.br.yy[right_send], &s.br.yy[right_recv], rank+1, rank, nelems );
     }
 };
 

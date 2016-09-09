@@ -35,7 +35,9 @@
 #include <time.h>
 #include <mpi.h>
 #include <omp.h>
+#if !defined(__NVCC__)
 #include <openacc.h>
+#endif
 #ifdef TRACE_CUDA
 #include <nvToolsExt.h>
 #endif
@@ -177,5 +179,16 @@ void fwi_writelog(const char *SourceFileName,
     #define POP_RANGE
 #endif
 
+// 
+// GPU-Affinity related functions:
+//
+int mpi_get_rank();
+int mpi_get_local_rank();
+//Obs: due a BUG with PGI 16.5 & CUDA 7.5 we can't just 'include <cuda.h>' in C files
+//     we have to use NVCC and PGI separately and link the result
+#if defined(__cplusplus)
+extern "C"
+#endif
+int select_gpu_and_pin_proc(int rank, int local_rank);
 
 #endif // end of _FWI_COMMON_H_ definition

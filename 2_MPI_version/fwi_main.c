@@ -38,7 +38,17 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
     load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder, waveletFreq );
 
-    const integer numberOfCells = dimmz * dimmx * dimmy;
+    /* number of cell for each MPI rank */
+    const integer planesPerSubdomain = ((dimmy-2*HALO)/Subdomains);
+
+    /* Compute local computing limits */
+    const integer y0 = planesPerSubdomain * mpi_rank; 
+  //const integer y0 = (dimmz) * (dimmx) * (planesPerSubdomain * localRank    );
+    const integer yF = y0 + planesPerSubdomain + 2*HALO; 
+  //const integer yF = (dimmz) * (dimmx) * (planesPerSubdomain * (localRank+1));
+
+    const integer edimmy = (yF - y0);
+    const integer numberOfCells = dimmz * dimmx * edimmy;
 
     /* set GLOBAL integration limits */
     const integer nz0 = 0;
@@ -46,7 +56,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     const integer nx0 = 0;
     const integer nzf = dimmz;
     const integer nxf = dimmx;
-    const integer nyf = dimmy;
+    const integer nyf = edimmy;
 
     real    *rho;
     v_t     v;
@@ -59,22 +69,13 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
 
     /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, dimmz, dimmx, dimmy, &coeffs, &s, &v, rho);
+    load_initial_model ( waveletFreq, dimmz, dimmx, edimmy, &coeffs, &s, &v, rho);
 
     /* Allocate memory for IO buffer */
     real* io_buffer = (real*) __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
 
     /* inspects every array positions for leaks. Enabled when DEBUG flag is defined */
     check_memory_shot  ( numberOfCells, &coeffs, &s, &v, rho);
-
-    /* number of cell for each MPI rank */
-    const integer planesPerSubdomain = ((dimmy-2*HALO)/Subdomains);
-
-    /* Compute local computing limits */
-    const integer y0 = planesPerSubdomain * mpi_rank; 
-  //const integer y0 = (dimmz) * (dimmx) * (planesPerSubdomain * localRank    );
-    const integer yF = y0 + planesPerSubdomain; 
-  //const integer yF = (dimmz) * (dimmx) * (planesPerSubdomain * (localRank+1));
 
     print_debug( "MPI rank " I " compute from y=" I " to=" I ". #planes per subdomain " I " ", 
             mpi_rank, y0, yF, planesPerSubdomain);
@@ -89,7 +90,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
                          dt,dz,dx,dy,
-                         nz0, nzf, nx0, nxf, y0, yF,
+                         nz0, nzf, nx0, nxf, ny0, nyf,
                          stacki,
                          shotfolder,
                          io_buffer,
@@ -106,7 +107,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
                          dt,dz,dx,dy,
-                         nz0, nzf, nx0, nxf, y0, yF,
+                         nz0, nzf, nx0, nxf, ny0, nyf,
                          stacki,
                          shotfolder,
                          io_buffer,
@@ -152,7 +153,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
                          dt,dz,dx,dy,
-                         nz0, nzf, nx0, nxf, y0, yF,
+                         nz0, nzf, nx0, nxf, ny0, nyf,
                          stacki,
                          shotfolder,
                          io_buffer,
@@ -292,9 +293,9 @@ int main(int argc, char* argv[])
 
     read_fwi_parameters( argv[1], &lenz, &lenx, &leny, &vmin, &srclen, &rcvlen, outputfolder);
 
-    const int nshots = 2;
+    const int nshots = 1;
     const int ngrads = 1;
-    const int ntest  = 1;
+    const int ntest  = 0;
 
     int   nfreqs;
     real *frequencies;

@@ -32,7 +32,7 @@ def main():
     ngrads = 1
 
     nsteps = ngrads * nshots * 2 # RTM algorithm executes a FORWARD + BACKWARD propagation
-    ntests = nshots
+    ntests = 0 #nshots
     ntotal = nsteps + ntests
 
     rt = [[] for y in range(nfreqs)] # temporal array for storing parsed data

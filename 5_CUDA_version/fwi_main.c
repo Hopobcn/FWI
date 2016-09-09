@@ -271,7 +271,7 @@ int main(int argc, const char* argv[])
 
     const int nshots = 1;
     const int ngrads = 1;
-    const int ntest  = 1;
+    const int ntest  = 0;
 
     int   nfreqs;
     real *frequencies;

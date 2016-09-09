@@ -520,3 +520,37 @@ void fwi_writelog(const char *SourceFileName,
     
     safe_fclose ( LogFileName, fp, __FILE__, __LINE__);
 };
+
+
+int parse_env(const char* name)
+{
+    char* value = getenv(name);
+    if (value != NULL)
+    {
+        return atoi(value);
+    }
+    return 0;
+}
+
+int mpi_get_rank()
+{
+#if defined(OPEN_MPI)
+    int rank       = parse_env("OMPI_COMM_WORLD_RANK");
+#elif defined(MPICH)
+    int rank       = parse_env("MV2_COMM_WORLD_RANK");
+#else
+    int rank       = 0;
+#endif
+    return rank;
+}
+
+int mpi_get_local_rank()
+{
+#if defined(OPEN_MPI)
+    int local_rank = parse_env("OMPI_COMM_WORLD_LOCAL_RANK");
+#elif defined(MPICH)
+    int local_rank = parse_env("MV2_COMM_WORLD_LOCAL_RANK");
+#else
+    int local_rank = 0;
+#endif
+}

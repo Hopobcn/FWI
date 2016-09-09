@@ -29,11 +29,11 @@ def main():
     print 'num freqs: '+str(nfreqs)
     print 'p  f  type   time [s] Mcells/s'
 
-    nshots = 2
+    nshots = 1
     ngrads = 1
 
     nsteps = ngrads * nshots * 2 # RTM algorithm executes a FORWARD + BACKWARD propagation
-    ntests = nshots
+    ntests = 0 #nshots
     ntotal = nsteps + ntests
 
     rt = [[] for y in range(nfreqs)] # temporal array for storing parsed data

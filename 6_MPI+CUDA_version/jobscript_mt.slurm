@@ -12,10 +12,9 @@
 # @ features = k80
 ulimit -c unlimited
 
-NTASKS=32
+NTASKS=4
 source environment_mt.sh
 export OMP_NUM_THREADS=1
 
 mpirun -np $NTASKS ./fwi.intel64 ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt
-./gather2plot.py $NTASKS
 
