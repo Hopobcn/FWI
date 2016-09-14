@@ -28,24 +28,43 @@ def read_csv_metrics(fname):
             r.append( row[1] )
     return r
 
-def write_csv_metrics_and_speedups(fname, r0, r2, r4, r5, r6, nfreqs, freqs):
+def max_array_lenght( *args):
+    max_len = 0
+    for arg in args:
+        length = len(arg)
+        if length > max_len:
+            max_len = length
+    return max_len
+
+def calc_speedup(rbase, ropti, fid):
+    metric_base = rbase[fid] if fid < len(rbase) else ""
+    metric_opti = ropti[fid] if fid < len(ropti) else ""
+    
+    speedup = float(metric_opti)/float(metric_base) if metric_opti != "" and metric_base != "" else ""
+
+    return (metric_opti, speedup)
+
+def write_csv_metrics_and_speedups(fname, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, nfreqs, freqs):
     with open(fname, 'w') as csvfile:
         writer = csv.writer(csvfile) 
+        
+        print nfreqs
+        print len(r0)
 
         for fid in range(0, nfreqs):
-            m0 = r0[fid]
-            m2 = r2[fid]
-            m4 = r4[fid]
-            m5 = r5[fid]
-            m6 = r6[fid]
-            
-            s0 = 1.0
-            s2 = float(m2)/float(m0)
-            s4 = float(m4)/float(m0)
-            s5 = float(m5)/float(m0)
-            s6 = float(m6)/float(m0)
+            (m0, s0) = calc_speedup(r1, r0, fid)
+            (m1, s1) = calc_speedup(r1, r1, fid)
+            (m2, s2) = calc_speedup(r1, r2, fid)
+            (m3, s3) = calc_speedup(r1, r3, fid)
+            (m4, s4) = calc_speedup(r1, r4, fid)
+            (m5, s5) = calc_speedup(r1, r5, fid)
+            (m6, s6) = calc_speedup(r1, r6, fid)
+            (m7, s7) = calc_speedup(r1, r7, fid)
+            (m8, s8) = calc_speedup(r1, r8, fid)
+            (m9, s9) = calc_speedup(r1, r9, fid)
+            (m10, s10) = calc_speedup(r1, r10, fid)
 
-            writer.writerow( (str(freqs[fid]).rstrip(), m0, m2, m4, m5, m6, s0, s2, s4, s5, s6) )
+            writer.writerow( (str(freqs[fid]).rstrip(), m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) )
 
 def main():
     freqfile = parse_args()
@@ -53,12 +72,21 @@ def main():
     (nfreqs, freqs) = count_nlines(freqfile)
 
     r0 = read_csv_metrics('0_OpenMP_version/fwi.openmp.csv')
-    r2 = read_csv_metrics('2_MPI_version/fwi.mpi.csv')
-    r4 = read_csv_metrics('4_OpenACC_version/fwi.openacc.csv')
-    r5 = read_csv_metrics('5_CUDA_version/fwi.cuda.csv')
-    r6 = read_csv_metrics('6_MPI+CUDA_version/fwi.mpicuda.csv')
 
-    write_csv_metrics_and_speedups('fwi.all.csv', r0, r2, r4, r5, r6, nfreqs, freqs)
+    r1 = read_csv_metrics('2_MPI_version/fwi.mpi.16.csv')
+    r2 = read_csv_metrics('2_MPI_version/fwi.mpi.32.csv')
+    r3 = read_csv_metrics('2_MPI_version/fwi.mpi.64.csv')
+    r4 = [] # r4 = read_csv_metrics('2_MPI_version/fwi.mpi.128.csv')
+
+    r5 = read_csv_metrics('4_OpenACC_version/fwi.openacc.csv')
+    r6 = read_csv_metrics('5_CUDA_version/fwi.cuda.csv')
+
+    r7 = read_csv_metrics('6_MPI+CUDA_version/fwi.mpicuda.4.csv')
+    r8 = read_csv_metrics('6_MPI+CUDA_version/fwi.mpicuda.8.csv') 
+    r9 = read_csv_metrics('6_MPI+CUDA_version/fwi.mpicuda.16.csv')
+    r10 = read_csv_metrics('6_MPI+CUDA_version/fwi.mpicuda.32.csv')
+ 
+    write_csv_metrics_and_speedups('fwi.all.csv', r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, nfreqs, freqs)
 
 
 if __name__ == "__main__":

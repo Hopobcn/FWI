@@ -69,6 +69,8 @@ def main():
         writer = csv.writer(csvfile)
 
         for fid in range(0, nfreqs):
+            if len(rt[fid]) == 0:
+                break
             time   = np.array(rt[fid]).astype(np.float)
             metric = np.array(rm[fid]).astype(np.float)
 

@@ -95,7 +95,7 @@ fwi_propagator_cuda.o: fwi_propagator.cu
 .PHONY:all clean run debug memcheck input
 
 clean:
-	rm -rf *.o *.optrpt *.log $(TARGET) fname* InputModels/* results/*
+	rm -rf *.o *.optrpt *.log $(TARGET) fname* InputModels/* Results/*
 
 input: ModelGenerator
 	./ModelGenerator ../SetupParams/fwi_params.txt ../SetupParams/fwi_frequencies.txt

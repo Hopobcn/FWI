@@ -29,12 +29,13 @@ def main():
     print 'num freqs: '+str(nfreqs)
     print 'p  f  type   time [s] Mcells/s'
 
-    nshots = 2
+    nshots = 1
     ngrads = 1
 
     nsteps = ngrads * nshots * 2 # RTM algorithm executes a FORWARD + BACKWARD propagation
-    ntests = nshots
+    ntests = 0 #nshots
     ntotal = nsteps + ntests
+    print 'num total: ', ntotal
 
     rt = [[] for y in range(nfreqs)] # temporal array for storing parsed data
     rm = [[0 for x in range(ntotal)] for y in range(nfreqs)]
@@ -64,6 +65,7 @@ def main():
                 sys.stdout.write(istr+' '+jstr+' '+istest+' '+sline[6]+' '+sline[9]+'\n')
                 
                 j += 1
+    
 
     with open('fwi.mpicuda.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
