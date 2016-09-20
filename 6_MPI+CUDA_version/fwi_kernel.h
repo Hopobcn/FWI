@@ -64,15 +64,19 @@ void load_initial_model ( const real    waveletFreq,
                           v_t     *v,
                           real    *rho);
 
-void write_snapshot ( char          *folder,
+void write_snapshot ( char         *folder,
                       const int     suffix,
                       v_t          *v,
-                      const integer numberOfCells);
+                      const integer dimmz,
+                      const integer dimmx,
+                      const integer dimmy);
 
-void read_snapshot ( char          *folder,
+void read_snapshot ( char         *folder,
                      const int     suffix,
                      v_t          *v,
-                     const integer numberOfCells);
+                     const integer dimmz,
+                     const integer dimmx,
+                     const integer dimmy);
 
 
 /* --------------- WAVE PROPAGATOR FUNCTIONS --------------------------------- */

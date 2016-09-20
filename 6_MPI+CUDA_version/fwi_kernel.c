@@ -519,29 +519,28 @@ void load_initial_model ( const real    waveletFreq,
     tstart_inner = dtime();
 
     /* MPI */
-    int mpi_rank, num_subdomains;
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank );
-    MPI_Comm_size( MPI_COMM_WORLD, &num_subdomains );
+    int rank;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
-    const integer cellsInVolume = (dimmz) * (dimmx) * ( (dimmz-2*HALO)/num_subdomains );  
-    const integer bytesForVolume   = cellsInVolume * sizeof(real);
+    const integer bytesForVolume = numberOfCells * sizeof(real);
 
-    /* seek to the correct position corresponding to mpi_rank */
-    fseek ( model, bytesForVolume * mpi_rank + HALO, SEEK_SET);
+    /* seek to the correct position corresponding to rank */
+    if (fseek ( model, bytesForVolume * rank, SEEK_SET) != 0)
+        print_error("fseek() failed to set the correct position");
     
     /* initalize velocity components */
-    safe_fread( v->tl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
-    safe_fread( v->br.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     
     /* stop inner timer */
     tend_inner = dtime() - tstart_inner;
@@ -597,13 +596,25 @@ void load_initial_model ( const real    waveletFreq,
 void write_snapshot(char *folder,
                     int suffix,
                     v_t *v,
-                    const integer numberOfCells)
+                    const integer dimmz,
+                    const integer dimmx,
+                    const integer dimmy)
 {
     PUSH_RANGE
 
 #ifdef DO_NOT_PERFORM_IO
     print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
+    /* MPI */
+    int rank, nranks;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+    MPI_Comm_size( MPI_COMM_WORLD, &nranks );
+
+    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/nranks );
+    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
+    const integer numberOfCells  = cellsInVolume + cellsInHALOs;
+    const integer bytesForVolume = cellsInVolume * sizeof(real);
+
     #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
@@ -622,6 +633,11 @@ void write_snapshot(char *folder,
     FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
 
     tstart_inner = dtime();
+
+    /* seek to the correct position corresponding to rank */
+    if (fseek ( snapshot, bytesForVolume * rank, SEEK_SET) != 0)
+        print_error("fseek() failed to set the correct position");
+
     safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -665,7 +681,9 @@ void write_snapshot(char *folder,
 void read_snapshot(char *folder,
                    int suffix,
                    v_t *v,
-                   const integer numberOfCells)
+                   const integer dimmz,
+                   const integer dimmx,
+                   const integer dimmy)
 {
     PUSH_RANGE
 
@@ -685,6 +703,21 @@ void read_snapshot(char *folder,
     FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
 
     tstart_inner = dtime();
+
+    /* MPI */
+    int rank, nranks;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+    MPI_Comm_size( MPI_COMM_WORLD, &nranks );
+
+    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/nranks );
+    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
+    const integer numberOfCells  = cellsInVolume + cellsInHALOs;
+    const integer bytesForVolume = cellsInVolume * sizeof(real);
+
+    /* seek to the correct position corresponding to rank */
+    if (fseek ( snapshot, bytesForVolume * rank, SEEK_SET) != 0)
+        print_error("fseek() failed to set the correct position");
+
     safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -748,9 +781,9 @@ void propagate_shot(time_d        direction,
                     integer       stacki,
                     char          *folder,
                     real          *dataflush,
-                    integer       datalen,
                     integer       dimmz,
-                    integer       dimmx)
+                    integer       dimmx,
+                    integer       dimmy)
 {
     PUSH_RANGE
 
@@ -775,7 +808,7 @@ void propagate_shot(time_d        direction,
         if( t % 10 == 0 ) print_info("Computing %d-th timestep", t);
 
         /* perform IO */
-        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, datalen);
+        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
 
         tglobal_start = dtime();
 
@@ -877,7 +910,7 @@ void propagate_shot(time_d        direction,
         tglobal_total += (dtime() - tglobal_start);
 
         /* perform IO */
-        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, datalen);
+        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
 
         MPI_Barrier( MPI_COMM_WORLD );
 

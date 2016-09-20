@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <assert.h>
 #include <math.h>
 #include <sys/time.h>
 #include <string.h>

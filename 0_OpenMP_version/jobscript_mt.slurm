@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# @ job_name      = fwi.openacc-cuda
+# @ job_name      = fwi.omp
 # @ initialdir    = .
 # @ output        = Results/%j.out
 # @ error         = Results/%j.err

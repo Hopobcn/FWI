@@ -28,8 +28,8 @@ int select_gpu_and_pin_proc(int rank, int local_rank)
     CUDA_CHECK( cudaGetDeviceCount(&ngpus) );
     printf("acc_get_num_devices found %d devices (of type 'acc_device_nvidia')\n", ngpus);
     int device = local_rank % ngpus;
+    //TODO: call acc_seg_gpu from a *.cu file! (not possible ATM)
     //acc_set_gpu(device);
-    cudaSetDevice(device);
 
     // Iterate through all CPU cores that are physically close to the selected GPU.
     // evenly distributing all processes across cores using local_rank
@@ -60,7 +60,8 @@ int select_gpu_and_pin_proc(int rank, int local_rank)
     char hostname[256];
     gethostname( hostname, sizeof(hostname) );
     cpu = sched_getcpu();
-    printf("MPI rank %d [local rank %d] using GPU %d and CPU %d on host %s\n",
+    fprintf(stdout, "MPI rank %d [local rank %d] using GPU %d and CPU %d on host %s\n",
         rank, local_rank, device, cpu, hostname);
-    return 0;
+
+    return device;
 }

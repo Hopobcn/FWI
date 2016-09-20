@@ -40,12 +40,12 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
     /* number of cell for each MPI rank */
     const integer planesPerSubdomain = ((dimmy-2*HALO)/Subdomains);
+    const integer planesRemaining    = ((dimmy-2*HALO)%Subdomains);
 
     /* Compute local computing limits */
     const integer y0 = planesPerSubdomain * mpi_rank; 
-  //const integer y0 = (dimmz) * (dimmx) * (planesPerSubdomain * localRank    );
-    const integer yF = y0 + planesPerSubdomain + 2*HALO; 
-  //const integer yF = (dimmz) * (dimmx) * (planesPerSubdomain * (localRank+1));
+    const integer yF = y0 + planesPerSubdomain + 2*HALO + ((mpi_rank == Subdomains-1) ? planesRemaining : 0);
+    assert(yF <= dimmy);
 
     const integer edimmy = (yF - y0);
     const integer numberOfCells = dimmz * dimmx * edimmy;
@@ -94,8 +94,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx, dimmy);
 
         end_t = dtime();
 
@@ -111,8 +110,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx, dimmy);
 
         end_t = dtime();
 
@@ -287,8 +285,7 @@ int main(int argc, char* argv[])
     int mpi_rank   = mpi_get_rank();
     int local_rank = mpi_get_local_rank();
 
-    int err = select_gpu_and_pin_proc(mpi_rank, local_rank);
-    if (err < 0) return err;
+    int gpuid = select_gpu_and_pin_proc(mpi_rank, local_rank);
 
     int subdomains;
     MPI_Init ( &argc, &argv );
@@ -296,12 +293,10 @@ int main(int argc, char* argv[])
     MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
 
 #if _OPENACC
-    int ngpus = acc_get_num_devices(acc_device_nvidia);
-    int gpu   = mpi_rank % ngpus;
-    acc_set_device_num(gpu, acc_device_nvidia);
-
-    // Call acc_init after acc_set_device_num to avoid multiple contexts on device 0 in multi GPU systems
+    //// Call acc_init after acc_set_device_num to avoid multiple contexts on device 0 in multi GPU systems
+    acc_set_device_num( gpuid, acc_device_nvidia );
     acc_init(acc_device_nvidia);
+    fprintf(stdout, "MPI rank %d with GPU %d\n", mpi_rank, acc_get_device_num(acc_device_nvidia));
 #endif /*_OPENACC*/
 
 

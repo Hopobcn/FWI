@@ -28,7 +28,7 @@ ifeq ($(COMPILER),PGI)
 	
 	CFLAGS    =  -c99 -fast -mp -acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo -Minfo=accel,inline,mp -Minline=IDX
 	NVFLAGS   = -std=c++11 -ccbin $(HOST_CC) -O3 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -res-usage -lineinfo
-	CINCS     = -I$(CUDA_HOME)/include -I$(MPI_HOME)/include $(shell pkg-config --cflags hwloc) #-I$(ACC_HOME)/include
+	CINCS     = -I$(CUDA_HOME)/include -I$(MPI_HOME)/include -I$(HWLOC_HOME)/include # $(shell pkg-config --cflags hwloc) #-I$(ACC_HOME)/include
 	CLIBS     = -lm -L$(CUDA_HOME)/lib64 -lcuda -lcudart -L$(MPI_HOME)/lib64 -lmpi $(shell pkg-config --libs hwloc) -lstdc++
 else
 	$(error $(COMPILER) not supported)
