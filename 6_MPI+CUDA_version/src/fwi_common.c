@@ -11,23 +11,25 @@ const size_t ALIGN_INT     = 16;
 const size_t ALIGN_INTEGER = 16;
 const size_t ALIGN_REAL    = 64;
 
-extern FILE* logfile = NULL;
+//extern 
+FILE* logfile = NULL;
 
 void log_info (const char *fmt, ...) 
 {
 #ifdef DEBUG
+
+#if defined(USE_MPI)
     /* locate myself into the MPI world */
-    int mpi_rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
-    
-#ifndef OUTPUT_TO_STDERR
+    int id;
+    MPI_Comm_rank( MPI_COMM_WORLD, &id);
+#else
+    int id = 0;
+#endif
+
     /* build log file name */
     char logname[50];
-    sprintf( logname, "mpi_%02d.log", mpi_rank);
+    sprintf( logname, "%02d.log", id);
     FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-#else
-    FILE* flog = stderr;
-#endif
 
     /* create the string from variadic input arguments */
     char str[1000];
@@ -46,22 +48,24 @@ void log_info (const char *fmt, ...)
     /* print actual line to log file  */
     fprintf( flog, "%s: %s\n", timestr, str);
    
-#ifndef OUTPUT_TO_STDERR
     /*  close file  */
     safe_fclose( logname, flog, __FILE__, __LINE__ );
-#endif
 #endif
 };
 
 void log_error (const char *fmt, ...) 
 { 
+#if defined(USE_MPI)
     /* locate myself into the MPI world */
-    int mpi_rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    int id;
+    MPI_Comm_rank( MPI_COMM_WORLD, &id);
+#else
+    int id = 0;
+#endif
     
     /* build log file name */
     char logname[50];
-    sprintf( logname, "mpi_%02d.log", mpi_rank);
+    sprintf( logname, "%02d.log", id);
     FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
     
     /* create the string from variadic input arguments */
@@ -502,12 +506,16 @@ void fwi_writelog(const char *SourceFileName,
                   const char *fmt,
                   ...)
 {
+#if defined(USE_MPI)
     /* locate myself into the MPI world */
-    int mpi_rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
-
+    int id;
+    MPI_Comm_rank( MPI_COMM_WORLD, &id);
+#else
+    int id = 0;
+#endif
+    
     char LogFileName[50];
-    sprintf(LogFileName, "fwi.%02d.log", mpi_rank);
+    sprintf(LogFileName, "fwi.%02d.log", id);
     
     FILE *fp = safe_fopen ( LogFileName, "a", __FILE__, __LINE__ );
     
@@ -532,6 +540,7 @@ int parse_env(const char* name)
     return 0;
 }
 
+#if defined(USE_MPI)
 int mpi_get_rank()
 {
 #if defined(OPEN_MPI)
@@ -554,3 +563,4 @@ int mpi_get_local_rank()
     int local_rank = 0;
 #endif
 }
+#endif

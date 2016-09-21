@@ -34,14 +34,23 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+
+#if defined(USE_MPI)
 #include <mpi.h>
+#endif
+
+#if defined(_OPENMP)
 #include <omp.h>
-#if !defined(__NVCC__)
+#endif
+
+#if defined(_OPENACC) && !defined(__NVCC__)
 #include <openacc.h>
 #endif
-#ifdef TRACE_CUDA
+
+#if defined(TRACE_CUDA)
 #include <nvToolsExt.h>
 #endif
+
 
 /* data types definition */
 typedef float  real;

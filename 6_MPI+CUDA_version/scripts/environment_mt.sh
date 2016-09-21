@@ -2,6 +2,7 @@
 module purge
 module load pgi
 module load cuda/7.5
+module load cmake/3.6.2
 
 export MPI_HOME=$HOME/APPS/OPENMPI/1.10.2/pgi-16.5
 export PATH=$MPI_HOME/bin:$PATH

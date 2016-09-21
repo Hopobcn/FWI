@@ -123,6 +123,7 @@ ny0                 (in) intial plane to be exchanged
 RETURN none
 */
 
+#if defined(USE_MPI)
 #define EXCHANGE(sendbuf, recvbuf, dst, src, count) {                             \
     exchange_buffer((sendbuf),(recvbuf),(dst),(src),(count), __FILE__, __LINE__); \
 }                                                                                 
@@ -139,24 +140,18 @@ static inline integer exchange_buffer (const real*   sendbuf,
     
     print_debug( "         [BEFORE]MPI sendrecv [count:%d][dst:%d][src:%d] %s : %d", message_size,  dst, src, file, line);
 
-#if 0
-    //MPI_Sendrecv may deadlock in some MPI implementations!!!!
-    //            --> (1) order communications or (2) use non-blocking calls
-    err = MPI_Sendrecv( sendbuf, message_size, MPI_FLOAT, dst, tag,
-                        recvbuf, message_size, MPI_FLOAT, src, tag,
-                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-#else
     MPI_Status  statuses[2];
     MPI_Request requests[2];
-    
+
+#if defined(_OPENACC)
     #pragma acc host_data use_device(recvbuf, sendbuf)
+#endif
     {
         MPI_Irecv( recvbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[0] );
         MPI_Isend( sendbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[1] );
     }
 
     err = MPI_Waitall(2, requests, statuses);
-#endif
 
     print_debug( "         [AFTER ]MPI sendrecv                          %s : %d", file, line);
     
@@ -165,17 +160,16 @@ static inline integer exchange_buffer (const real*   sendbuf,
 
 void exchange_velocity_boundaries ( v_t v, 
                                     const integer plane_size, 
-                                    const integer rank,
-                                    const integer nranks,
                                     const integer nyf, 
                                     const integer ny0 );
 
 void exchange_stress_boundaries ( s_t s, 
                                   const integer plane_size, 
-                                  const integer rank,
-                                  const integer nranks,
                                   const integer nyf, 
                                   const integer ny0 );
+#else
+#define EXCHANGE(sendbuf, recvbuf, dst, src, count)
+#endif
 
 
 #endif /* end of _FWI_KERNEL_H_ definition */

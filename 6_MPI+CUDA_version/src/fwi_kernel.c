@@ -27,7 +27,9 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f", randvalue);
 
+#if defined(_OPENACC)
     #pragma acc kernels copyin(array[0:length])
+#endif
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
 }
@@ -37,7 +39,9 @@ void set_array_to_random_real( real* restrict array, const integer length)
  */
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
+#if defined(_OPENACC)
     #pragma acc kernels copyin(array[0:length])
+#endif
     for( integer i = 0; i < length; i++ )
         array[i] = value;
 }
@@ -48,7 +52,7 @@ void check_memory_shot( const integer numberOfCells,
                         v_t     *v,
                         real    *rho)
 {
-#ifdef DEBUG
+#if defined(DEBUG)
     print_debug("Checking memory shot values");
 
     real UNUSED(value);
@@ -98,7 +102,7 @@ void check_memory_shot( const integer numberOfCells,
 
         value = rho[i];
     }
-#endif
+#endif /* end of pragma DEBUG */
 };
 
 void alloc_memory_shot( const integer numberOfCells,
@@ -189,6 +193,7 @@ void alloc_memory_shot( const integer numberOfCells,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
+#if defined(_OPENACC) 
     const integer datalen = numberOfCells;
 
     const real* cc11 = c->c11;
@@ -264,7 +269,7 @@ void alloc_memory_shot( const integer numberOfCells,
 
     const real* rrho  = *rho;
 
-       
+ 
     #pragma acc enter data create(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
                            create(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
                            create(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
@@ -280,6 +285,8 @@ void alloc_memory_shot( const integer numberOfCells,
                            create(cc55[0:datalen], cc56[0:datalen]) \
                            create(cc66[0:datalen]) \
                            create(rrho[0:datalen])
+#endif /* end of pragma _OPENACC */
+
     POP_RANGE
 };
 
@@ -290,6 +297,7 @@ void free_memory_shot( coeff_t *c,
 {
     PUSH_RANGE
 
+#if defined(_OPENACC)
     #pragma acc wait
     #pragma acc exit data delete(v->tl.u, v->tl.v, v->tl.w) \
                           delete(v->tr.u, v->tr.v, v->tr.w) \
@@ -306,6 +314,7 @@ void free_memory_shot( coeff_t *c,
                           delete(c->c55, c->c56) \
                           delete(c->c66) \
                           delete(rho)
+#endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
     __free( (void*) c->c11 );
@@ -430,7 +439,7 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_constant( s->br.xy, 0, numberOfCells);
     set_array_to_constant( s->br.yy, 0, numberOfCells);
 
-#ifdef DO_NOT_PERFORM_IO
+#if defined(DO_NOT_PERFORM_IO)
 
     /* initialize coefficients */
     set_array_to_random_real( c->c11, numberOfCells);
@@ -518,14 +527,17 @@ void load_initial_model ( const real    waveletFreq,
     /* start clock, do not take into account file opening */
     tstart_inner = dtime();
 
-    /* MPI */
-    int rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+    int id;
+#if defined(USE_MPI)
+    MPI_Comm_rank( MPI_COMM_WORLD, &id );
+#else
+    id = 0;
+#endif
 
     const integer bytesForVolume = numberOfCells * sizeof(real);
 
-    /* seek to the correct position corresponding to rank */
-    if (fseek ( model, bytesForVolume * rank, SEEK_SET) != 0)
+    /* seek to the correct position corresponding to id (0 or rank) */
+    if (fseek ( model, bytesForVolume * id, SEEK_SET) != 0)
         print_error("fseek() failed to set the correct position");
     
     /* initalize velocity components */
@@ -561,8 +573,7 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 
-    const integer datalen = numberOfCells;
-
+#if defined(_OPENACC)
     const real* vtlu = v->tl.u;
     const real* vtlv = v->tl.v;
     const real* vtlw = v->tl.w;
@@ -579,12 +590,13 @@ void load_initial_model ( const real    waveletFreq,
     const real* vbrv = v->br.v;
     const real* vbrw = v->br.w;
 
-    #pragma acc update device(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
-                       device(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
-                       device(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
-                       device(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
+    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
+                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
+                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
+                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells]) \
                        async(H2D)
-#endif /* end of DDO_NOT_PERFORM_IO clause */
+#endif /* end of pragma _OPENACC */
+#endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
 };
@@ -602,23 +614,29 @@ void write_snapshot(char *folder,
 {
     PUSH_RANGE
 
-#ifdef DO_NOT_PERFORM_IO
+#if defined(DO_NOT_PERFORM_IO)
     print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
-    /* MPI */
-    int rank, nranks;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-    MPI_Comm_size( MPI_COMM_WORLD, &nranks );
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/nranks );
+    int domain, ndomains;
+#if defined(USE_MPI)
+    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
+    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
+#else
+    domain = 0; ndomains = 1;
+#endif
+
+    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
     const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
+#if defined(_OPENACC)
     #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
                        self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+#endif /* end pragma _OPENACC*/
 
     /* local variables */
     double tstart_outer, tstart_inner;
@@ -634,8 +652,8 @@ void write_snapshot(char *folder,
 
     tstart_inner = dtime();
 
-    /* seek to the correct position corresponding to rank */
-    if (fseek ( snapshot, bytesForVolume * rank, SEEK_SET) != 0)
+    /* seek to the correct position corresponding to domain(id) */
+    if (fseek ( snapshot, bytesForVolume * domain, SEEK_SET) != 0)
         print_error("fseek() failed to set the correct position");
 
     safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -664,13 +682,13 @@ void write_snapshot(char *folder,
     iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
     iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
 
-#ifdef LOG_IO_STATS
+#if defined(LOG_IO_STATS)
     print_stats("Write snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MB/s)", (tend_inner - tstart_inner), iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MB/s)", (tend_outer - tstart_outer), iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
-#endif
-#endif
+#endif /* end pragma LOG_IO_STATS */
+#endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
 };
@@ -687,7 +705,7 @@ void read_snapshot(char *folder,
 {
     PUSH_RANGE
 
-#ifdef DO_NOT_PERFORM_IO
+#if defined(DO_NOT_PERFORM_IO)
     print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
     /* local variables */
@@ -704,18 +722,21 @@ void read_snapshot(char *folder,
 
     tstart_inner = dtime();
 
-    /* MPI */
-    int rank, nranks;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-    MPI_Comm_size( MPI_COMM_WORLD, &nranks );
+    int domain, ndomains;
+#if defined(USE_MPI)
+    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
+    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
+#else
+    domain = 0; ndomains = 1;
+#endif
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/nranks );
+    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
     const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
     /* seek to the correct position corresponding to rank */
-    if (fseek ( snapshot, bytesForVolume * rank, SEEK_SET) != 0)
+    if (fseek ( snapshot, bytesForVolume * domain, SEEK_SET) != 0)
         print_error("fseek() failed to set the correct position");
 
     safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
@@ -744,19 +765,21 @@ void read_snapshot(char *folder,
     iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
     iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
 
-#ifdef LOG_IO_STATS
+#if defined(LOG_IO_STATS)
     print_stats("Read snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
+#if defined(_OPENACC)
     #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
                        device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
                        async(H2D)
-#endif
+#endif /* end pragma _OPENACC */
+#endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
 };
@@ -791,16 +814,7 @@ void propagate_shot(time_d        direction,
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
-    
-    int     rank;          // mpi local rank
-    int     nranks;        // num mpi ranks
-
-    /* Initialize local variables */
-    MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
-    MPI_Comm_size ( MPI_COMM_WORLD, &nranks );
-
-    const integer plane_size = dimmz * dimmx;
-
+        
     for(int t=0; t < timesteps; t++)
     {
         PUSH_RANGE
@@ -813,7 +827,9 @@ void propagate_shot(time_d        direction,
         tglobal_start = dtime();
 
         /* wait read_snapshot H2D copies */
+#if defined(_OPENACC)
         #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+#endif
 
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
@@ -853,12 +869,14 @@ void propagate_shot(time_d        direction,
                             nyf -   HALO,
                             dimmz, dimmx,
                             TWO);
-   
+#if defined(USE_MPI) 
+        const integer plane_size = dimmz * dimmx;
         /* Boundary exchange for velocity values */
-        exchange_velocity_boundaries( v, plane_size, rank, nranks, nyf, ny0);
-         
+        exchange_velocity_boundaries( v, plane_size, nyf, ny0);
+#endif
+#if defined(_OPENACC)
         #pragma acc wait(ONE_L, ONE_R, TWO)
-
+#endif
         tvel_total += (dtime() - tvel_start);
 
         /* ------------------------------------------------------------------------------ */
@@ -899,12 +917,15 @@ void propagate_shot(time_d        direction,
                           nyf -   HALO,
                           dimmz, dimmx,
                           TWO);
- 
-        /* Boundary exchange for stress values */
-        exchange_stress_boundaries( s, plane_size, rank, nranks, nyf, ny0);
-   
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
 
+#if defined(USE_MPI)
+        /* Boundary exchange for stress values */
+        exchange_stress_boundaries( s, plane_size, nyf, ny0);
+#endif
+
+#if defined(_OPENACC)
+        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+#endif
         tstress_total += (dtime() - tstress_start);
 
         tglobal_total += (dtime() - tglobal_start);
@@ -912,8 +933,9 @@ void propagate_shot(time_d        direction,
         /* perform IO */
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
 
+#if defined(USE_MPI)
         MPI_Barrier( MPI_COMM_WORLD );
-
+#endif
         POP_RANGE
     }
     
@@ -930,14 +952,13 @@ void propagate_shot(time_d        direction,
     POP_RANGE
 };
 
+#if defined(USE_MPI)
 /*
 NAME:exchange_boundaries
 PURPOSE: data exchanges between the boundary layers of the analyzed volume
 
 v                   (in) struct containing velocity arrays (4 points / cell x 3 components / point = 12 arrays)
 plane_size          (in) Number of elements per plane to exchange
-rank                (in) rank id (CPU id)
-nranks              (in) number of CPUs
 nyf                 (in) final plane to be exchanged
 ny0                 (in) intial plane to be exchanged
 
@@ -945,12 +966,17 @@ RETURN none
 */
 void exchange_velocity_boundaries ( v_t v, 
                                     const integer plane_size, 
-                                    const integer rank,
-                                    const integer nranks,
                                     const integer nyf, 
                                     const integer ny0 )
 {
     PUSH_RANGE
+
+    int     rank;          // mpi local rank
+    int     nranks;        // num mpi ranks
+
+    /* Initialize local variables */
+    MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
+    MPI_Comm_size ( MPI_COMM_WORLD, &nranks );
 
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
@@ -1025,6 +1051,13 @@ void exchange_stress_boundaries ( s_t s,
                                   const integer ny0 )
 {
     PUSH_RANGE
+
+    int     rank;          // mpi local rank
+    int     nranks;        // num mpi ranks
+
+    /* Initialize local variables */
+    MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
+    MPI_Comm_size ( MPI_COMM_WORLD, &nranks );
 
     const integer num_planes = HALO;
     const integer nelems     = num_planes * plane_size;
@@ -1101,4 +1134,5 @@ void exchange_stress_boundaries ( s_t s,
 
     POP_RANGE
 };
+#endif /* end of pragma USE_MPI */
 
