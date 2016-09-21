@@ -22,9 +22,15 @@ if (USE_MPI)
 endif (USE_MPI)
 
 if (USE_CUDA_KERNELS)
-    cuda_add_library(fwi-core-cuda STATIC
+    cuda_include_directories( ${PROJECT_SOURCE_DIR}/include/fwi )
+
+    cuda_add_library(fwi-core-cuda SHARED
         fwi_common.cu
         fwi_propagator.cu
+    )
+
+    target_link_libraries(fwi-core-cuda
+        ${CUDA_LIBRARIES}
     )
 endif (USE_CUDA_KERNELS)
 
@@ -41,4 +47,4 @@ if (USE_CUDA_KERNELS)
     target_link_libraries(fwi
         fwi-core-cuda
     )
-endif ()
+endif (USE_CUDA_KERNELS)

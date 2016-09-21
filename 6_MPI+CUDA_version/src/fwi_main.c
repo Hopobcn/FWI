@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
     MPI_Init ( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &subdomains);
     MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
-#else
+#elif defined(_OPENACC)
     //TODO: fix name
     int mpi_rank = 0;
 #endif

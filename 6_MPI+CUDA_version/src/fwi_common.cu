@@ -1,7 +1,9 @@
 #include "fwi_common.h"
 
+#if 0
 #include <hwloc.h>
 #include <hwloc/cudart.h>
+#endif
 
 #define CUDA_CHECK(call) { gpu_assert((call), __FILE__, __LINE__); }
 inline void gpu_assert(cudaError_t code, const char* file, int line)
@@ -14,6 +16,7 @@ inline void gpu_assert(cudaError_t code, const char* file, int line)
     }
 }
 
+#if 0
 extern "C"
 int select_gpu_and_pin_proc(int rank, int local_rank)
 {
@@ -65,3 +68,5 @@ int select_gpu_and_pin_proc(int rank, int local_rank)
 
     return device;
 }
+#endif
+

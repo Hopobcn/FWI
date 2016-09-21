@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
-project(FWI C)
+project(FWI C CXX)
 
+###### PROJECT OPTIONS #######
 option(ENABLE_TESTS     "Enable Unit Tests" ON)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
@@ -10,7 +11,20 @@ option(USE_OPENACC      "Use OpenACC 2.5"   OFF)
 option(USE_CUDA_KERNELS "Use CUDA kernels"  OFF)
 
 
+
+###### CMAKE WHERE TO STORE BINARY & LIBS ##########
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+
+
+
 ###### GENERAL COMPILE FLAGS ##############
+set(COMMON_C_GNU_FLAGS "-Wall") #-Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wstrict-prototypes -Wundef -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations")
+set(COMMON_CXX_GNU_FLAGS "-Wall") #-Wextra,-Werror,-Wpointer-arith,-Wcast-align,-Wwrite-strings,-Wswitch-default,-Wunreachable-code,-Winit-self,-Wmissing-field-initializers,-Wno-unknown-pragmas,-Wundef -Wmissing-declarations")
+
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
     
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99")
@@ -18,11 +32,11 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
         ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_GNU_FLAGS}")
 
 elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64 ${COMMON_GNU_FLAGS}")
 else()
     message(WARNING "Compiler not supported!")
 endif ()
@@ -101,6 +115,11 @@ if (USE_OPENACC)
             find_package(CUDA REQUIRED)
 
             set(CUDA_HOST_COMPILER "gcc")
+           # set(CUDA_HOST_COMPILATION_CPP OFF)
+            set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+            set(CUDA_SEPARABLE_COMPILATION OFF)
+
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
 
             add_definitions("-DUSE_CUDA")
             include_directories(${CUDA_INCLUDE_DIR})

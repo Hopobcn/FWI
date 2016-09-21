@@ -78,13 +78,13 @@ extern FILE* logfile;
 double TOGB(size_t bytes);
 
 /*  Compiler compatiblity macros */
-#ifdef __GNUC__
+#if defined(__GNUC__)
   /* http://stackoverflow.com/questions/25667901/assume-clause-in-gcc*/ \
     #define __assume(_cond) do { if (!(_cond)) __builtin_unreachable(); } while (0)
 #endif
 
 /*  Compiler macro to suppress unused variable warnings */
-#ifdef UNUSED
+#if defined(UNUSED)
 #elif defined(__GNUC__)
     #define UNUSED(x) (x) __attribute__((unused))
 #else
@@ -168,7 +168,7 @@ void create_folder(const char *folder);
 #define print_info(M, ...)      fwi_writelog(__FILE__, __LINE__, __func__, "INFO  ", M, ##__VA_ARGS__)
 #define print_stats(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "STATS ", M, ##__VA_ARGS__)
 
-#ifdef DEBUG
+#if defined(DEBUG)
   #define print_debug(M, ...)  fwi_writelog(__FILE__, __LINE__, __func__, "DEBUG ", M, ##__VA_ARGS__)
 #else
   #define print_debug(M, ...)
@@ -181,7 +181,7 @@ void fwi_writelog(const char *SourceFileName,
                   const char *fmt,
                   ...);
 
-#ifdef TRACE_CUDA
+#if defined(TRACE_CUDA)
     #define PUSH_RANGE nvtxRangePush(__func__);
     #define POP_RANGE  nvtxRangePop();
 #else
@@ -192,13 +192,17 @@ void fwi_writelog(const char *SourceFileName,
 // 
 // GPU-Affinity related functions:
 //
+#if defined(USE_MPI)
 int mpi_get_rank();
 int mpi_get_local_rank();
+#endif
 //Obs: due a BUG with PGI 16.5 & CUDA 7.5 we can't just 'include <cuda.h>' in C files
 //     we have to use NVCC and PGI separately and link the result
+#if 0
 #if defined(__cplusplus)
 extern "C"
 #endif
 int select_gpu_and_pin_proc(int rank, int local_rank);
+#endif
 
 #endif // end of _FWI_COMMON_H_ definition
