@@ -143,7 +143,9 @@ void compute_component_vcell_TL (      real* restrict vptr,
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
-    #pragma acc loop independent 
+    #pragma acc loop independent
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
@@ -154,6 +156,8 @@ void compute_component_vcell_TL (      real* restrict vptr,
         {
 #if defined(_OPENACC)
             #pragma acc loop independent device_type(nvidia) gang vector(32)
+#elif defined(__INTEL_COMPILER)
+            #pragma simd
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -212,6 +216,8 @@ void compute_component_vcell_TR (      real* restrict vptr,
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent 
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
@@ -222,6 +228,8 @@ void compute_component_vcell_TR (      real* restrict vptr,
         {
 #if defined(_OPENACC)
             #pragma acc loop independent device_type(nvidia) gang vector(32)
+#elif defined(__INTEL_COMPILER)
+            #pragma simd
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -280,6 +288,8 @@ void compute_component_vcell_BR (      real* restrict vptr,
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
@@ -290,6 +300,8 @@ void compute_component_vcell_BR (      real* restrict vptr,
         {
 #if defined(_OPENACC)
             #pragma acc loop independent device_type(nvidia) gang vector(32)
+#elif defined(__INTEL_COMPILER)
+            #pragma simd
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -348,6 +360,8 @@ void compute_component_vcell_BL (      real* restrict vptr,
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent 
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
@@ -358,6 +372,8 @@ void compute_component_vcell_BL (      real* restrict vptr,
         {
 #if defined(_OPENACC)
             #pragma acc loop independent device_type(nvidia) gang vector(32)
+#elif defined(__INTEL_COMPILER)
+            #pragma simd
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -405,18 +421,23 @@ void velocity_propagator(v_t           v,
     fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
 #endif
 
-    compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+#if defined(__INTEL_COMPILER)
+    #pragma forceinline recursive
+#endif
+    {
+        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+    }
 };
 
 
@@ -479,10 +500,15 @@ void stress_propagator(s_t           s,
                        const integer dimmx,
                        const phase_t phase )
 {
-    compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-    compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-    compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, phase);
+#if defined(__INTEL_COMPILER)
+    #pragma forceinline recursive
+#endif
+    {
+        compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, phase);
+    }
 };
 
 real cell_coeff_BR ( const real* restrict ptr, 
@@ -662,6 +688,8 @@ void compute_component_scell_TR (s_t             s,
                         present(cc55, cc56)                                     \
                         present(cc66)                                           \
                         async(phase)
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
@@ -672,6 +700,8 @@ void compute_component_scell_TR (s_t             s,
         {
 #if defined(_OPENACC)
             #pragma acc loop device_type(nvidia) gang vector(32)
+#elif defined(__INTEL_COMPILER)
+            #pragma simd
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -817,6 +847,8 @@ void compute_component_scell_TL (s_t             s,
                         present(cc55, cc56)                                     \
                         present(cc66)                                           \
                         async(phase)
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
@@ -826,7 +858,9 @@ void compute_component_scell_TL (s_t             s,
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32) 
+#elif defined(__INTEL__COMPILER)
+            #pragma simd
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -972,7 +1006,9 @@ void compute_component_scell_BR (s_t             s,
                         present(cc44, cc45, cc46)                               \
                         present(cc55, cc56)                                     \
                         present(cc66)                                           \
-                        async(phase)
+                        async(phase) 
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
@@ -982,7 +1018,9 @@ void compute_component_scell_BR (s_t             s,
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32) 
+#elif defined(__INTEL__COMPILER)
+            #pragma simd
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -1128,7 +1166,9 @@ void compute_component_scell_BL (s_t             s,
                         present(cc44, cc45, cc46)                               \
                         present(cc55, cc56)                                     \
                         present(cc66)                                           \
-                        async(phase)
+                        async(phase) 
+#elif defined(_OPENMP)
+    #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
@@ -1138,7 +1178,9 @@ void compute_component_scell_BL (s_t             s,
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32) 
+#elif defined(__INTEL__COMPILER)
+            #pragma simd
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
