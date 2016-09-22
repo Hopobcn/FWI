@@ -7,7 +7,7 @@ integer IDX (const integer z,
              const integer dimmz, 
              const integer dimmx)
 {
-    return ((y*dimmz)+x)*dimmx + z;
+    return ((y*dimmx)+x)*dimmz + z;
 };
 
 
