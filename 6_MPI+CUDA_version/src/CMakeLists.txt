@@ -1,4 +1,5 @@
 add_library(fwi-core STATIC
+    fwi_core.c
     fwi_common.c
     fwi_kernel.c
     fwi_propagator.c
@@ -31,20 +32,5 @@ if (USE_CUDA_KERNELS)
 
     target_link_libraries(fwi-core-cuda
         ${CUDA_LIBRARIES}
-    )
-endif (USE_CUDA_KERNELS)
-
-add_executable(fwi
-    fwi_main.c
-)
-
-target_link_libraries(fwi
-    fwi-core
-    m
-)
-
-if (USE_CUDA_KERNELS)
-    target_link_libraries(fwi
-        fwi-core-cuda
     )
 endif (USE_CUDA_KERNELS)

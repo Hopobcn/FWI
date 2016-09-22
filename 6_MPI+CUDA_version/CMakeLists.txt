@@ -21,8 +21,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 
 ###### GENERAL COMPILE FLAGS ##############
-set(COMMON_C_GNU_FLAGS "-Wall") #-Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wstrict-prototypes -Wundef -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations")
-set(COMMON_CXX_GNU_FLAGS "-Wall") #-Wextra,-Werror,-Wpointer-arith,-Wcast-align,-Wwrite-strings,-Wswitch-default,-Wunreachable-code,-Winit-self,-Wmissing-field-initializers,-Wno-unknown-pragmas,-Wundef -Wmissing-declarations")
+set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
+set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wstrict-prototypes -Wundef -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
+set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
@@ -32,7 +33,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
         ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_GNU_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_C_GNU_FLAGS}")
 
 elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 
@@ -137,6 +138,7 @@ endif (USE_OPENACC)
 
 
 add_subdirectory(src)
+add_subdirectory(main)
 
 if (ENABLE_TESTS)
     include(CTest)

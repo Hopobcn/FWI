@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  fwi_main.c
+ *       Filename:  fwi_core.c
  *
  *    Description:  Main file of the FWI mockup
  *
@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-#include "fwi_kernel.h"
+#include "fwi_core.h"
 
 
 /*
@@ -297,12 +297,8 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 #endif
 };
 
-
-int main(int argc, char* argv[])
+int execute_simulation( int argc, char* argv[] )
 {
-    double tstart, tend;
-    tstart = dtime();
-
 #if defined(USE_MPI)
     int mpi_rank   = mpi_get_rank();
     int local_rank = mpi_get_local_rank();
@@ -461,10 +457,6 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 #endif
-
-    tend = dtime() - tstart;
-
-    fprintf(stderr, "FWI Program finished in %lf seconds\n", tend);
 
     return 0;
 }

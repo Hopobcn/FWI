@@ -7,7 +7,7 @@ integer IDX (const integer z,
              const integer dimmz, 
              const integer dimmx)
 {
-    return ((y*dimmx)+x)*dimmx + z;
+    return ((y*dimmz)+x)*dimmx + z;
 };
 
 
@@ -133,18 +133,18 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
+#if !defined(USE_CUDA)
 
 #if defined(_OPENACC)
-    const integer start   = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end     = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems  = end - start;
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent 
-#endif
+#endif /* end _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
@@ -167,7 +167,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
     #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
@@ -176,7 +176,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                 dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -211,12 +211,12 @@ void compute_component_vcell_TR (      real* restrict vptr,
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
-   #pragma acc loop independent 
+    #pragma acc loop independent 
 #endif /* end pragma _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-       #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
@@ -284,12 +284,12 @@ void compute_component_vcell_BR (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-       #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-           #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -344,7 +344,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-   #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
+    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent 
@@ -729,7 +729,7 @@ void compute_component_scell_TR (s_t             s,
             cc11, cc12, cc13, cc14, cc15, cc16,
             cc22, cc23, cc24, cc25, cc26,
             cc33, cc34, cc35, cc36,
-            cc44, cc45, cc45,
+            cc44, cc45, cc46,
             cc55, cc56,
             cc66,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
@@ -884,7 +884,7 @@ void compute_component_scell_TL (s_t             s,
             cc11, cc12, cc13, cc14, cc15, cc16,
             cc22, cc23, cc24, cc25, cc26,
             cc33, cc34, cc35, cc36,
-            cc44, cc45, cc45,
+            cc44, cc45, cc46,
             cc55, cc56,
             cc66,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
@@ -977,14 +977,14 @@ void compute_component_scell_BR (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-       #pragma acc loop device_type(nvidia) gang worker(4)
+        #pragma acc loop device_type(nvidia) gang worker(4)
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-           #pragma acc loop device_type(nvidia) gang vector(32)
+            #pragma acc loop device_type(nvidia) gang vector(32)
 #endif
-           for (integer z = nz0; z < nzf; z++ )
+            for (integer z = nz0; z < nzf; z++ )
             {
                 const real c11 = cell_coeff_BR      (cc11, z, x, y, dimmz, dimmx);
                 const real c12 = cell_coeff_BR      (cc12, z, x, y, dimmz, dimmx);
@@ -1041,7 +1041,7 @@ void compute_component_scell_BR (s_t             s,
             cc11, cc12, cc13, cc14, cc15, cc16,
             cc22, cc23, cc24, cc25, cc26,
             cc33, cc34, cc35, cc36,
-            cc44, cc45, cc45,
+            cc44, cc45, cc46,
             cc55, cc56,
             cc66,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
@@ -1110,7 +1110,6 @@ void compute_component_scell_BL (s_t             s,
     const real* restrict cc55 = coeffs.c55;
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
-
     
 #ifndef USE_CUDA
 
@@ -1197,7 +1196,7 @@ void compute_component_scell_BL (s_t             s,
             cc11, cc12, cc13, cc14, cc15, cc16,
             cc22, cc23, cc24, cc25, cc26,
             cc33, cc34, cc35, cc36,
-            cc44, cc45, cc45,
+            cc44, cc45, cc46,
             cc55, cc56,
             cc66,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,

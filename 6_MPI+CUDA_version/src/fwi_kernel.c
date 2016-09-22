@@ -105,6 +105,7 @@ void check_memory_shot( const integer numberOfCells,
 #endif /* end of pragma DEBUG */
 };
 
+
 void alloc_memory_shot( const integer numberOfCells,
                         coeff_t *c,
                         s_t     *s,
@@ -803,7 +804,7 @@ void propagate_shot(time_d        direction,
                     integer       nyf,
                     integer       stacki,
                     char          *folder,
-                    real          *dataflush,
+                    real          *UNUSED(dataflush),
                     integer       dimmz,
                     integer       dimmx,
                     integer       dimmy)

@@ -2,20 +2,25 @@
 
 #include "fwi_common.h"
 
+// Function Declarations (Prototypes)
+void test_dummy_PASS(void);
+void test_dummy_FAILS(void);
 
-void test_dummy_PASS()
+
+// Function Definitions 
+void test_dummy_PASS(void)
 {
     // DUMMY test
     TEST_ASSERT_EQUAL(1, 1);
 }
 
-void test_dummy_FAILS()
+void test_dummy_FAILS(void)
 {
     // DUMMY test that always fails (Control purposes)
     TEST_ASSERT_EQUAL(0, 1);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     UNITY_BEGIN();
 

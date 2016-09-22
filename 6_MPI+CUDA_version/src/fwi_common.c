@@ -420,18 +420,19 @@ void __free ( void* ptr)
     free( ptr );
 };
 
-FILE* safe_fopen(const char *filename, char *mode, char* srcfilename, int linenumber)
+FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)
 {
     FILE* temp = fopen( filename, mode);
     
     if( temp == NULL){
-        print_error("Cant open filename %s, openmode '%s' (called from %s - %d)", filename, mode, srcfilename, linenumber);
+        print_error("Cant open filename %s, openmode '%s' (called from %s - %d)", 
+                    filename, mode, srcfilename, linenumber);
         exit(-1);
     }
     return temp;
 };
 
-void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber)
+void safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber)
 {
     if ( fclose( stream ) != 0)
     {
@@ -447,7 +448,8 @@ void safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int li
 };
 
 
-inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
+inline 
+void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
     print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
@@ -465,7 +467,8 @@ inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, cha
     double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
    
 #ifdef LOG_IO_STATS
-    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", end, nmemb, size*nmemb, mbytes, mbytes / end);
+    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", 
+                 end, nmemb, size*nmemb, mbytes, mbytes / end);
 #endif
 
     if( res != nmemb )
@@ -476,7 +479,8 @@ inline void safe_fwrite (void *ptr, size_t size, size_t nmemb, FILE *stream, cha
 #endif
 };
 
-inline void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber)
+inline 
+void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
     print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);

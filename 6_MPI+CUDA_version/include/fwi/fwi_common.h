@@ -100,10 +100,10 @@ static inline void checkErrors(const integer error, const char *filename, int li
     }
 };
 
-FILE* safe_fopen  ( const char *filename, char *mode, char* srcfilename, int linenumber);
-void  safe_fclose ( const char *filename, FILE* stream, char* srcfilename, int linenumber);
-void  safe_fwrite ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
-void  safe_fread  ( void *ptr, size_t size, size_t nmemb, FILE *stream, char* srcfilename, int linenumber );
+FILE* safe_fopen  ( const char *filename, const char *mode, const char* srcfilename, const int linenumber);
+void  safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber);
+void  safe_fwrite ( const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
+void  safe_fread  (       void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
 integer roundup(integer number, integer multiple);
 
 void log_info  (const char *fmt, ...);
@@ -188,6 +188,8 @@ void fwi_writelog(const char *SourceFileName,
     #define PUSH_RANGE
     #define POP_RANGE
 #endif
+
+int parse_env(const char* name);
 
 // 
 // GPU-Affinity related functions:
