@@ -22,7 +22,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
-set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wstrict-prototypes -Wundef -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
+set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
+#TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
