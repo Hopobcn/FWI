@@ -122,23 +122,23 @@ void read_fwi_parameters (const char *fname,
 {
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
 
-    CHECK( fscanf( fp, "%f\n", (real*) lenz   ) );
-    CHECK( fscanf( fp, "%f\n", (real*) lenx   ) );
-    CHECK( fscanf( fp, "%f\n", (real*) leny   ) );
-    CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
-    CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
-    CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) lenz   ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) lenx   ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) leny   ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
     
     /* these three values are not needed for the shared memory implementation */
     int NotNeededValue;
-    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
  
     /* Recover the value of the output directory path */
-    CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
+    IO_CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
 
     print_debug("Len (z,x,y) (%f,%f,%f) vmin %f scrlen %f rcvlen %f outputfolder '%s'",
       *lenz, *lenx, *leny, *vmin, *srclen, *rcvlen, outputfolder );
@@ -323,16 +323,16 @@ void load_shot_parameters(int     shotid,
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
 
-    CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
-    CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
-    CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
-    CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
-    CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
-    CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
-    CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
-    CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
-    CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
-    CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
 
     safe_fclose( name, fp, __FILE__, __LINE__);
 };

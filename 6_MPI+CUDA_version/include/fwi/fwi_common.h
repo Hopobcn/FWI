@@ -91,7 +91,7 @@ double TOGB(size_t bytes);
     #define UNUSED(x) x
 #endif
 
-#define CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
+#define IO_CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 static inline void checkErrors(const integer error, const char *filename, int line)
 {
     if ( error < 0 ) {                     
