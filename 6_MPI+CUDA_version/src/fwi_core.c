@@ -156,7 +156,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
             safe_fclose( fnameGradient, fgradient, __FILE__, __LINE__ );
             safe_fclose( fnamePrecond , fprecond , __FILE__, __LINE__ );
         }
-#endif
+#endif /* end DO_NOT_PERFORM_IO */
 
         break;
     }

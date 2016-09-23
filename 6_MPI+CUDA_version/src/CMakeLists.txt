@@ -33,4 +33,8 @@ if (USE_CUDA_KERNELS)
     target_link_libraries(fwi-core-cuda
         ${CUDA_LIBRARIES}
     )
+
+    target_link_libraries(fwi-core
+        fwi-core-cuda
+    )
 endif (USE_CUDA_KERNELS)

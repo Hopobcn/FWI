@@ -3,11 +3,6 @@
 
 #include "fwi_propagator.cuh"
 
-//extern "C" {
-//    #include "fwi_propagator.h"
-//}
-
-
 #define C0 1.2f
 #define C1 1.4f
 #define C2 1.6f
@@ -411,6 +406,7 @@ void compute_component_vcell_TL_cuda ( float* vptr,
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
 #endif
+    CUDA_CHECK(cudaGetLastError());
 };
 
 
@@ -626,7 +622,8 @@ void compute_component_vcell_TR_cuda ( float* vptr,
     compute_component_vcell_TR_cuda_k<<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 
@@ -855,7 +852,8 @@ void compute_component_vcell_BR_cuda ( float* vptr,
     compute_component_vcell_BR_cuda_k<<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 #ifdef OPTIMIZED
@@ -1066,7 +1064,8 @@ void compute_component_vcell_BL_cuda ( float* vptr,
     compute_component_vcell_BL_cuda_k<<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 
@@ -1717,7 +1716,8 @@ void compute_component_scell_TR_cuda ( float* sxxptr,
          cc55, cc56,
          cc66,
          dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 #ifdef SCELL_TL
@@ -2036,7 +2036,8 @@ void compute_component_scell_TL_cuda ( float* sxxptr,
          cc55, cc56,
          cc66,
          dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 #ifdef SCELL_BR
@@ -2356,7 +2357,8 @@ void compute_component_scell_BR_cuda ( float* sxxptr,
          cc55, cc56,
          cc66,
          dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 
@@ -2676,7 +2678,8 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
          cc55, cc56,
          cc66,
          dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
-#endif
+#endif 
+    CUDA_CHECK(cudaGetLastError());
 };
 
 

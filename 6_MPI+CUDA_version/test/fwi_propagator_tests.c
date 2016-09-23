@@ -202,12 +202,42 @@ TEST(propagator, compute_component_vcell_TL)
     }
     ///////////////////////////////////////
 
-    compute_component_vcell_TL( calculated, szptr, sxptr, syptr, rho, 
-        dt, dzi, dxi, dyi, 
-        nz0, nzf, nx0, nxf, ny0, nyf, 
-        SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
 
+    #pragma acc data copy(calculated[start:nelems]) \
+                     copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
+    {
+#endif
+        compute_component_vcell_TL( calculated, szptr, sxptr, syptr, rho, 
+            dt, dzi, dxi, dyi, 
+            nz0, nzf, nx0, nxf, ny0, nyf, 
+            SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    }
+#endif
+
+#if 0
+    for(integer y=ny0; y < nyf; y++)
+    {
+        for(integer x=nx0; x < nxf; x++)
+        {
+            for(integer z=nz0; z < nzf; z++)
+            {
+                const real ref = vptr[IDX(z,x,y,dimmz,dimmx)];
+                const real cal = calculated[IDX(z,x,y,dimmz,dimmx)];
+
+                char message[256];
+                sprintf(message, "cal %f ref %f IDX(%d,%d,%d)",cal,ref,z,x,y);
+                TEST_ASSERT_EQUAL_FLOAT_MESSAGE(ref, cal, message);
+            }
+        }
+    }
+#else
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( vptr, calculated, nelems );
+#endif
 }
 
 TEST(propagator, compute_component_vcell_TR)
@@ -246,10 +276,22 @@ TEST(propagator, compute_component_vcell_TR)
     }
     ///////////////////////////////////////
 
-    compute_component_vcell_TR( calculated, szptr, sxptr, syptr, rho, 
-        dt, dzi, dxi, dyi, 
-        nz0, nzf, nx0, nxf, ny0, nyf, 
-        SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
+
+    #pragma acc data copy(calculated[start:nelems]) \
+                     copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
+    {
+#endif
+        compute_component_vcell_TR( calculated, szptr, sxptr, syptr, rho, 
+            dt, dzi, dxi, dyi, 
+            nz0, nzf, nx0, nxf, ny0, nyf, 
+            SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    }
+#endif
 
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( vptr, calculated, nelems );
 }
@@ -290,10 +332,22 @@ TEST(propagator, compute_component_vcell_BR)
     }
     ///////////////////////////////////////
 
-    compute_component_vcell_BR( calculated, szptr, sxptr, syptr, rho, 
-        dt, dzi, dxi, dyi, 
-        nz0, nzf, nx0, nxf, ny0, nyf, 
-        SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
+
+    #pragma acc data copy(calculated[start:nelems]) \
+                     copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
+    {
+#endif
+        compute_component_vcell_BR( calculated, szptr, sxptr, syptr, rho, 
+            dt, dzi, dxi, dyi, 
+            nz0, nzf, nx0, nxf, ny0, nyf, 
+            SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    }
+#endif
 
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( vptr, calculated, nelems );
 }
@@ -334,10 +388,22 @@ TEST(propagator, compute_component_vcell_BL)
     }
     ///////////////////////////////////////
 
-    compute_component_vcell_BL( calculated, szptr, sxptr, syptr, rho, 
-        dt, dzi, dxi, dyi, 
-        nz0, nzf, nx0, nxf, ny0, nyf, 
-        SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    const integer nelems = end - start;
+
+    #pragma acc data copy(calculated[start:nelems]) \
+                     copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
+    {
+#endif
+        compute_component_vcell_BL( calculated, szptr, sxptr, syptr, rho, 
+            dt, dzi, dxi, dyi, 
+            nz0, nzf, nx0, nxf, ny0, nyf, 
+            SZ, SX, SY, dimmz, dimmx, phase);
+#if defined(_OPENACC)
+    }
+#endif
 
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( vptr, calculated, nelems );
 }

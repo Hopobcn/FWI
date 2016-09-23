@@ -640,18 +640,18 @@ void write_snapshot(char *folder,
 #endif /* end pragma _OPENACC*/
 
     /* local variables */
-    double tstart_outer, tstart_inner;
-    double iospeed_outer, iospeed_inner;
-    double tend_outer, tend_inner;
     char fname[300];
     
     /* open snapshot file and write results */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
-    tstart_outer = dtime();
+#if defined(LOG_IO_STATS)
+    double tstart_outer = dtime();
+#endif
     FILE *snapshot = safe_fopen(fname,"wb", __FILE__, __LINE__ );
-
-    tstart_inner = dtime();
+#if defined(LOG_IO_STATS)
+    double tstart_inner = dtime();
+#endif
 
     /* seek to the correct position corresponding to domain(id) */
     if (fseek ( snapshot, bytesForVolume * domain, SEEK_SET) != 0)
@@ -673,17 +673,18 @@ void write_snapshot(char *folder,
     safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
+#if defined(LOG_IO_STATS) 
     /* stop inner timer */
-    tend_inner = dtime();
-
+    double tend_inner = dtime();
+#endif
     /* close file and stop outer timer */
     safe_fclose(fname, snapshot, __FILE__, __LINE__ );
-    tend_outer = dtime();
-
-    iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
-    iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
-
 #if defined(LOG_IO_STATS)
+    double tend_outer = dtime();
+
+    double iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
+    double iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
+
     print_stats("Write snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MB/s)", (tend_inner - tstart_inner), iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MB/s)", (tend_outer - tstart_outer), iospeed_outer);
@@ -710,18 +711,18 @@ void read_snapshot(char *folder,
     print_info("We are not reading the snapshot here cause IO is not enabled!");
 #else
     /* local variables */
-    double tstart_outer, tstart_inner;
-    double iospeed_outer, iospeed_inner;
-    double tend_outer, tend_inner;
     char fname[300];
 
     /* open file and read snapshot */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
-    tstart_outer = dtime();
+#if defined(LOG_IO_STATS)
+    double tstart_outer = dtime();
+#endif
     FILE *snapshot = safe_fopen(fname,"rb", __FILE__, __LINE__ );
-
-    tstart_inner = dtime();
+#if defined(LOG_IO_STATS)
+    double tstart_inner = dtime();
+#endif
 
     int domain, ndomains;
 #if defined(USE_MPI)
@@ -756,17 +757,18 @@ void read_snapshot(char *folder,
     safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
+#if defined(LOG_IO_STATS)
     /* stop inner timer */
-    tend_inner = dtime() - tstart_inner;
-
+    double tend_inner = dtime() - tstart_inner;
+#endif
     /* close file and stop outer timer */
     safe_fclose(fname, snapshot, __FILE__, __LINE__ );
-    tend_outer = dtime() - tstart_outer;
-
-    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
-    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
-
 #if defined(LOG_IO_STATS)
+    double tend_outer = dtime() - tstart_outer;
+
+    double iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    double iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+
     print_stats("Read snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);

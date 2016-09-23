@@ -6,8 +6,8 @@ option(ENABLE_TESTS     "Enable Unit Tests" ON)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
-option(USE_OPENMP       "Use OpenMP"        OFF)
 option(USE_OPENACC      "Use OpenACC 2.5"   OFF)
+option(USE_OPENMP       "Use OpenMP"        OFF)
 option(USE_CUDA_KERNELS "Use CUDA kernels"  OFF)
 
 
@@ -22,7 +22,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
-set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Werror -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
+set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
 #TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
@@ -100,14 +100,6 @@ if (USE_MPI)
     #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_C_LINK_FLAGS}")
 endif (USE_MPI)
 
-if (USE_OPENMP)
-    find_package(OpenMP REQUIRED QUIET)
-
-    message(STATUS "OpemMP_C_FLAGS ${OpenMP_C_FLAGS}")
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-endif (USE_OPENMP)
-
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
@@ -121,7 +113,9 @@ if (USE_OPENACC)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
             set(CUDA_SEPARABLE_COMPILATION OFF)
 
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
+            set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS} -g -G -res-usage")
+            set(CUDA_NVCC_FLAGS_RELEASE "${CUDA_NVCC_FLAGS} -g -03")
 
             add_definitions("-DUSE_CUDA")
             include_directories(${CUDA_INCLUDE_DIR})
@@ -136,6 +130,18 @@ if (USE_OPENACC)
     endif ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
 endif (USE_OPENACC)
+
+if (USE_OPENMP AND NOT USE_OPENACC)
+    find_package(OpenMP REQUIRED QUIET)
+
+    message(STATUS "OpemMP_C_FLAGS ${OpenMP_C_FLAGS}")
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+else (USE_OPENMP AND NOT USE_OPENACC)
+    if (USE_OPENMP)
+        message(WARNING "OpenMP disabled since OpenACC is enabled!. Disable OpenACC if you want to compile with OpenMP support.")
+    endif (USE_OPENMP)
+endif (USE_OPENMP AND NOT USE_OPENACC)
 
 
 add_subdirectory(src)

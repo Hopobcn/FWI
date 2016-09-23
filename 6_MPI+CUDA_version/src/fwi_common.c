@@ -460,13 +460,15 @@ void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, cons
     }
     size_t res;
     
+#if defined(LOG_IO_STATS)
     double start = dtime();
-    res = fwrite( ptr, size, nmemb, stream);
+#endif
+    res = fwrite( ptr, size, nmemb, stream);   
+#if defined(LOG_IO_STATS)
     double end = dtime() - start;
-    
+
     double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
-   
-#ifdef LOG_IO_STATS
+
     print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", 
                  end, nmemb, size*nmemb, mbytes, mbytes / end);
 #endif
