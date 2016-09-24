@@ -1,3 +1,5 @@
+language: c
+
 os:
   - linux
 
@@ -16,9 +18,9 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-4.9
+            - gcc-4.9
       env:
-        - COMPILER=g++-4.9
+        - COMPILER=gcc-4.9
         - CONFIG=Release
     - compiler: gcc
       addons:
@@ -26,9 +28,9 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-5
+            - gcc-5
       env:
-        - COMPILER=g++-5
+        - COMPILER=gcc-5
         - CONFIG=Release
     - compiler: gcc
       addons:
@@ -36,9 +38,9 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-6
+            - gcc-6
       env:
-        - COMPILER=g++-6
+        - COMPILER=gcc-6
         - CONFIG=Release
 
 
