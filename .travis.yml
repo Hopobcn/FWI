@@ -1,9 +1,5 @@
 language: c
 
-compiler:
-  - gcc
-  - clang
-
 os:
   - linux
 
@@ -51,12 +47,14 @@ matrix:
 before_install:
   - echo $PATH
   - if [ $TRAVIS_OS_NAME == linux ]; then . scripts/ci/before_install.sh; fi
-  - echo $CC && echo ${CC} --version
+  - echo $CC
+  - echo $COMPILER --version
   - echo $PATH
 
 install:
   - mkdir build && cd build
   - echo $CONFIG
+  - echo $COMPILER
   - if [ "${CONFIG}" = "Debug" ]; then
         cmake -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_C_COMPILER=$COMPILER -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=NO -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
         ;
