@@ -42,7 +42,8 @@ matrix:
       env:
         - COMPILER=gcc-6
         - CONFIG=Release
-
+  exclude:
+    - language: c
 
 before_install:
   - echo $PATH
