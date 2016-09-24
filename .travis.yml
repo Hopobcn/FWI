@@ -11,10 +11,6 @@ branches:
   only:
     - unit-tests
 
-env:
-  - CONFIG=Release
-  - CONFIG=Debug
-
 git:
   depth: 3
 
@@ -27,7 +23,9 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-      env: CC=g++-4.9
+      env:
+        - CC=g++-4.9
+        - CONFIG=Release
     - compiler: gcc
       addons:
         apt:
@@ -35,7 +33,9 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
-      env: CC=g++-5
+      env:
+        - CC=g++-5
+        - CONFIG=Release
     - compiler: clang
       addons:
         apt:
@@ -44,7 +44,10 @@ matrix:
             - llvm-toolchain-precise-3.6
           packages:
             - clang-3.6
-      env: CC=clang-3.6
+      env:
+        - CC=clang-3.6
+        - CONFIG=Release
+        - CONFIG=Debug
     - compiler: clang
       addons:
         apt:
@@ -53,17 +56,20 @@ matrix:
             - llvm-toolchain-precise-3.7
           packages:
             - clang-3.7
-      env: CC=clang-3.7
+      env:
+        - CC=clang-3.7
+        - CONFIG=Release
 
 
 before_install:
   - echo $PATH
-  - if [ $TRAVIS_OS_NAME == linux]; then . scripts/ci/before_install.sh; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then . scripts/ci/before_install.sh; fi
   - echo $CC && echo ${CC} --version
   - echo $PATH
 
 install:
   - mkdir build && cd build
+  - echo $CONFIG
   - if [ "${CONFIG}" = "Debug" ]; then
         cmake -DCMAKE_BUILD_TYPE=$CONFIG -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=NO -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
         ;
