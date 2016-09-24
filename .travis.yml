@@ -24,7 +24,7 @@ matrix:
           packages:
             - g++-4.9
       env:
-        - CC=g++-4.9
+        - COMPILER=g++-4.9
         - CONFIG=Release
     - compiler: gcc
       addons:
@@ -34,30 +34,17 @@ matrix:
           packages:
             - g++-5
       env:
-        - CC=g++-5
+        - COMPILER=g++-5
         - CONFIG=Release
-    - compiler: clang
+    - compiler: gcc
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
           packages:
-            - clang-3.6
+            - g++-6
       env:
-        - CC=clang-3.6
-        - CONFIG=Release
-        - CONFIG=Debug
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
-          packages:
-            - clang-3.7
-      env:
-        - CC=clang-3.7
+        - COMPILER=g++-6
         - CONFIG=Release
 
 
@@ -71,12 +58,12 @@ install:
   - mkdir build && cd build
   - echo $CONFIG
   - if [ "${CONFIG}" = "Debug" ]; then
-        cmake -DCMAKE_BUILD_TYPE=$CONFIG -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=NO -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
+        cmake -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_C_COMPILER=$COMPILER -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=NO -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
         ;
         make
         ;
     else
-        cmake -DCMAKE_BUILD_TYPE=$CONFIG -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=YES -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
+        cmake -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_C_COMPILER=$COMPILER -DENABLE_TESTS=YES -DPERFORM_IO=NO -DIO_STATS=NO -DUSE_MPI=NO -DUSE_OPENMP=YES -DUSE_OPENACC=NO -DUSE_CUDA_KERNELS=NO ..
         ;
         make
         ;
