@@ -54,7 +54,7 @@ TEST_SETUP(propagator)
     init_array(c_ref.c14, nelems);
     init_array(c_ref.c15, nelems);
     init_array(c_ref.c16, nelems);
-    
+
     init_array(c_ref.c22, nelems);
     init_array(c_ref.c23, nelems);
     init_array(c_ref.c24, nelems);
@@ -83,7 +83,7 @@ TEST_SETUP(propagator)
     init_array(v_ref.tr.u, nelems);
     init_array(v_ref.tr.v, nelems);
     init_array(v_ref.tr.w, nelems);
-    
+
     init_array(v_ref.bl.u, nelems);
     init_array(v_ref.bl.v, nelems);
     init_array(v_ref.bl.w, nelems);
@@ -131,15 +131,15 @@ TEST_SETUP(propagator)
     copy_array(v_cal.tl.u, v_ref.tl.u, nelems);
     copy_array(v_cal.tl.v, v_ref.tl.v, nelems);
     copy_array(v_cal.tl.w, v_ref.tl.w, nelems);
-           
+
     copy_array(v_cal.tr.u, v_ref.tr.u, nelems);
     copy_array(v_cal.tr.v, v_ref.tr.v, nelems);
     copy_array(v_cal.tr.w, v_ref.tr.w, nelems);
-    
+
     copy_array(v_cal.bl.u, v_ref.bl.u, nelems);
     copy_array(v_cal.bl.v, v_ref.bl.v, nelems);
     copy_array(v_cal.bl.w, v_ref.bl.w, nelems);
-    
+
     copy_array(v_cal.br.u, v_ref.br.u, nelems);
     copy_array(v_cal.br.v, v_ref.br.v, nelems);
     copy_array(v_cal.br.w, v_ref.br.w, nelems);
@@ -150,21 +150,21 @@ TEST_SETUP(propagator)
     copy_array(s_cal.tl.xx, s_ref.tl.xx, nelems);
     copy_array(s_cal.tl.xy, s_ref.tl.xy, nelems);
     copy_array(s_cal.tl.yy, s_ref.tl.yy, nelems);
-     
+
     copy_array(s_cal.tr.zz, s_ref.tr.zz, nelems);
     copy_array(s_cal.tr.xz, s_ref.tr.xz, nelems);
     copy_array(s_cal.tr.yz, s_ref.tr.yz, nelems);
     copy_array(s_cal.tr.xx, s_ref.tr.xx, nelems);
     copy_array(s_cal.tr.xy, s_ref.tr.xy, nelems);
     copy_array(s_cal.tr.yy, s_ref.tr.yy, nelems);
-    
+
     copy_array(s_cal.bl.zz, s_ref.bl.zz, nelems);
     copy_array(s_cal.bl.xz, s_ref.bl.xz, nelems);
     copy_array(s_cal.bl.yz, s_ref.bl.yz, nelems);
     copy_array(s_cal.bl.xx, s_ref.bl.xx, nelems);
     copy_array(s_cal.bl.xy, s_ref.bl.xy, nelems);
     copy_array(s_cal.bl.yy, s_ref.bl.yy, nelems);
-    
+
     copy_array(s_cal.br.zz, s_ref.br.zz, nelems);
     copy_array(s_cal.br.xz, s_ref.br.xz, nelems);
     copy_array(s_cal.br.yz, s_ref.br.yz, nelems);
@@ -277,7 +277,7 @@ TEST(propagator, rho_BR)
                                     v_ref.br.u[IDX(z+1,x+1,y  ,dimmz,dimmx)] +
                                     v_ref.br.u[IDX(z+1,x  ,y+1,dimmz,dimmx)] +
                                     v_ref.br.u[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
-        
+
         const real cal = rho_BR(v_ref.br.u, z, x, y, dimmz, dimmx);
 
         TEST_ASSERT_EQUAL_FLOAT(ref, cal);
@@ -326,11 +326,11 @@ TEST(propagator, compute_component_vcell_TL)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho_ref, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 v_ref.tl.u[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -346,9 +346,9 @@ TEST(propagator, compute_component_vcell_TL)
                      copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
     {
 #endif
-        compute_component_vcell_TL( v_cal.tl.u, szptr, sxptr, syptr, rho_ref, 
-            dt, dzi, dxi, dyi, 
-            nz0, nzf, nx0, nxf, ny0, nyf, 
+        compute_component_vcell_TL( v_cal.tl.u, szptr, sxptr, syptr, rho_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
 #if defined(_OPENACC)
     }
@@ -386,11 +386,11 @@ TEST(propagator, compute_component_vcell_TR)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho_ref, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 v_ref.tr.u[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -406,9 +406,9 @@ TEST(propagator, compute_component_vcell_TR)
                      copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
     {
 #endif
-        compute_component_vcell_TR( v_cal.tr.u, szptr, sxptr, syptr, rho_ref, 
-            dt, dzi, dxi, dyi, 
-            nz0, nzf, nx0, nxf, ny0, nyf, 
+        compute_component_vcell_TR( v_cal.tr.u, szptr, sxptr, syptr, rho_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
 #if defined(_OPENACC)
     }
@@ -447,11 +447,11 @@ TEST(propagator, compute_component_vcell_BR)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho_ref, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 v_ref.br.u[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -467,9 +467,9 @@ TEST(propagator, compute_component_vcell_BR)
                      copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
     {
 #endif
-        compute_component_vcell_BR( v_cal.br.u, szptr, sxptr, syptr, rho_ref, 
-            dt, dzi, dxi, dyi, 
-            nz0, nzf, nx0, nxf, ny0, nyf, 
+        compute_component_vcell_BR( v_cal.br.u, szptr, sxptr, syptr, rho_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
 #if defined(_OPENACC)
     }
@@ -507,11 +507,11 @@ TEST(propagator, compute_component_vcell_BL)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BL(rho_ref, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 v_ref.bl.u[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -527,9 +527,9 @@ TEST(propagator, compute_component_vcell_BL)
                      copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems])
     {
 #endif
-        compute_component_vcell_BL( v_cal.bl.u, szptr, sxptr, syptr, rho_ref, 
-            dt, dzi, dxi, dyi, 
-            nz0, nzf, nx0, nxf, ny0, nyf, 
+        compute_component_vcell_BL( v_cal.bl.u, szptr, sxptr, syptr, rho_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
 #if defined(_OPENACC)
     }
@@ -554,16 +554,16 @@ TEST(propagator, velocity_propagator_ignored_on_purpose)
 
     //TODO: implement reference part
 
-    velocity_propagator(v_cal, s_ref, c_ref, rho_ref, 
-            dt, dzi, dxi, dyi, 
-            nz0, nzf, nx0, nxf, ny0, nyf, 
+    velocity_propagator(v_cal, s_ref, c_ref, rho_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
             dimmz, dimmx, phase);
 
     TEST_IGNORE();
 }
 
 TEST(propagator, stress_update)
-{   
+{
     const real dt = 1.0;
     const real c1 = 1.0;
     const real c2 = 2.0;
@@ -575,11 +575,11 @@ TEST(propagator, stress_update)
     const real u_x = 5.0;
     const real v_x = 6.0;
     const real w_x = 7.0;
-    
+
     const real u_y = 8.0;
     const real v_y = 9.0;
     const real w_y = 10.0;
-    
+
     const real u_z = 11.0;
     const real v_z = 12.0;
     const real w_z = 13.0;
@@ -598,13 +598,13 @@ TEST(propagator, stress_update)
         s_ref.tr.xz[IDX(z,x,y,dimmz,dimmx)] += accum;
     }
     ////////////////////////////////////
-   
+
     for (integer y = 0; y < dimmy-1; y++)
     for (integer x = 0; x < dimmx-1; x++)
     for (integer z = 0; z < dimmz-1; z++)
     {
-        stress_update( s_cal.tr.xz, c1, c2, c3, c4, c5, c6, 
-                z, x, y, dt, u_x, u_y, u_z, v_x, v_y, v_z, w_x, w_y, w_z, 
+        stress_update( s_cal.tr.xz, c1, c2, c3, c4, c5, c6,
+                z, x, y, dt, u_x, u_y, u_z, v_x, v_y, v_z, w_x, w_y, w_z,
                 dimmz, dimmx );
     }
 
@@ -626,7 +626,7 @@ TEST(propagator, cell_coeff_BR)
                                            c_ref.c11[IDX(z  ,x+1,y  ,dimmz,dimmx)] +
                                            c_ref.c11[IDX(z+1,x  ,y  ,dimmz,dimmx)] +
                                            c_ref.c11[IDX(z+1,x+1,y  ,dimmz,dimmx)])) );
-        
+
         const real cal = cell_coeff_BR( c_ref.c11, z, x, y, dimmz, dimmx);
 
         TEST_ASSERT_EQUAL_FLOAT(ref, cal);
@@ -746,6 +746,318 @@ TEST(propagator, cell_coeff_ARTM_TR)
     }
 }
 
+TEST(propagator, compute_component_scell_TR)
+{
+    const real     dt  = 1.0;
+    const real     dzi = 1.0;
+    const real     dxi = 1.0;
+    const real     dyi = 1.0;
+    const integer  nz0 = HALO;
+    const integer  nzf = dimmz-HALO;
+    const integer  nx0 = HALO;
+    const integer  nxf = dimmx-HALO;
+    const integer  ny0 = HALO;
+    const integer  nyf = dimmy-HALO;
+    const offset_t SZ = 0;
+    const offset_t SX = 0;
+    const offset_t SY = 0;
+    const phase_t  phase = TWO;
+
+    for (integer y = ny0; y < nyf; y++)
+    for (integer x = nx0; x < nxf; x++)
+    for (integer z = nz0; z < nzf; z++ )
+    {
+        const real c11 = cell_coeff_TR      (c_ref.c11, z, x, y, dimmz, dimmx);
+        const real c12 = cell_coeff_TR      (c_ref.c12, z, x, y, dimmz, dimmx);
+        const real c13 = cell_coeff_TR      (c_ref.c13, z, x, y, dimmz, dimmx);
+        const real c14 = cell_coeff_ARTM_TR (c_ref.c14, z, x, y, dimmz, dimmx);
+        const real c15 = cell_coeff_ARTM_TR (c_ref.c15, z, x, y, dimmz, dimmx);
+        const real c16 = cell_coeff_ARTM_TR (c_ref.c16, z, x, y, dimmz, dimmx);
+        const real c22 = cell_coeff_TR      (c_ref.c22, z, x, y, dimmz, dimmx);
+        const real c23 = cell_coeff_TR      (c_ref.c23, z, x, y, dimmz, dimmx);
+        const real c24 = cell_coeff_ARTM_TR (c_ref.c24, z, x, y, dimmz, dimmx);
+        const real c25 = cell_coeff_ARTM_TR (c_ref.c25, z, x, y, dimmz, dimmx);
+        const real c26 = cell_coeff_ARTM_TR (c_ref.c26, z, x, y, dimmz, dimmx);
+        const real c33 = cell_coeff_TR      (c_ref.c33, z, x, y, dimmz, dimmx);
+        const real c34 = cell_coeff_ARTM_TR (c_ref.c34, z, x, y, dimmz, dimmx);
+        const real c35 = cell_coeff_ARTM_TR (c_ref.c35, z, x, y, dimmz, dimmx);
+        const real c36 = cell_coeff_ARTM_TR (c_ref.c36, z, x, y, dimmz, dimmx);
+        const real c44 = cell_coeff_TR      (c_ref.c44, z, x, y, dimmz, dimmx);
+        const real c45 = cell_coeff_ARTM_TR (c_ref.c45, z, x, y, dimmz, dimmx);
+        const real c46 = cell_coeff_ARTM_TR (c_ref.c46, z, x, y, dimmz, dimmx);
+        const real c55 = cell_coeff_TR      (c_ref.c55, z, x, y, dimmz, dimmx);
+        const real c56 = cell_coeff_ARTM_TR (c_ref.c56, z, x, y, dimmz, dimmx);
+        const real c66 = cell_coeff_TR      (c_ref.c66, z, x, y, dimmz, dimmx);
+
+        const real u_x = stencil_X (SX, v_ref.tl.u, dxi, z, x, y, dimmz, dimmx);
+        const real v_x = stencil_X (SX, v_ref.tl.v, dxi, z, x, y, dimmz, dimmx);
+        const real w_x = stencil_X (SX, v_ref.tl.w, dxi, z, x, y, dimmz, dimmx);
+
+        const real u_y = stencil_Y (SY, v_ref.tr.u, dyi, z, x, y, dimmz, dimmx);
+        const real v_y = stencil_Y (SY, v_ref.tr.v, dyi, z, x, y, dimmz, dimmx);
+        const real w_y = stencil_Y (SY, v_ref.tr.w, dyi, z, x, y, dimmz, dimmx);
+
+        const real u_z = stencil_Z (SZ, v_ref.br.u, dzi, z, x, y, dimmz, dimmx);
+        const real v_z = stencil_Z (SZ, v_ref.br.v, dzi, z, x, y, dimmz, dimmx);
+        const real w_z = stencil_Z (SZ, v_ref.br.w, dzi, z, x, y, dimmz, dimmx);
+
+        stress_update (s_ref.tr.xx,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tr.yy,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tr.zz,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tr.yz,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tr.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tr.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+    }
+
+    {
+        compute_component_scell_TR( s_cal, v_ref.br, v_ref.tl, v_ref.tr, c_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
+            SZ, SX, SY, dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+}
+
+TEST(propagator, compute_component_scell_TL)
+{
+    const real     dt  = 1.0;
+    const real     dzi = 1.0;
+    const real     dxi = 1.0;
+    const real     dyi = 1.0;
+    const integer  nz0 = HALO;
+    const integer  nzf = dimmz-HALO;
+    const integer  nx0 = HALO;
+    const integer  nxf = dimmx-HALO;
+    const integer  ny0 = HALO;
+    const integer  nyf = dimmy-HALO;
+    const offset_t SZ = 0;
+    const offset_t SX = 0;
+    const offset_t SY = 0;
+    const phase_t  phase = TWO;
+
+    for (integer y = ny0; y < nyf; y++)
+    for (integer x = nx0; x < nxf; x++)
+    for (integer z = nz0; z < nzf; z++ )
+    {
+        const real c11 = cell_coeff_TL      (c_ref.c11, z, x, y, dimmz, dimmx);
+        const real c12 = cell_coeff_TL      (c_ref.c12, z, x, y, dimmz, dimmx);
+        const real c13 = cell_coeff_TL      (c_ref.c13, z, x, y, dimmz, dimmx);
+        const real c14 = cell_coeff_ARTM_TL (c_ref.c14, z, x, y, dimmz, dimmx);
+        const real c15 = cell_coeff_ARTM_TL (c_ref.c15, z, x, y, dimmz, dimmx);
+        const real c16 = cell_coeff_ARTM_TL (c_ref.c16, z, x, y, dimmz, dimmx);
+        const real c22 = cell_coeff_TL      (c_ref.c22, z, x, y, dimmz, dimmx);
+        const real c23 = cell_coeff_TL      (c_ref.c23, z, x, y, dimmz, dimmx);
+        const real c24 = cell_coeff_ARTM_TL (c_ref.c24, z, x, y, dimmz, dimmx);
+        const real c25 = cell_coeff_ARTM_TL (c_ref.c25, z, x, y, dimmz, dimmx);
+        const real c26 = cell_coeff_ARTM_TL (c_ref.c26, z, x, y, dimmz, dimmx);
+        const real c33 = cell_coeff_TL      (c_ref.c33, z, x, y, dimmz, dimmx);
+        const real c34 = cell_coeff_ARTM_TL (c_ref.c34, z, x, y, dimmz, dimmx);
+        const real c35 = cell_coeff_ARTM_TL (c_ref.c35, z, x, y, dimmz, dimmx);
+        const real c36 = cell_coeff_ARTM_TL (c_ref.c36, z, x, y, dimmz, dimmx);
+        const real c44 = cell_coeff_TL      (c_ref.c44, z, x, y, dimmz, dimmx);
+        const real c45 = cell_coeff_ARTM_TL (c_ref.c45, z, x, y, dimmz, dimmx);
+        const real c46 = cell_coeff_ARTM_TL (c_ref.c46, z, x, y, dimmz, dimmx);
+        const real c55 = cell_coeff_TL      (c_ref.c55, z, x, y, dimmz, dimmx);
+        const real c56 = cell_coeff_ARTM_TL (c_ref.c56, z, x, y, dimmz, dimmx);
+        const real c66 = cell_coeff_TL      (c_ref.c66, z, x, y, dimmz, dimmx);
+
+        const real u_x = stencil_X (SX, v_ref.tr.u, dxi, z, x, y, dimmz, dimmx);
+        const real v_x = stencil_X (SX, v_ref.tr.v, dxi, z, x, y, dimmz, dimmx);
+        const real w_x = stencil_X (SX, v_ref.tr.w, dxi, z, x, y, dimmz, dimmx);
+
+        const real u_y = stencil_Y (SY, v_ref.tl.u, dyi, z, x, y, dimmz, dimmx);
+        const real v_y = stencil_Y (SY, v_ref.tl.v, dyi, z, x, y, dimmz, dimmx);
+        const real w_y = stencil_Y (SY, v_ref.tl.w, dyi, z, x, y, dimmz, dimmx);
+
+        const real u_z = stencil_Z (SZ, v_ref.bl.u, dzi, z, x, y, dimmz, dimmx);
+        const real v_z = stencil_Z (SZ, v_ref.bl.v, dzi, z, x, y, dimmz, dimmx);
+        const real w_z = stencil_Z (SZ, v_ref.bl.w, dzi, z, x, y, dimmz, dimmx);
+
+        stress_update (s_ref.tl.xx,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tl.yy,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tl.zz,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tl.yz,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tl.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.tl.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+    }
+
+    {
+        compute_component_scell_TL( s_cal, v_ref.bl, v_ref.tr, v_ref.tl, c_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
+            SZ, SX, SY, dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+}
+
+TEST(propagator, compute_component_scell_BR)
+{
+    const real     dt  = 1.0;
+    const real     dzi = 1.0;
+    const real     dxi = 1.0;
+    const real     dyi = 1.0;
+    const integer  nz0 = HALO;
+    const integer  nzf = dimmz-HALO;
+    const integer  nx0 = HALO;
+    const integer  nxf = dimmx-HALO;
+    const integer  ny0 = HALO;
+    const integer  nyf = dimmy-HALO;
+    const offset_t SZ = 0;
+    const offset_t SX = 0;
+    const offset_t SY = 0;
+    const phase_t  phase = TWO;
+
+    for (integer y = ny0; y < nyf; y++)
+    for (integer x = nx0; x < nxf; x++)
+    for (integer z = nz0; z < nzf; z++ )
+    {
+        const real c11 = cell_coeff_BR      (c_ref.c11, z, x, y, dimmz, dimmx);
+        const real c12 = cell_coeff_BR      (c_ref.c12, z, x, y, dimmz, dimmx);
+        const real c13 = cell_coeff_BR      (c_ref.c13, z, x, y, dimmz, dimmx);
+        const real c22 = cell_coeff_BR      (c_ref.c22, z, x, y, dimmz, dimmx);
+        const real c23 = cell_coeff_BR      (c_ref.c23, z, x, y, dimmz, dimmx);
+        const real c33 = cell_coeff_BR      (c_ref.c33, z, x, y, dimmz, dimmx);
+        const real c44 = cell_coeff_BR      (c_ref.c44, z, x, y, dimmz, dimmx);
+        const real c55 = cell_coeff_BR      (c_ref.c55, z, x, y, dimmz, dimmx);
+        const real c66 = cell_coeff_BR      (c_ref.c66, z, x, y, dimmz, dimmx);
+
+        const real c14 = cell_coeff_ARTM_BR (c_ref.c14, z, x, y, dimmz, dimmx);
+        const real c15 = cell_coeff_ARTM_BR (c_ref.c15, z, x, y, dimmz, dimmx);
+        const real c16 = cell_coeff_ARTM_BR (c_ref.c16, z, x, y, dimmz, dimmx);
+        const real c24 = cell_coeff_ARTM_BR (c_ref.c24, z, x, y, dimmz, dimmx);
+        const real c25 = cell_coeff_ARTM_BR (c_ref.c25, z, x, y, dimmz, dimmx);
+        const real c26 = cell_coeff_ARTM_BR (c_ref.c26, z, x, y, dimmz, dimmx);
+        const real c34 = cell_coeff_ARTM_BR (c_ref.c34, z, x, y, dimmz, dimmx);
+        const real c35 = cell_coeff_ARTM_BR (c_ref.c35, z, x, y, dimmz, dimmx);
+        const real c36 = cell_coeff_ARTM_BR (c_ref.c36, z, x, y, dimmz, dimmx);
+        const real c45 = cell_coeff_ARTM_BR (c_ref.c45, z, x, y, dimmz, dimmx);
+        const real c46 = cell_coeff_ARTM_BR (c_ref.c46, z, x, y, dimmz, dimmx);
+        const real c56 = cell_coeff_ARTM_BR (c_ref.c56, z, x, y, dimmz, dimmx);
+
+        const real u_x = stencil_X (SX, v_ref.bl.u, dxi, z, x, y, dimmz, dimmx);
+        const real v_x = stencil_X (SX, v_ref.bl.v, dxi, z, x, y, dimmz, dimmx);
+        const real w_x = stencil_X (SX, v_ref.bl.w, dxi, z, x, y, dimmz, dimmx);
+
+        const real u_y = stencil_Y (SY, v_ref.br.u, dyi, z, x, y, dimmz, dimmx);
+        const real v_y = stencil_Y (SY, v_ref.br.v, dyi, z, x, y, dimmz, dimmx);
+        const real w_y = stencil_Y (SY, v_ref.br.w, dyi, z, x, y, dimmz, dimmx);
+
+        const real u_z = stencil_Z (SZ, v_ref.tr.u, dzi, z, x, y, dimmz, dimmx);
+        const real v_z = stencil_Z (SZ, v_ref.tr.v, dzi, z, x, y, dimmz, dimmx);
+        const real w_z = stencil_Z (SZ, v_ref.tr.w, dzi, z, x, y, dimmz, dimmx);
+
+        stress_update (s_ref.br.xx,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.yy,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.zz,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.yz,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+    }
+
+    {
+        compute_component_scell_BR( s_cal, v_ref.tr, v_ref.bl, v_ref.br, c_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
+            SZ, SX, SY, dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+}
+
+TEST(propagator, compute_component_scell_BL)
+{
+    const real     dt  = 1.0;
+    const real     dzi = 1.0;
+    const real     dxi = 1.0;
+    const real     dyi = 1.0;
+    const integer  nz0 = HALO;
+    const integer  nzf = dimmz-HALO;
+    const integer  nx0 = HALO;
+    const integer  nxf = dimmx-HALO;
+    const integer  ny0 = HALO;
+    const integer  nyf = dimmy-HALO;
+    const offset_t SZ = 0;
+    const offset_t SX = 0;
+    const offset_t SY = 0;
+    const phase_t  phase = TWO;
+
+    for (integer y = ny0; y < nyf; y++)
+    for (integer x = nx0; x < nxf; x++)
+    for (integer z = nz0; z < nzf; z++ )
+    {
+        const real c11 = cell_coeff_BL      (c_ref.c11, z, x, y, dimmz, dimmx);
+        const real c12 = cell_coeff_BL      (c_ref.c12, z, x, y, dimmz, dimmx);
+        const real c13 = cell_coeff_BL      (c_ref.c13, z, x, y, dimmz, dimmx);
+        const real c14 = cell_coeff_ARTM_BL (c_ref.c14, z, x, y, dimmz, dimmx);
+        const real c15 = cell_coeff_ARTM_BL (c_ref.c15, z, x, y, dimmz, dimmx);
+        const real c16 = cell_coeff_ARTM_BL (c_ref.c16, z, x, y, dimmz, dimmx);
+        const real c22 = cell_coeff_BL      (c_ref.c22, z, x, y, dimmz, dimmx);
+        const real c23 = cell_coeff_BL      (c_ref.c23, z, x, y, dimmz, dimmx);
+        const real c24 = cell_coeff_ARTM_BL (c_ref.c24, z, x, y, dimmz, dimmx);
+        const real c25 = cell_coeff_ARTM_BL (c_ref.c25, z, x, y, dimmz, dimmx);
+        const real c26 = cell_coeff_ARTM_BL (c_ref.c26, z, x, y, dimmz, dimmx);
+        const real c33 = cell_coeff_BL      (c_ref.c33, z, x, y, dimmz, dimmx);
+        const real c34 = cell_coeff_ARTM_BL (c_ref.c34, z, x, y, dimmz, dimmx);
+        const real c35 = cell_coeff_ARTM_BL (c_ref.c35, z, x, y, dimmz, dimmx);
+        const real c36 = cell_coeff_ARTM_BL (c_ref.c36, z, x, y, dimmz, dimmx);
+        const real c44 = cell_coeff_BL      (c_ref.c44, z, x, y, dimmz, dimmx);
+        const real c45 = cell_coeff_ARTM_BL (c_ref.c45, z, x, y, dimmz, dimmx);
+        const real c46 = cell_coeff_ARTM_BL (c_ref.c46, z, x, y, dimmz, dimmx);
+        const real c55 = cell_coeff_BL      (c_ref.c55, z, x, y, dimmz, dimmx);
+        const real c56 = cell_coeff_ARTM_BL (c_ref.c56, z, x, y, dimmz, dimmx);
+        const real c66 = cell_coeff_BL      (c_ref.c66, z, x, y, dimmz, dimmx);
+
+        const real u_x = stencil_X (SX, v_ref.br.u, dxi, z, x, y, dimmz, dimmx);
+        const real v_x = stencil_X (SX, v_ref.br.v, dxi, z, x, y, dimmz, dimmx);
+        const real w_x = stencil_X (SX, v_ref.br.w, dxi, z, x, y, dimmz, dimmx);
+
+        const real u_y = stencil_Y (SY, v_ref.bl.u, dyi, z, x, y, dimmz, dimmx);
+        const real v_y = stencil_Y (SY, v_ref.bl.v, dyi, z, x, y, dimmz, dimmx);
+        const real w_y = stencil_Y (SY, v_ref.bl.w, dyi, z, x, y, dimmz, dimmx);
+
+        const real u_z = stencil_Z (SZ, v_ref.tl.u, dzi, z, x, y, dimmz, dimmx);
+        const real v_z = stencil_Z (SZ, v_ref.tl.v, dzi, z, x, y, dimmz, dimmx);
+        const real w_z = stencil_Z (SZ, v_ref.tl.w, dzi, z, x, y, dimmz, dimmx);
+
+        stress_update (s_ref.br.xx,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.yy,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.zz,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.yz,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+        stress_update (s_ref.br.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+    }
+
+    {
+        compute_component_scell_BL( s_cal, v_ref.tl, v_ref.br, v_ref.bl, c_ref,
+            dt, dzi, dxi, dyi,
+            nz0, nzf, nx0, nxf, ny0, nyf,
+            SZ, SX, SY, dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+}
 
 ////// TESTS RUNNER //////
 TEST_GROUP_RUNNER(propagator)
@@ -767,7 +1079,7 @@ TEST_GROUP_RUNNER(propagator)
     RUN_TEST_CASE(propagator, compute_component_vcell_BL);
 
     RUN_TEST_CASE(propagator, velocity_propagator_ignored_on_purpose);
-    
+
     RUN_TEST_CASE(propagator, stress_update);
 
     RUN_TEST_CASE(propagator, stress_propagator_ignored_on_purpose);
@@ -781,4 +1093,9 @@ TEST_GROUP_RUNNER(propagator)
     RUN_TEST_CASE(propagator, cell_coeff_ARTM_TL);
     RUN_TEST_CASE(propagator, cell_coeff_ARTM_BL);
     RUN_TEST_CASE(propagator, cell_coeff_ARTM_TR);
+
+    RUN_TEST_CASE(propagator, compute_component_scell_TR);
+    RUN_TEST_CASE(propagator, compute_component_scell_TL);
+    RUN_TEST_CASE(propagator, compute_component_scell_BR);
+    RUN_TEST_CASE(propagator, compute_component_scell_BL);
 }
