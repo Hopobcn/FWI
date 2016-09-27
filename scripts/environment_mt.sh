@@ -2,11 +2,8 @@
 module purge
 module load pgi
 module load cuda/7.5
+module load openmpi/1.10.2_cuda_pgi
 module load cmake/3.6.2
-
-export MPI_HOME=$HOME/APPS/OPENMPI/1.10.2/pgi-16.5
-export PATH=$MPI_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$MPI_HOME/lib:$LD_LIBRARY_PATH
 
 export HWLOC_HOME=$HOME/APPS/HWLOC/1.11.4
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HWLOC_HOME/lib
