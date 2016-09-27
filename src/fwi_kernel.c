@@ -79,7 +79,7 @@ void check_memory_shot( const integer numberOfCells,
         value = c->c44[i];
         value = c->c45[i];
         value = c->c46[i];
-        
+
         value = c->c55[i];
         value = c->c56[i];
         value = c->c66[i];
@@ -95,7 +95,7 @@ void check_memory_shot( const integer numberOfCells,
         value = v->bl.u[i];
         value = v->bl.v[i];
         value = v->bl.w[i];
-        
+
         value = v->br.u[i];
         value = v->br.v[i];
         value = v->br.w[i];
@@ -194,7 +194,7 @@ void alloc_memory_shot( const integer numberOfCells,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
-#if defined(_OPENACC) 
+#if defined(_OPENACC)
     const integer datalen = numberOfCells;
 
     const real* cc11 = c->c11;
@@ -203,64 +203,64 @@ void alloc_memory_shot( const integer numberOfCells,
     const real* cc14 = c->c14;
     const real* cc15 = c->c15;
     const real* cc16 = c->c16;
-                             
+
     const real* cc22 = c->c22;
     const real* cc23 = c->c23;
     const real* cc24 = c->c24;
     const real* cc25 = c->c25;
     const real* cc26 = c->c26;
-                             
+
     const real* cc33 = c->c33;
     const real* cc34 = c->c34;
     const real* cc35 = c->c35;
     const real* cc36 = c->c36;
-                             
+
     const real* cc44 = c->c44;
     const real* cc45 = c->c45;
     const real* cc46 = c->c46;
-                             
+
     const real* cc55 = c->c55;
     const real* cc56 = c->c56;
-                       
+
     const real* cc66 = c->c66;
-          
+
     const real* vtlu = v->tl.u;
     const real* vtlv = v->tl.v;
     const real* vtlw = v->tl.w;
-                              
+
     const real* vtru = v->tr.u;
     const real* vtrv = v->tr.v;
     const real* vtrw = v->tr.w;
-                              
+
     const real* vblu = v->bl.u;
     const real* vblv = v->bl.v;
     const real* vblw = v->bl.w;
-                              
+
     const real* vbru = v->br.u;
     const real* vbrv = v->br.v;
     const real* vbrw = v->br.w;
-       
+
     const real* stlzz = s->tl.zz;
     const real* stlxz = s->tl.xz;
     const real* stlyz = s->tl.yz;
     const real* stlxx = s->tl.xx;
     const real* stlxy = s->tl.xy;
     const real* stlyy = s->tl.yy;
-                                
+
     const real* strzz = s->tr.zz;
     const real* strxz = s->tr.xz;
     const real* stryz = s->tr.yz;
     const real* strxx = s->tr.xx;
     const real* strxy = s->tr.xy;
     const real* stryy = s->tr.yy;
-                                
+
     const real* sblzz = s->bl.zz;
     const real* sblxz = s->bl.xz;
     const real* sblyz = s->bl.yz;
     const real* sblxx = s->bl.xx;
     const real* sblxy = s->bl.xy;
     const real* sblyy = s->bl.yy;
-                                
+
     const real* sbrzz = s->br.zz;
     const real* sbrxz = s->br.xz;
     const real* sbryz = s->br.yz;
@@ -270,7 +270,7 @@ void alloc_memory_shot( const integer numberOfCells,
 
     const real* rrho  = *rho;
 
- 
+
     #pragma acc enter data create(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
                            create(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
                            create(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
@@ -464,7 +464,7 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( c->c55, numberOfCells);
     set_array_to_random_real( c->c56, numberOfCells);
     set_array_to_random_real( c->c66, numberOfCells);
-    
+
     /* initalize velocity components */
     set_array_to_random_real( v->tl.u, numberOfCells );
     set_array_to_random_real( v->tl.v, numberOfCells );
@@ -483,7 +483,7 @@ void load_initial_model ( const real    waveletFreq,
     set_array_to_random_real( rho, numberOfCells );
 
 #else /* load velocity model from external file */
-    
+
     /* initialize coefficients */
     set_array_to_constant( c->c11, 1.0, numberOfCells);
     set_array_to_constant( c->c12, 1.0, numberOfCells);
@@ -524,7 +524,7 @@ void load_initial_model ( const real    waveletFreq,
     /* start clock, take into account file opening */
     tstart_outer = dtime();
     FILE* model = safe_fopen( modelname, "rb", __FILE__, __LINE__ );
-    
+
     /* start clock, do not take into account file opening */
     tstart_inner = dtime();
 
@@ -540,7 +540,7 @@ void load_initial_model ( const real    waveletFreq,
     /* seek to the correct position corresponding to id (0 or rank) */
     if (fseek ( model, bytesForVolume * id, SEEK_SET) != 0)
         print_error("fseek() failed to set the correct position");
-    
+
     /* initalize velocity components */
     safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->tl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
@@ -554,7 +554,7 @@ void load_initial_model ( const real    waveletFreq,
     safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
     safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    
+
     /* stop inner timer */
     tend_inner = dtime() - tstart_inner;
 
@@ -578,15 +578,15 @@ void load_initial_model ( const real    waveletFreq,
     const real* vtlu = v->tl.u;
     const real* vtlv = v->tl.v;
     const real* vtlw = v->tl.w;
-                              
+
     const real* vtru = v->tr.u;
     const real* vtrv = v->tr.v;
     const real* vtrw = v->tr.w;
-                              
+
     const real* vblu = v->bl.u;
     const real* vblv = v->bl.v;
     const real* vblw = v->bl.w;
-                              
+
     const real* vbru = v->br.u;
     const real* vbrv = v->br.v;
     const real* vbrw = v->br.w;
@@ -641,7 +641,7 @@ void write_snapshot(char *folder,
 
     /* local variables */
     char fname[300];
-    
+
     /* open snapshot file and write results */
     sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
 
@@ -668,12 +668,12 @@ void write_snapshot(char *folder,
     safe_fwrite( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    
+
     safe_fwrite( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
     safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
 
-#if defined(LOG_IO_STATS) 
+#if defined(LOG_IO_STATS)
     /* stop inner timer */
     double tend_inner = dtime();
 #endif
@@ -817,7 +817,7 @@ void propagate_shot(time_d        direction,
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
-        
+
     for(int t=0; t < timesteps; t++)
     {
         PUSH_RANGE
@@ -837,7 +837,7 @@ void propagate_shot(time_d        direction,
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
         /* ------------------------------------------------------------------------------ */
-      
+
         /* Phase 1. Computation of the left-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
                             nz0 +   HALO,
@@ -859,7 +859,7 @@ void propagate_shot(time_d        direction,
                             nyf -   HALO,
                             dimmz, dimmx,
                             ONE_R);
-    
+
         /* Phase 2. Computation of the central planes. */
         tvel_start = dtime();
 
@@ -872,7 +872,7 @@ void propagate_shot(time_d        direction,
                             nyf -   HALO,
                             dimmz, dimmx,
                             TWO);
-#if defined(USE_MPI) 
+#if defined(USE_MPI)
         const integer plane_size = dimmz * dimmx;
         /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
@@ -896,7 +896,7 @@ void propagate_shot(time_d        direction,
                           ny0 + 2*HALO,
                           dimmz, dimmx,
                           ONE_L);
-      
+
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
                           nz0 +   HALO,
@@ -911,7 +911,7 @@ void propagate_shot(time_d        direction,
         /* Phase 2 computation. Central planes of the domain */
         tstress_start = dtime();
 
-        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi, 
+        stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
                           nz0 +   HALO,
                           nzf -   HALO,
                           nx0 +   HALO,
@@ -941,16 +941,16 @@ void propagate_shot(time_d        direction,
 #endif
         POP_RANGE
     }
-    
+
     /* compute some statistics */
     megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
     tglobal_total /= (double) timesteps;
     tstress_total /= (double) timesteps;
     tvel_total    /= (double) timesteps;
- 
+
     print_stats("Maingrid GLOBAL   computation took %lf seconds - %lf Mcells/s", tglobal_total, (2*megacells) / tglobal_total);
-    print_stats("Maingrid STRESS   computation took %lf seconds - %lf Mcells/s", tstress_total,  megacells / tstress_total); 
-    print_stats("Maingrid VELOCITY computation took %lf seconds - %lf Mcells/s", tvel_total, megacells / tvel_total); 
+    print_stats("Maingrid STRESS   computation took %lf seconds - %lf Mcells/s", tstress_total,  megacells / tstress_total);
+    print_stats("Maingrid VELOCITY computation took %lf seconds - %lf Mcells/s", tvel_total, megacells / tvel_total);
 
     POP_RANGE
 };
@@ -967,9 +967,9 @@ ny0                 (in) intial plane to be exchanged
 
 RETURN none
 */
-void exchange_velocity_boundaries ( v_t v, 
-                                    const integer plane_size, 
-                                    const integer nyf, 
+void exchange_velocity_boundaries ( v_t v,
+                                    const integer plane_size,
+                                    const integer nyf,
                                     const integer ny0 )
 {
     PUSH_RANGE
@@ -989,7 +989,7 @@ void exchange_velocity_boundaries ( v_t v,
 
     const integer right_recv = nyf-HALO;
     const integer right_send = nyf-2*HALO;
-    
+
     if ( rank != 0 )
     {
         // [RANK-1] <---> [RANK] communication
@@ -1046,11 +1046,11 @@ ny0                 (in) intial plane to be exchanged
 
 RETURN none
 */
-void exchange_stress_boundaries ( s_t s, 
-                                  const integer plane_size, 
+void exchange_stress_boundaries ( s_t s,
+                                  const integer plane_size,
                                   const integer rank,
                                   const integer nranks,
-                                  const integer nyf, 
+                                  const integer nyf,
                                   const integer ny0 )
 {
     PUSH_RANGE
@@ -1102,7 +1102,7 @@ void exchange_stress_boundaries ( s_t s,
         EXCHANGE( &s.br.xy[left_send], &s.br.xy[left_recv], rank-1, rank, nelems );
         EXCHANGE( &s.br.yy[left_send], &s.br.yy[left_recv], rank-1, rank, nelems );
     }
-    
+
     if ( rank != nranks-1 )
     {
         //                [RANK] <---> [RANK+1] communication

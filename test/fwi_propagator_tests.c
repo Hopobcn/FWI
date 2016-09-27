@@ -1,3 +1,5 @@
+#include "fwi_tests.h"
+
 #include <unity.h>
 #include <unity_fixture.h>
 
@@ -5,9 +7,6 @@
 #include "fwi_propagator.h"
 
 
-// Helper functions
-void init_array( real* restrict array, const integer length );
-void copy_array( real* restrict dest, real* restrict src, const integer length );
 
 
 ////// SetUp/SetDown /////
