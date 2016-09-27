@@ -4,7 +4,6 @@
 #include "fwi_kernel.h"
 #include "fwi_propagator.h"
 
-TEST_GROUP(propagator);
 
 // Helper functions
 void init_array( real* restrict array, const integer length );
@@ -39,6 +38,7 @@ void copy_array( real* restrict dest, real* restrict src, const integer length )
         dest[i] = src[i];
 }
 
+TEST_GROUP(propagator);
 
 TEST_SETUP(propagator)
 {
@@ -538,7 +538,7 @@ TEST(propagator, compute_component_vcell_BL)
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
 }
 
-TEST(propagator, velocity_propagator_ignored_on_purpose)
+TEST(propagator, velocity_propagator)
 {
     const real     dt  = 1.0;
     const real     dzi = 1.0;
@@ -552,14 +552,46 @@ TEST(propagator, velocity_propagator_ignored_on_purpose)
     const integer  nyf = dimmy-HALO;
     const phase_t  phase = TWO;
 
-    //TODO: implement reference part
+    // REFERENCE CALCULATION
+    {
+        compute_component_vcell_TL (v_ref.tl.w, s_ref.bl.zz, s_ref.tr.xz, s_ref.tl.yz, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v_ref.tr.w, s_ref.br.zz, s_ref.tl.xz, s_ref.tr.yz, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v_ref.bl.w, s_ref.tl.zz, s_ref.br.xz, s_ref.bl.yz, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v_ref.br.w, s_ref.tr.zz, s_ref.bl.xz, s_ref.br.yz, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v_ref.tl.u, s_ref.bl.xz, s_ref.tr.xx, s_ref.tl.xy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v_ref.tr.u, s_ref.br.xz, s_ref.tl.xx, s_ref.tr.xy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v_ref.bl.u, s_ref.tl.xz, s_ref.br.xx, s_ref.bl.xy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v_ref.br.u, s_ref.tr.xz, s_ref.bl.xx, s_ref.br.xy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v_ref.tl.v, s_ref.bl.yz, s_ref.tr.xy, s_ref.tl.yy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TR (v_ref.tr.v, s_ref.br.yz, s_ref.tl.xy, s_ref.tr.yy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BL (v_ref.bl.v, s_ref.tl.yz, s_ref.br.xy, s_ref.bl.yy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_vcell_BR (v_ref.br.v, s_ref.tr.yz, s_ref.bl.xy, s_ref.br.yy, rho_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+    }
+    ///////////////////////////////////////
 
-    velocity_propagator(v_cal, s_ref, c_ref, rho_ref,
-            dt, dzi, dxi, dyi,
-            nz0, nzf, nx0, nxf, ny0, nyf,
-            dimmz, dimmx, phase);
 
-    TEST_IGNORE();
+    {
+        velocity_propagator(v_cal, s_ref, c_ref, rho_ref,
+                dt, dzi, dxi, dyi,
+                nz0, nzf, nx0, nxf, ny0, nyf,
+                dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.v, v_cal.bl.v, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.w, v_cal.bl.w, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.v, v_cal.br.v, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.w, v_cal.br.w, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.v, v_cal.tr.v, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.w, v_cal.tr.w, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.v, v_cal.tl.v, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.w, v_cal.tl.w, nelems );
 }
 
 TEST(propagator, stress_update)
@@ -611,10 +643,6 @@ TEST(propagator, stress_update)
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
 }
 
-TEST(propagator, stress_propagator_ignored_on_purpose)
-{
-    TEST_IGNORE_MESSAGE("Implement this test in the future.");
-}
 
 TEST(propagator, cell_coeff_BR)
 {
@@ -763,6 +791,7 @@ TEST(propagator, compute_component_scell_TR)
     const offset_t SY = 0;
     const phase_t  phase = TWO;
 
+    // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
     for (integer x = nx0; x < nxf; x++)
     for (integer z = nz0; z < nzf; z++ )
@@ -808,6 +837,7 @@ TEST(propagator, compute_component_scell_TR)
         stress_update (s_ref.tr.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
         stress_update (s_ref.tr.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
     }
+    ////////////////////////////////////
 
     {
         compute_component_scell_TR( s_cal, v_ref.br, v_ref.tl, v_ref.tr, c_ref,
@@ -841,6 +871,7 @@ TEST(propagator, compute_component_scell_TL)
     const offset_t SY = 0;
     const phase_t  phase = TWO;
 
+    // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
     for (integer x = nx0; x < nxf; x++)
     for (integer z = nz0; z < nzf; z++ )
@@ -886,6 +917,7 @@ TEST(propagator, compute_component_scell_TL)
         stress_update (s_ref.tl.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
         stress_update (s_ref.tl.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
     }
+    ////////////////////////////////////
 
     {
         compute_component_scell_TL( s_cal, v_ref.bl, v_ref.tr, v_ref.tl, c_ref,
@@ -919,6 +951,7 @@ TEST(propagator, compute_component_scell_BR)
     const offset_t SY = 0;
     const phase_t  phase = TWO;
 
+    // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
     for (integer x = nx0; x < nxf; x++)
     for (integer z = nz0; z < nzf; z++ )
@@ -965,6 +998,7 @@ TEST(propagator, compute_component_scell_BR)
         stress_update (s_ref.br.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
         stress_update (s_ref.br.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
     }
+    ////////////////////////////////////
 
     {
         compute_component_scell_BR( s_cal, v_ref.tr, v_ref.bl, v_ref.br, c_ref,
@@ -998,6 +1032,7 @@ TEST(propagator, compute_component_scell_BL)
     const offset_t SY = 0;
     const phase_t  phase = TWO;
 
+    // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
     for (integer x = nx0; x < nxf; x++)
     for (integer z = nz0; z < nzf; z++ )
@@ -1043,6 +1078,7 @@ TEST(propagator, compute_component_scell_BL)
         stress_update (s_ref.br.xz,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
         stress_update (s_ref.br.xy,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
     }
+    ////////////////////////////////////
 
     {
         compute_component_scell_BL( s_cal, v_ref.tl, v_ref.br, v_ref.bl, c_ref,
@@ -1059,6 +1095,66 @@ TEST(propagator, compute_component_scell_BL)
     TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
 }
 
+TEST(propagator, stress_propagator)
+{
+    const real     dt  = 1.0;
+    const real     dzi = 1.0;
+    const real     dxi = 1.0;
+    const real     dyi = 1.0;
+    const integer  nz0 = HALO;
+    const integer  nzf = dimmz-HALO;
+    const integer  nx0 = HALO;
+    const integer  nxf = dimmx-HALO;
+    const integer  ny0 = HALO;
+    const integer  nyf = dimmy-HALO;
+    const phase_t  phase = TWO;
+
+    // REFERENCE CALCULATION
+    {
+        compute_component_scell_BR ( s_ref, v_ref.tr, v_ref.bl, v_ref.br, c_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_scell_BL ( s_ref, v_ref.tl, v_ref.br, v_ref.bl, c_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_scell_TR ( s_ref, v_ref.br, v_ref.tl, v_ref.tr, c_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_scell_TL ( s_ref, v_ref.bl, v_ref.tr, v_ref.tl, c_ref, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, phase);
+    }
+    ///////////////////////////////////////
+
+
+    {
+        stress_propagator(s_cal, v_ref, c_ref, rho_ref,
+                dt, dzi, dxi, dyi,
+                nz0, nzf, nx0, nxf, ny0, nyf,
+                dimmz, dimmx, phase);
+    }
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xx, s_cal.bl.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yy, s_cal.bl.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.zz, s_cal.bl.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yz, s_cal.bl.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xz, s_cal.bl.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xy, s_cal.bl.xy, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+}
+
 ////// TESTS RUNNER //////
 TEST_GROUP_RUNNER(propagator)
 {
@@ -1068,6 +1164,7 @@ TEST_GROUP_RUNNER(propagator)
     RUN_TEST_CASE(propagator, stencil_X);
     RUN_TEST_CASE(propagator, stencil_Y);
 
+    /* velocity related tests */
     RUN_TEST_CASE(propagator, rho_BL);
     RUN_TEST_CASE(propagator, rho_TR);
     RUN_TEST_CASE(propagator, rho_BR);
@@ -1078,11 +1175,10 @@ TEST_GROUP_RUNNER(propagator)
     RUN_TEST_CASE(propagator, compute_component_vcell_BR);
     RUN_TEST_CASE(propagator, compute_component_vcell_BL);
 
-    RUN_TEST_CASE(propagator, velocity_propagator_ignored_on_purpose);
+    RUN_TEST_CASE(propagator, velocity_propagator);
 
+    /* stresses related tests */
     RUN_TEST_CASE(propagator, stress_update);
-
-    RUN_TEST_CASE(propagator, stress_propagator_ignored_on_purpose);
 
     RUN_TEST_CASE(propagator, cell_coeff_BR);
     RUN_TEST_CASE(propagator, cell_coeff_TL);
@@ -1098,4 +1194,6 @@ TEST_GROUP_RUNNER(propagator)
     RUN_TEST_CASE(propagator, compute_component_scell_TL);
     RUN_TEST_CASE(propagator, compute_component_scell_BR);
     RUN_TEST_CASE(propagator, compute_component_scell_BL);
+
+    RUN_TEST_CASE(propagator, stress_propagator);
 }
