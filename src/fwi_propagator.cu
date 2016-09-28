@@ -363,7 +363,6 @@ void compute_component_vcell_TL_cuda_k ( float* __restrict__ vptr,
 }
 #endif
 
-extern "C"
 void compute_component_vcell_TL_cuda ( float* vptr,
                                  const float* szptr,
                                  const float* sxptr,
@@ -580,7 +579,6 @@ void compute_component_vcell_TR_cuda_k ( float* __restrict__ vptr,
 }
 #endif
 
-extern "C"
 void compute_component_vcell_TR_cuda ( float* vptr,
                                  const float* szptr,
                                  const float* sxptr,
@@ -810,7 +808,6 @@ void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
 }
 #endif
 
-extern "C"
 void compute_component_vcell_BR_cuda ( float* vptr,
                                  const float* szptr,
                                  const float* sxptr,
@@ -1022,7 +1019,6 @@ void compute_component_vcell_BL_cuda_k ( float* __restrict__ vptr,
 }
 #endif
 
-extern "C"
 void compute_component_vcell_BL_cuda ( float* vptr,
                                  const float* szptr,
                                  const float* sxptr,
@@ -1629,7 +1625,6 @@ void compute_component_scell_TR_cuda_k ( float* __restrict__ sxxptr,
 }
 #endif
 
-extern "C"
 void compute_component_scell_TR_cuda ( float* sxxptr,
                                        float* syyptr,
                                        float* szzptr,
@@ -1949,7 +1944,6 @@ void compute_component_scell_TL_cuda_k ( float* __restrict__ sxxptr,
 }
 #endif
 
-extern "C"
 void compute_component_scell_TL_cuda ( float* sxxptr,
                                        float* syyptr,
                                        float* szzptr,
@@ -2270,7 +2264,6 @@ void compute_component_scell_BR_cuda_k ( float* __restrict__ sxxptr,
 }
 #endif
 
-extern "C"
 void compute_component_scell_BR_cuda ( float* sxxptr,
                                        float* syyptr,
                                        float* szzptr,
@@ -2591,7 +2584,6 @@ void compute_component_scell_BL_cuda_k ( float* __restrict__ sxxptr,
 }
 #endif
 
-extern "C"
 void compute_component_scell_BL_cuda ( float* sxxptr,
                                        float* syyptr,
                                        float* szzptr,
