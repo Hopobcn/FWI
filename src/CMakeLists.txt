@@ -38,3 +38,9 @@ if (USE_CUDA_KERNELS)
         fwi-core-cuda
     )
 endif (USE_CUDA_KERNELS)
+
+if (TRACE_CUDA)
+    target_link_libraries(fwi-core
+        ${CUDA_TRACE_LIBRARY}
+    )
+endif (TRACE_CUDA)

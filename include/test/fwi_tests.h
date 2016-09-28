@@ -2,6 +2,7 @@
 #define _FWI_TESTS_H_
 
 #include "fwi_propagator.h"
+#include "unity_config.h"
 
 // global vars
 extern const integer dimmz;

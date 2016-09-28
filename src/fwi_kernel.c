@@ -197,97 +197,79 @@ void alloc_memory_shot( const integer numberOfCells,
 #if defined(_OPENACC)
     const integer datalen = numberOfCells;
 
-    const real* cc11 = c->c11;
-    const real* cc12 = c->c12;
-    const real* cc13 = c->c13;
-    const real* cc14 = c->c14;
-    const real* cc15 = c->c15;
-    const real* cc16 = c->c16;
-
-    const real* cc22 = c->c22;
-    const real* cc23 = c->c23;
-    const real* cc24 = c->c24;
-    const real* cc25 = c->c25;
-    const real* cc26 = c->c26;
-
-    const real* cc33 = c->c33;
-    const real* cc34 = c->c34;
-    const real* cc35 = c->c35;
-    const real* cc36 = c->c36;
-
-    const real* cc44 = c->c44;
-    const real* cc45 = c->c45;
-    const real* cc46 = c->c46;
-
-    const real* cc55 = c->c55;
-    const real* cc56 = c->c56;
-
-    const real* cc66 = c->c66;
-
-    const real* vtlu = v->tl.u;
-    const real* vtlv = v->tl.v;
-    const real* vtlw = v->tl.w;
-
-    const real* vtru = v->tr.u;
-    const real* vtrv = v->tr.v;
-    const real* vtrw = v->tr.w;
-
-    const real* vblu = v->bl.u;
-    const real* vblv = v->bl.v;
-    const real* vblw = v->bl.w;
-
-    const real* vbru = v->br.u;
-    const real* vbrv = v->br.v;
-    const real* vbrw = v->br.w;
-
-    const real* stlzz = s->tl.zz;
-    const real* stlxz = s->tl.xz;
-    const real* stlyz = s->tl.yz;
-    const real* stlxx = s->tl.xx;
-    const real* stlxy = s->tl.xy;
-    const real* stlyy = s->tl.yy;
-
-    const real* strzz = s->tr.zz;
-    const real* strxz = s->tr.xz;
-    const real* stryz = s->tr.yz;
-    const real* strxx = s->tr.xx;
-    const real* strxy = s->tr.xy;
-    const real* stryy = s->tr.yy;
-
-    const real* sblzz = s->bl.zz;
-    const real* sblxz = s->bl.xz;
-    const real* sblyz = s->bl.yz;
-    const real* sblxx = s->bl.xx;
-    const real* sblxy = s->bl.xy;
-    const real* sblyy = s->bl.yy;
-
-    const real* sbrzz = s->br.zz;
-    const real* sbrxz = s->br.xz;
-    const real* sbryz = s->br.yz;
-    const real* sbrxx = s->br.xx;
-    const real* sbrxy = s->br.xy;
-    const real* sbryy = s->br.yy;
-
     const real* rrho  = *rho;
+    
+    coeff_t cc = *c;
+    // TODO: Test that works with this shit
+    #pragma acc enter data create(cc)
+    #pragma acc enter data create(cc.c11[:datalen])
+    #pragma acc enter data create(cc.c12[:datalen])
+    #pragma acc enter data create(cc.c13[:datalen])
+    #pragma acc enter data create(cc.c14[:datalen])
+    #pragma acc enter data create(cc.c15[:datalen])
+    #pragma acc enter data create(cc.c16[:datalen])
+    #pragma acc enter data create(cc.c22[:datalen])
+    #pragma acc enter data create(cc.c23[:datalen])
+    #pragma acc enter data create(cc.c24[:datalen])
+    #pragma acc enter data create(cc.c25[:datalen])
+    #pragma acc enter data create(cc.c26[:datalen])
+    #pragma acc enter data create(cc.c33[:datalen])
+    #pragma acc enter data create(cc.c34[:datalen])
+    #pragma acc enter data create(cc.c35[:datalen])
+    #pragma acc enter data create(cc.c36[:datalen])
+    #pragma acc enter data create(cc.c44[:datalen])
+    #pragma acc enter data create(cc.c45[:datalen])
+    #pragma acc enter data create(cc.c46[:datalen])
+    #pragma acc enter data create(cc.c55[:datalen])
+    #pragma acc enter data create(cc.c56[:datalen])
+    #pragma acc enter data create(cc.c66[:datalen])
 
+    v_t vv = *v;
 
-    #pragma acc enter data create(vtlu[0:datalen], vtlv[0:datalen], vtlw[0:datalen]) \
-                           create(vtru[0:datalen], vtrv[0:datalen], vtrw[0:datalen]) \
-                           create(vblu[0:datalen], vblv[0:datalen], vblw[0:datalen]) \
-                           create(vbru[0:datalen], vbrv[0:datalen], vbrw[0:datalen]) \
-                           create(stlzz[0:datalen], stlxz[0:datalen], stlyz[0:datalen], stlxx[0:datalen], stlxy[0:datalen], stlyy[0:datalen]) \
-                           create(strzz[0:datalen], strxz[0:datalen], stryz[0:datalen], strxx[0:datalen], strxy[0:datalen], stryy[0:datalen]) \
-                           create(sblzz[0:datalen], sblxz[0:datalen], sblyz[0:datalen], sblxx[0:datalen], sblxy[0:datalen], sblyy[0:datalen]) \
-                           create(sbrzz[0:datalen], sbrxz[0:datalen], sbryz[0:datalen], sbrxx[0:datalen], sbrxy[0:datalen], sbryy[0:datalen]) \
-                           create(cc11[0:datalen], cc12[0:datalen], cc13[0:datalen], cc14[0:datalen], cc15[0:datalen], cc16[0:datalen]) \
-                           create(cc22[0:datalen], cc23[0:datalen], cc24[0:datalen], cc25[0:datalen], cc26[0:datalen]) \
-                           create(cc33[0:datalen], cc34[0:datalen], cc35[0:datalen], cc36[0:datalen]) \
-                           create(cc44[0:datalen], cc45[0:datalen], cc46[0:datalen]) \
-                           create(cc55[0:datalen], cc56[0:datalen]) \
-                           create(cc66[0:datalen]) \
-                           create(rrho[0:datalen])
+    #pragma acc enter data copyin(vv)
+    #pragma acc enter data create(vv.tl.u[:datalen])
+    #pragma acc enter data create(vv.tl.v[:datalen])
+    #pragma acc enter data create(vv.tl.w[:datalen])
+    #pragma acc enter data create(vv.tr.u[:datalen])
+    #pragma acc enter data create(vv.tr.v[:datalen])
+    #pragma acc enter data create(vv.tr.w[:datalen])
+    #pragma acc enter data create(vv.bl.u[:datalen])
+    #pragma acc enter data create(vv.bl.v[:datalen])
+    #pragma acc enter data create(vv.bl.w[:datalen])
+    #pragma acc enter data create(vv.br.u[:datalen])
+    #pragma acc enter data create(vv.br.v[:datalen])
+    #pragma acc enter data create(vv.br.w[:datalen])
+
+    s_t ss = *s;
+    #pragma acc enter data copyin(ss)
+    #pragma acc enter data create(ss.tl.zz[:datalen])
+    #pragma acc enter data create(ss.tl.xz[:datalen])
+    #pragma acc enter data create(ss.tl.yz[:datalen])
+    #pragma acc enter data create(ss.tl.xx[:datalen])
+    #pragma acc enter data create(ss.tl.xy[:datalen])
+    #pragma acc enter data create(ss.tl.yy[:datalen])
+    #pragma acc enter data create(ss.tr.zz[:datalen])
+    #pragma acc enter data create(ss.tr.xz[:datalen])
+    #pragma acc enter data create(ss.tr.yz[:datalen])
+    #pragma acc enter data create(ss.tr.xx[:datalen])
+    #pragma acc enter data create(ss.tr.xy[:datalen])
+    #pragma acc enter data create(ss.tr.yy[:datalen])
+    #pragma acc enter data create(ss.bl.zz[:datalen])
+    #pragma acc enter data create(ss.bl.xz[:datalen])
+    #pragma acc enter data create(ss.bl.yz[:datalen])
+    #pragma acc enter data create(ss.bl.xx[:datalen])
+    #pragma acc enter data create(ss.bl.xy[:datalen])
+    #pragma acc enter data create(ss.bl.yy[:datalen])
+    #pragma acc enter data create(ss.br.zz[:datalen])
+    #pragma acc enter data create(ss.br.xz[:datalen])
+    #pragma acc enter data create(ss.br.yz[:datalen])
+    #pragma acc enter data create(ss.br.xx[:datalen])
+    #pragma acc enter data create(ss.br.xy[:datalen])
+    #pragma acc enter data create(ss.br.yy[:datalen])
+
+    #pragma acc enter data create(rrho[:datalen])
+
 #endif /* end of pragma _OPENACC */
-
     POP_RANGE
 };
 
@@ -300,21 +282,73 @@ void free_memory_shot( coeff_t *c,
 
 #if defined(_OPENACC)
     #pragma acc wait
-    #pragma acc exit data delete(v->tl.u, v->tl.v, v->tl.w) \
-                          delete(v->tr.u, v->tr.v, v->tr.w) \
-                          delete(v->bl.u, v->bl.v, v->bl.w) \
-                          delete(v->br.u, v->br.v, v->br.w) \
-                          delete(s->tl.zz, s->tl.xz, s->tl.yz, s->tl.xx, s->tl.xy, s->tl.yy) \
-                          delete(s->tr.zz, s->tr.xz, s->tr.yz, s->tr.xx, s->tr.xy, s->tr.yy) \
-                          delete(s->bl.zz, s->bl.xz, s->bl.yz, s->bl.xx, s->bl.xy, s->bl.yy) \
-                          delete(s->br.zz, s->br.xz, s->br.yz, s->br.xx, s->br.xy, s->br.yy) \
-                          delete(c->c11, c->c12, c->c13, c->c14, c->c15, c->c16) \
-                          delete(c->c22, c->c23, c->c24, c->c25, c->c26) \
-                          delete(c->c33, c->c34, c->c35, c->c36) \
-                          delete(c->c44, c->c45, c->c46) \
-                          delete(c->c55, c->c56) \
-                          delete(c->c66) \
-                          delete(rho)
+
+    #pragma acc exit data delete(c->c11)
+    #pragma acc exit data delete(c->c12)
+    #pragma acc exit data delete(c->c13)
+    #pragma acc exit data delete(c->c14)
+    #pragma acc exit data delete(c->c15)
+    #pragma acc exit data delete(c->c16)
+    #pragma acc exit data delete(c->c22)
+    #pragma acc exit data delete(c->c23)
+    #pragma acc exit data delete(c->c24)
+    #pragma acc exit data delete(c->c25)
+    #pragma acc exit data delete(c->c26)
+    #pragma acc exit data delete(c->c33)
+    #pragma acc exit data delete(c->c34)
+    #pragma acc exit data delete(c->c35)
+    #pragma acc exit data delete(c->c36)
+    #pragma acc exit data delete(c->c44)
+    #pragma acc exit data delete(c->c45)
+    #pragma acc exit data delete(c->c46)
+    #pragma acc exit data delete(c->c55)
+    #pragma acc exit data delete(c->c56)
+    #pragma acc exit data delete(c->c66)
+    #pragma acc exit data delete(c)
+
+    #pragma acc exit data delete(v->tl.u)
+    #pragma acc exit data delete(v->tl.v)
+    #pragma acc exit data delete(v->tl.w)
+    #pragma acc exit data delete(v->tr.u)
+    #pragma acc exit data delete(v->tr.v)
+    #pragma acc exit data delete(v->tr.w)
+    #pragma acc exit data delete(v->bl.u)
+    #pragma acc exit data delete(v->bl.v)
+    #pragma acc exit data delete(v->bl.w)
+    #pragma acc exit data delete(v->br.u)
+    #pragma acc exit data delete(v->br.v)
+    #pragma acc exit data delete(v->br.w)
+
+
+    #pragma acc exit data delete(s->tl.zz)
+    #pragma acc exit data delete(s->tl.xz)
+    #pragma acc exit data delete(s->tl.yz)
+    #pragma acc exit data delete(s->tl.xx)
+    #pragma acc exit data delete(s->tl.xy)
+    #pragma acc exit data delete(s->tl.yy)
+    #pragma acc exit data delete(s->tr.zz)
+    #pragma acc exit data delete(s->tr.xz)
+    #pragma acc exit data delete(s->tr.yz)
+    #pragma acc exit data delete(s->tr.xx)
+    #pragma acc exit data delete(s->tr.xy)
+    #pragma acc exit data delete(s->tr.yy)
+    #pragma acc exit data delete(s->bl.zz)
+    #pragma acc exit data delete(s->bl.xz)
+    #pragma acc exit data delete(s->bl.yz)
+    #pragma acc exit data delete(s->bl.xx)
+    #pragma acc exit data delete(s->bl.xy)
+    #pragma acc exit data delete(s->bl.yy)
+    #pragma acc exit data delete(s->br.zz)
+    #pragma acc exit data delete(s->br.xz)
+    #pragma acc exit data delete(s->br.yz)
+    #pragma acc exit data delete(s->br.xx)
+    #pragma acc exit data delete(s->br.xy)
+    #pragma acc exit data delete(s->br.yy)
+    #pragma acc exit data delete(s)
+    
+    const real* rrho  = *rho;
+    #pragma acc exit data delete(rrho)
+
 #endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */

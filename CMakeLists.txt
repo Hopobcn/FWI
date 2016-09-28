@@ -114,9 +114,9 @@ if (USE_OPENACC)
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
         set(OpenACC_C_FLAGS "-acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo")
 
-        if (USE_CUDA_KERNELS)
-            find_package(CUDA REQUIRED)
+        find_package(CUDA)
 
+        if (USE_CUDA_KERNELS AND CUDA_FOUND)
             set(CUDA_HOST_COMPILER "gcc")
            # set(CUDA_HOST_COMPILATION_CPP OFF)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
@@ -129,7 +129,6 @@ if (USE_OPENACC)
             add_definitions("-DUSE_CUDA")
             include_directories(${CUDA_INCLUDE_DIR})
 
-
             message(STATUS "--------------------------------------")
             message(STATUS "----[CUDA ENABLED] :                  ")
             message(STATUS "---- CUDA_VERSION:      ${CUDA_VERSION} (${CUDA_VERSION_STRING})")
@@ -140,7 +139,13 @@ if (USE_OPENACC)
             message(STATUS "---- CUDA_HOST_COMPILER: ${CUDA_HOST_COMPILER}")
             message(STATUS "--------------------------------------")
 
-        endif (USE_CUDA_KERNELS)
+        endif (USE_CUDA_KERNELS AND CUDA_FOUND)
+        
+        if (TRACE_CUDA)
+            add_definitions("-DTRACE_CUDA")
+            set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
+        endif (TRACE_CUDA)
+
     elseif( ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") AND
             ( ${CMAKE_C_COMPILER_VERSION} VERSION_GREATER 6.1))
 

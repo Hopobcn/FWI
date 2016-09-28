@@ -5,6 +5,10 @@ add_executable(fwi-tests
     fwi_kernel_tests.c
 )
 
+target_include_directories(fwi-tests PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/test
+)
+
 target_link_libraries(fwi-tests
     fwi-core
     Unity
