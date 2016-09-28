@@ -181,7 +181,7 @@ extern "C"
  *
  * Example:
  */
-/* #define UNITY_FLOAT_PRECISION 0.001f */
+#define UNITY_FLOAT_PRECISION 0.01f 
 /* #define UNITY_DOUBLE_PRECISION 0.001f */
 
 
