@@ -178,6 +178,7 @@ if (USE_OPENMP AND NOT USE_OPENACC)
 else (USE_OPENMP AND NOT USE_OPENACC)
     if (USE_OPENMP)
         message(WARNING "OpenMP disabled since OpenACC is enabled!. Disable OpenACC if you want to compile with OpenMP support.")
+        set(USE_OPENMP FALSE)
     endif (USE_OPENMP)
 endif (USE_OPENMP AND NOT USE_OPENACC)
 
