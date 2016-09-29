@@ -21,4 +21,5 @@ source ../environment_pgi.sh
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
+# estimated elapsed time 2:30 minutes
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt

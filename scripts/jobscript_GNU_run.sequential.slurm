@@ -21,5 +21,5 @@ source ../environment_gcc.sh
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
-# Estimated elapsed time:
+# Estimated elapsed time: 1:30 minutes
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt

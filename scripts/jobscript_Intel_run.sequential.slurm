@@ -21,4 +21,5 @@ source ../environment_icc.sh
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
+# Estimated elapsd time: 1:00 minute
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt
