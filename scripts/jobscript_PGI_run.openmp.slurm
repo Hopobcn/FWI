@@ -16,8 +16,6 @@
 
 ulimit -c unlimited
 
-# This script should be called from the FWI project directory
-
 source ../environment_pgi.sh
 
 # OpenMP num threads and thread affinity:
