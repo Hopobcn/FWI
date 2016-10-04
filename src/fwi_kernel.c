@@ -1082,8 +1082,6 @@ RETURN none
 */
 void exchange_stress_boundaries ( s_t s,
                                   const integer plane_size,
-                                  const integer rank,
-                                  const integer nranks,
                                   const integer nyf,
                                   const integer ny0 )
 {

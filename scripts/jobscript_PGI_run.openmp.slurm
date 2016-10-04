@@ -25,3 +25,5 @@ export MP_BLIST=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
 # estimated elapsed time 5:30 minutes
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
+
+mv fwi.00.log fwi.PGI.omp.${SLURM_JOB_ID}.log

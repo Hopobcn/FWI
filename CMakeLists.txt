@@ -106,6 +106,8 @@ if (USE_MPI)
     message(STATUS "--------------------------------------")
 
     include_directories(${MPI_C_INCLUDE_PATH})
+    add_definitions("-DUSE_MPI")
+
 endif (USE_MPI)
 
 

@@ -23,3 +23,5 @@ export OMP_NUM_THREADS=1
 
 # Estimated elapsd time: 1:00 minute
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt
+
+mv fwi.00.log fwi.Intel.seq.${SLURM_JOB_ID}.log

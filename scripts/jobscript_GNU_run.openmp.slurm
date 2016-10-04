@@ -28,3 +28,5 @@ export OMP_PROC_BIND=true
 
 # Estimated elapsed time: 3:00 minutes
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
+
+mv fwi.00.log fwi.GNU.omp.${SLURM_JOB_ID}.log
