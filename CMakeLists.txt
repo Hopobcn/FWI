@@ -122,12 +122,24 @@ if (USE_OPENACC)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
             set(CUDA_SEPARABLE_COMPILATION OFF)
 
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
+           # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
             set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
             set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
 
             add_definitions("-DUSE_CUDA")
             include_directories(${CUDA_INCLUDE_DIR})
+
+            # list of optimized kernels
+            add_definitions("-DVCELL_TL")
+            add_definitions("-DVCELL_TR")
+            add_definitions("-DVCELL_BR")
+            add_definitions("-DVCELL_BL")
+
+            add_definitions("-DSCELL_TR")
+            add_definitions("-DSCELL_TL")
+            add_definitions("-DSCELL_BR")
+            add_definitions("-DSCELL_BL")
 
             message(STATUS "--------------------------------------")
             message(STATUS "----[CUDA ENABLED] :                  ")
