@@ -300,16 +300,13 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 int execute_simulation( int argc, char* argv[] )
 {
 #if defined(USE_MPI)
-    int mpi_rank   = mpi_get_rank();
-    int local_rank = mpi_get_local_rank();
-
-    //int gpuid = select_gpu_and_pin_proc(mpi_rank, local_rank);
+    int mpi_rank;
 
     int subdomains;
     MPI_Init ( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &subdomains);
     MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
-#elif defined(_OPENACC)
+#elif !defined(USE_MPI) && defined(_OPENACC)
     //TODO: fix name
     int mpi_rank = 0;
 #endif
@@ -319,7 +316,7 @@ int execute_simulation( int argc, char* argv[] )
     int gpuid = mpi_rank % acc_get_num_devices( acc_device_nvidia );
     acc_set_device_num( gpuid, acc_device_nvidia );
     acc_init(acc_device_nvidia);
-    fprintf(stdout, "MPI rank %d with GPU %d\n", mpi_rank, acc_get_device_num(acc_device_nvidia));
+    fprintf(stdout, "MPI rank %d with GPU %d (%d)\n", mpi_rank, acc_get_device_num(acc_device_nvidia), acc_get_num_devices(acc_device_nvidia));
 #endif /*_OPENACC*/
 
 

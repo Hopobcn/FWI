@@ -47,7 +47,7 @@ float stencil_Z_shfl (const int off,
                       const int dimmz,
                       const int dimmx)
 {
-    float current = ptr_gmem[IDX(z+off,x,y,dimmz,dimmx)];
+    float current = (z+off < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off,x,y,dimmz,dimmx)] : 0.0f;
     float right3  = __shfl_down(current, 3);
     float right2  = __shfl_down(current, 2);
     float right1  = __shfl_down(current, 1);
@@ -57,14 +57,14 @@ float stencil_Z_shfl (const int off,
     float left4   = __shfl_up(current, 4);
 
     /* For threads without neighbors: */
-    if (threadIdx.x < 1 /* 1 */) left1 = ptr_gmem[IDX(z+off-1,x,y,dimmz,dimmx)];
-    if (threadIdx.x < 2 /* 2 */) left2 = ptr_gmem[IDX(z+off-2,x,y,dimmz,dimmx)];
-    if (threadIdx.x < 3 /* 3 */) left3 = ptr_gmem[IDX(z+off-3,x,y,dimmz,dimmx)];
-    if (threadIdx.x < 4 /* 4 */) left4 = ptr_gmem[IDX(z+off-4,x,y,dimmz,dimmx)];
+    if (threadIdx.x < 1 /* 1 */) left1 = (z+off-1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off-1,x,y,dimmz,dimmx)] : 0.0f;
+    if (threadIdx.x < 2 /* 2 */) left2 = (z+off-2 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off-2,x,y,dimmz,dimmx)] : 0.0f;
+    if (threadIdx.x < 3 /* 3 */) left3 = (z+off-3 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off-3,x,y,dimmz,dimmx)] : 0.0f;
+    if (threadIdx.x < 4 /* 4 */) left4 = (z+off-4 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off-4,x,y,dimmz,dimmx)] : 0.0f;
 
-    if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = ptr_gmem[IDX(z+off+1,x,y,dimmz,dimmx)];
-    if (threadIdx.x >= BDIMX-2 /* 2 */) right2 = ptr_gmem[IDX(z+off+2,x,y,dimmz,dimmx)];
-    if (threadIdx.x >= BDIMX-3 /* 3 */) right3 = ptr_gmem[IDX(z+off+3,x,y,dimmz,dimmx)];
+    if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = (z+off+1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off+1,x,y,dimmz,dimmx)] : 0.0f;
+    if (threadIdx.x >= BDIMX-2 /* 2 */) right2 = (z+off+1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off+2,x,y,dimmz,dimmx)] : 0.0f;
+    if (threadIdx.x >= BDIMX-3 /* 3 */) right3 = (z+off+1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off+3,x,y,dimmz,dimmx)] : 0.0f;
 
     return  ((C0 * ( current - left1) +
               C1 * ( right1  - left2) +
@@ -105,7 +105,7 @@ float stencil_X_smem(const int off,
                      const int dimmz,
                      const int dimmx)
 {
-    __syncthreads();
+    //__syncthreads();
     const int tx = threadIdx.x;
     const int ty = threadIdx.y+HALO;
     ///////////// intra-block communication///////////////////
@@ -154,6 +154,24 @@ float rho_BL (const float* __restrict__ rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z+1,x,y,dimmz,dimmx)]));
 };
 
+template <const int BDIMX>
+__device__ inline
+float rho_BL_shfl (const float* __restrict__ ptr_gmem,
+                   const int z,
+                   const int x,
+                   const int y,
+                   const int dimmz,
+                   const int dimmx)
+{
+    float current = (z<dimmz && x<dimmx) ? ptr_gmem[IDX(z,x,y,dimmz,dimmx)] : 0.0f;
+    float right1  = __shfl_down(current, 1);
+
+    /* For threads without neighbors: */
+    if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = (z+1<dimmz && x<dimmx) ? ptr_gmem[IDX(z+1,x,y,dimmz,dimmx)] : 0.0f;
+
+    return (2.0f / (current + right1));
+};
+
 __device__ inline
 float rho_TR (const float* __restrict__ rho,
               const int z,
@@ -164,6 +182,32 @@ float rho_TR (const float* __restrict__ rho,
 {
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x+1,y,dimmz,dimmx)]));
 };
+
+template <const int BDIMX,
+          const int BDIMY>
+__device__ inline
+float rho_TR_smem (      float rho_smem[BDIMY+1][BDIMX],
+                   const float* __restrict__ rho_gmem,
+                   const int z,
+                   const int x,
+                   const int y,
+                   const int dimmz,
+                   const int dimmx)
+{
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+
+    rho_smem[ty][tx] = (z<dimmz && x<dimmx) ? rho_gmem[IDX(z,x,y,dimmz,dimmx)] : 0.0f;
+
+    /* For threads without neighbors: */
+    if (ty < 1)
+        rho_smem[ty+BDIMY][tx] = (z<dimmz && x+BDIMY<dimmx) ? rho_gmem[IDX(z,x+BDIMY,y,dimmz,dimmx)] : 0.0f;
+
+    __syncthreads();
+    
+    return (2.0f / (rho_smem[ty][tx] + rho_smem[ty+1][tx]));
+};
+
 
 __device__ inline
 float rho_BR (const float* __restrict__ rho,
@@ -183,6 +227,42 @@ float rho_BR (const float* __restrict__ rho,
                      rho[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
 };
 
+template <const int BDIMX,
+          const int BDIMY>
+__device__ inline
+float rho_BR_smem (      float rho_smem[BDIMY+1][BDIMX+1],
+                   const float* __restrict__ rho_gmem,
+                   const float rho_current,
+                   const float rho_front1,
+                   const int z,
+                   const int x,
+                   const int y,
+                   const int dimmz,
+                   const int dimmx)
+{
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+
+    rho_smem[ty][tx] = (z<dimmz && x<dimmx) ? rho_gmem[IDX(z,x,y,dimmz,dimmx)] : 0.0f;
+    
+    /* For threads without neighbors: */
+    if (ty < 1)
+        rho_smem[ty+BDIMY][tx      ] = (z<dimmz && x+BDIMY<dimmx) ? rho_gmem[IDX(z,x+BDIMY,y,dimmz,dimmx)] : 0.0f;
+    if (tx < 1)
+        rho_smem[ty      ][tx+BDIMX] = (z+BDIMX<dimmz && x<dimmx) ? rho_gmem[IDX(z+BDIMX,x,y,dimmz,dimmx)] : 0.0f;
+    
+    __syncthreads();
+   
+    return (8.0f/ ( rho_current                            +
+                    rho_smem[ty  ][tx+1]                   +
+                    rho_smem[ty+1][tx  ]                   +
+                    rho_front1                             +
+                    rho_gmem[IDX(z  ,x+1,y+1,dimmz,dimmx)] +
+                    rho_gmem[IDX(z+1,x+1,y  ,dimmz,dimmx)] +
+                    rho_gmem[IDX(z+1,x  ,y+1,dimmz,dimmx)] +
+                    rho_gmem[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
+};
+
 __device__ inline
 float rho_TL (const float* __restrict__ rho,
               const int z,
@@ -195,9 +275,11 @@ float rho_TL (const float* __restrict__ rho,
 };
 
 #ifdef VCELL_TL
-template <const int HALO = 4, 
-          const int BLOCK_DIM_X = 32,
-          const int BLOCK_DIM_Y = 4>
+template <const int HALO  = 4, 
+          const int BDIMX = 32,
+          const int BDIMY = 4,
+          const int NX    = BDIMX+2*HALO,
+          const int NY    = BDIMY+2*HALO>
 __global__
 __launch_bounds__(128, 16) 
 void compute_component_vcell_TL_cuda_k ( float* __restrict__ vptr,
@@ -221,97 +303,61 @@ void compute_component_vcell_TL_cuda_k ( float* __restrict__ vptr,
                                    const int             dimmz,
                                    const int             dimmx)
 {
-    for(int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
-            z < nzf; 
-            z += gridDim.x * blockDim.x)
+    int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
+    int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
+    
+    // WARNING: We can't predicate threads that fall outside of the [nz0:nzf][nx0:nxf] range because
+    //          we use COLLECTIVE operations like SHUFFLE & SHARED.
+    //          PREVENT incorrect GMEM memory access by checking boundaries at every access
+
+    __shared__ float sx_smem[NY][NX];
+    float sy_front1, sy_front2, sy_front3;
+    float sy_back1, sy_back2, sy_back3, sy_back4;
+    float sy_current;
+
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+
+    float rho_current, rho_front1;
+    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ny0,dimmz,dimmx)] : 0.0f;
+
+    for(int y = ny0; 
+            y < nyf; 
+            y++)
     {
-        for(int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-                x < nxf; 
-                x += gridDim.y * blockDim.y)
+        /////////// register tiling-advance plane ////////////////
+        sy_back4   = sy_back3;
+        sy_back3   = sy_back2;
+        sy_back2   = sy_back1;
+        sy_back1   = sy_current;
+        sy_current = sy_front1;
+        sy_front1  = sy_front2;
+        sy_front2  = sy_front3;
+        sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,y+SY+HALO-1,dimmz,dimmx)] : 0.0f;
+        ///////////////////////
+        rho_current = rho_front1;
+        rho_front1  = (z<dimmz && x<dimmx) ? rho[IDX(z,x,y+1,dimmz,dimmx)] : 0.0f;
+        //////////////////////////////////////////////////////////
+
+        const float lrho = (2.0f / (rho_current + rho_front1));
+
+        const float stz = stencil_Z_shfl <HALO,BDIMX> (SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+        
+        const float stx = stencil_X_smem <NX,NY,HALO,BDIMY> (SX, sx_smem, sxptr, dxi, z, x, y, dimmz, dimmx);
+
+        const float sty = ((C0 * ( sy_current - sy_back1 ) +
+                            C1 * ( sy_front1  - sy_back2 ) +
+                            C2 * ( sy_front2  - sy_back3 ) +
+                            C3 * ( sy_front3  - sy_back4 )) * dyi );
+    
+        if (z < nzf && x < nxf)
         {
-            __shared__ float sx_smem[BLOCK_DIM_Y][BLOCK_DIM_X+2*HALO];
-            float sy_front1, sy_front2, sy_front3, sy_front4;
-            float sy_back1, sy_back2, sy_back3, sy_back4;
-            float sy_current;
-
-            sy_back3   = syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)];
-            sy_back2   = syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)];
-            sy_back1   = syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)];
-            sy_current = syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)];
-            sy_front1  = syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)];
-            sy_front2  = syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)];
-            sy_front3  = syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)];
-            sy_front4  = syptr[IDX(z,x,ny0-HALO+7+SY,dimmz,dimmx)];
-
-            float rho_current, rho_front1;
-            rho_front1 = rho[IDX(z,x,ny0,dimmz,dimmx)];
-
-            for(int y = ny0; 
-                    y < nyf; 
-                    y++)
-            {
-                /////////// register tiling-advance plane ////////////////
-                sy_back4   = sy_back3;
-                sy_back3   = sy_back2;
-                sy_back2   = sy_back1;
-                sy_back1   = sy_current;
-                sy_current = sy_front1;
-                sy_front1  = sy_front2;
-                sy_front2  = sy_front3;
-                sy_front3  = sy_front4;
-                sy_front4  = syptr[IDX(z,x,y+SY+HALO,dimmz,dimmx)];
-                ///////////////////////
-                rho_current = rho_front1;
-                rho_front1  = rho[IDX(z,x,y+1,dimmz,dimmx)];
-                //////////////////////////////////////////////////////////
-
-                const int tx = threadIdx.x+HALO;
-                const int ty = threadIdx.y;
-                ///////////// intra-block communication///////////////////
-                sx_smem[ty][tx] = sxptr[IDX(z,x+SX,y,dimmz,dimmx)];
-                //if (threadIdx.y < HALO)
-                //{
-                //    sx_smem[threadIdx.y                 ][tx] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                //    sx_smem[threadIdx.y+BLOCK_DIM_Y+HALO][tx] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                //}
-                if (threadIdx.x < HALO)
-                {
-                    sx_smem[ty][threadIdx.x                 ] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                    sx_smem[ty][threadIdx.x+BLOCK_DIM_X+HALO] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                }
-                /////////////////////////////////////////////////////////
-                
-                ///////////// intra-warp communication /////////////////
-                float sz_current = szptr[IDX(z+SZ,x,y,dimmz,dimmx)];
-                float sz_front3 = __shfl_up(sz_current, 3);
-                float sz_front2 = __shfl_up(sz_current, 2);
-                float sz_front1 = __shfl_up(sz_current, 1);
-                float sz_back1  = __shfl_down(sz_current, 1);
-                float sz_back2  = __shfl_down(sz_current, 2);
-                float sz_back3  = __shfl_down(sz_current, 3);
-                float sz_back4  = __shfl_down(sz_current, 4);
-                ////////////////////////////////////////////////////////
-                __syncthreads();
-
-                const float lrho = (2.0f / (rho_current + rho_front1));
-
-                const float stz = ((C0 * ( sz_current - sz_back1 ) +
-                                    C1 * ( sz_front1  - sz_back2 ) +
-                                    C2 * ( sz_front2  - sz_back3 ) +
-                                    C3 * ( sz_front3  - sz_back4 )) * dzi );
-                
-                const float stx = ((C0 * ( sx_smem[ty][tx  ] - sx_smem[ty][tx-1] ) +
-                                    C1 * ( sx_smem[ty][tx+1] - sx_smem[ty][tx-2] ) +
-                                    C2 * ( sx_smem[ty][tx+2] - sx_smem[ty][tx-3] ) +
-                                    C3 * ( sx_smem[ty][tx+3] - sx_smem[ty][tx-4] )) * dxi );
-
-                const float sty = ((C0 * ( sy_current - sy_back1 ) +
-                                    C1 * ( sy_front1  - sy_back2 ) +
-                                    C2 * ( sy_front2  - sy_back3 ) +
-                                    C3 * ( sy_front3  - sy_back4 )) * dyi );
-
-                vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
-            }
+            vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
         }
     }
 }
@@ -409,10 +455,12 @@ void compute_component_vcell_TL_cuda ( float* vptr,
 };
 
 
-#ifdef OPTIMIZED
-template <const int HALO = 4, 
-          const int BLOCK_DIM_X = 16,
-          const int BLOCK_DIM_Y = 16>
+#ifdef VCELL_TR
+template <const int HALO  = 4, 
+          const int BDIMX = 32,
+          const int BDIMY = 4,
+          const int NX    = BDIMX+2*HALO,
+          const int NY    = BDIMY+2*HALO>
 __global__
 __launch_bounds__(128, 16) 
 void compute_component_vcell_TR_cuda_k ( float* __restrict__ vptr,
@@ -436,98 +484,57 @@ void compute_component_vcell_TR_cuda_k ( float* __restrict__ vptr,
                                    const int             dimmz,
                                    const int             dimmx)
 {
-    for(int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
-            z < nzf; 
-            z += gridDim.x * blockDim.x)
+    int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
+    int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
+    
+    // WARNING: We can't predicate threads that fall outside of the [nz0:nzf][nx0:nxf] range because
+    //          we use COLLECTIVE operations like SHUFFLE & SHARED.
+    //          PREVENT incorrect GMEM memory access by checking boundaries at every access
+
+    __shared__ float sx_smem[NY][NX];
+    float sy_front1, sy_front2, sy_front3;
+    float sy_back1, sy_back2, sy_back3, sy_back4;
+    float sy_current;
+
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+
+    __shared__ float rho_smem[BDIMY+1][BDIMX];
+
+    for(int y = ny0; 
+            y < nyf; 
+            y++)
     {
-        for(int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-                x < nxf; 
-                x += gridDim.y * blockDim.y)
+        /////////// register tiling-advance plane ////////////////
+        sy_back4   = sy_back3;
+        sy_back3   = sy_back2;
+        sy_back2   = sy_back1;
+        sy_back1   = sy_current;
+        sy_current = sy_front1;
+        sy_front1  = sy_front2;
+        sy_front2  = sy_front3;
+        sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,y+SY+HALO-1,dimmz,dimmx)] : 0.0f;
+        //////////////////////////////////////////////////////////
+
+        const float lrho = rho_TR_smem <BDIMX,BDIMY> (rho_smem, rho, z, x, y, dimmz, dimmx);
+
+        const float stz = stencil_Z_shfl <HALO,BDIMX> (SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+        
+        const float stx = stencil_X_smem <NX,NY,HALO,BDIMY> (SX, sx_smem, sxptr, dxi, z, x, y, dimmz, dimmx);
+
+        const float sty = ((C0 * ( sy_current - sy_back1 ) +
+                            C1 * ( sy_front1  - sy_back2 ) +
+                            C2 * ( sy_front2  - sy_back3 ) +
+                            C3 * ( sy_front3  - sy_back4 )) * dyi );
+        
+        if (z < nzf && x < nxf)
         {
-            __shared__ float sx_smem[BLOCK_DIM_Y][BLOCK_DIM_X+2*HALO];
-            float sy_front1, sy_front2, sy_front3, sy_front4;
-            float sy_back1, sy_back2, sy_back3, sy_back4;
-            float sy_current;
-
-            sy_back3   = syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)];
-            sy_back2   = syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)];
-            sy_back1   = syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)];
-            sy_current = syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)];
-            sy_front1  = syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)];
-            sy_front2  = syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)];
-            sy_front3  = syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)];
-            sy_front4  = syptr[IDX(z,x,ny0-HALO+7+SY,dimmz,dimmx)];
-
-            __shared__ float rho_smem[BLOCK_DIM_Y+1][BLOCK_DIM_X];
-
-            for(int y = ny0; 
-                    y < nyf; 
-                    y++)
-            {
-                /////////// register tiling-advance plane ////////////////
-                sy_back4   = sy_back3;
-                sy_back3   = sy_back2;
-                sy_back2   = sy_back1;
-                sy_back1   = sy_current;
-                sy_current = sy_front1;
-                sy_front1  = sy_front2;
-                sy_front2  = sy_front3;
-                sy_front3  = sy_front4;
-                sy_front4  = syptr[IDX(z,x,y+SY+HALO,dimmz,dimmx)];
-                //////////////////////////////////////////////////////////
-
-                const int tx = threadIdx.x+HALO;
-                const int ty = threadIdx.y;
-                ///////////// intra-block communication///////////////////
-                sx_smem[ty][tx] = sxptr[IDX(z,x+SX,y,dimmz,dimmx)];
-                //if (threadIdx.y < HALO)
-                //{
-                //    sx_smem[threadIdx.y                 ][tx] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                //    sx_smem[threadIdx.y+BLOCK_DIM_Y+HALO][tx] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                //}
-                if (threadIdx.x < HALO)
-                {
-                    sx_smem[ty][threadIdx.x                 ] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                    sx_smem[ty][threadIdx.x+BLOCK_DIM_X+HALO] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                }
-                /////////////////////////////////////////////////////////
-                rho_smem[ty][threadIdx.x] = rho[IDX(z,x,y,dimmz,dimmx)];
-                if (threadIdx.y < 1)
-                {
-                    rho_smem[ty+BLOCK_DIM_Y+1][threadIdx.x] = rho[IDX(z,x+1,y,dimmz,dimmx)];
-                }
-                /////////////////////////////////////////////////////////
-                ///////////// intra-warp communication /////////////////
-                float sz_current = szptr[IDX(z+SZ,x,y,dimmz,dimmx)];
-                float sz_front3 = __shfl_up(sz_current, 3);
-                float sz_front2 = __shfl_up(sz_current, 2);
-                float sz_front1 = __shfl_up(sz_current, 1);
-                float sz_back1  = __shfl_down(sz_current, 1);
-                float sz_back2  = __shfl_down(sz_current, 2);
-                float sz_back3  = __shfl_down(sz_current, 3);
-                float sz_back4  = __shfl_down(sz_current, 4);
-                ////////////////////////////////////////////////////////
-                __syncthreads();
-
-                const float lrho = (2.0f / (rho_smem[ty][threadIdx.x] + rho_smem[ty+1][threadIdx.x]));
-
-                const float stz = ((C0 * ( sz_current - sz_back1 ) +
-                                    C1 * ( sz_front1  - sz_back2 ) +
-                                    C2 * ( sz_front2  - sz_back3 ) +
-                                    C3 * ( sz_front3  - sz_back4 )) * dzi );
-                
-                const float stx = ((C0 * ( sx_smem[ty][tx  ] - sx_smem[ty][tx-1] ) +
-                                    C1 * ( sx_smem[ty][tx+1] - sx_smem[ty][tx-2] ) +
-                                    C2 * ( sx_smem[ty][tx+2] - sx_smem[ty][tx-3] ) +
-                                    C3 * ( sx_smem[ty][tx+3] - sx_smem[ty][tx-4] )) * dxi );
-
-                const float sty = ((C0 * ( sy_current - sy_back1 ) +
-                                    C1 * ( sy_front1  - sy_back2 ) +
-                                    C2 * ( sy_front2  - sy_back3 ) +
-                                    C3 * ( sy_front3  - sy_back4 )) * dyi );
-
-                vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
-            }
+            vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
         }
     }
 }
@@ -612,7 +619,7 @@ void compute_component_vcell_TR_cuda ( float* vptr,
 
     cudaStream_t s = (cudaStream_t) stream;
 
-#ifdef OPTIMIZED
+#ifdef VCELL_TR
     compute_component_vcell_TR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -625,10 +632,12 @@ void compute_component_vcell_TR_cuda ( float* vptr,
 };
 
 
-#ifdef OPTIMIZED
-template <const int HALO = 4, 
-          const int BLOCK_DIM_X = 16,
-          const int BLOCK_DIM_Y = 16>
+#ifdef VCELL_BR
+template <const int HALO  = 4, 
+          const int BDIMX = 32,
+          const int BDIMY = 4,
+          const int NX    = BDIMX+2*HALO,
+          const int NY    = BDIMY+2*HALO>
 __global__
 __launch_bounds__(128, 16) 
 void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
@@ -652,111 +661,58 @@ void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
                                    const int             dimmz,
                                    const int             dimmx)
 {
-    for(int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
-            z < nzf; 
-            z += gridDim.x * blockDim.x)
+    int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
+    int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
+    
+    __shared__ float sx_smem[NY][NX];
+    float sy_front1, sy_front2, sy_front3;
+    float sy_back1, sy_back2, sy_back3, sy_back4;
+    float sy_current;
+
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+
+    __shared__ float rho_smem[BDIMY+1][BDIMX+1];
+    float rho_current, rho_front1;
+    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ny0,dimmz,dimmx)] : 0.0f;
+
+    for(int y = ny0; 
+            y < nyf; 
+            y++)
     {
-        for(int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-                x < nxf; 
-                x += gridDim.y * blockDim.y)
+        /////////// register tiling-advance plane ////////////////
+        sy_back4   = sy_back3;
+        sy_back3   = sy_back2;
+        sy_back2   = sy_back1;
+        sy_back1   = sy_current;
+        sy_current = sy_front1;
+        sy_front1  = sy_front2;
+        sy_front2  = sy_front3;
+        sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,y+SY+HALO-1,dimmz,dimmx)] : 0.0f;
+        ///////////////////////
+        rho_current = rho_front1;
+        rho_front1  = (z<dimmz && x<dimmx) ? rho[IDX(z,x,y+1,dimmz,dimmx)] : 0.0f;
+        //////////////////////////////////////////////////////////
+
+        const float lrho = rho_BR_smem <BDIMX,BDIMY> (rho_smem, rho, rho_current, rho_front1, z, x, y, dimmz, dimmx);
+        
+        const float stz = stencil_Z_shfl <HALO,BDIMX> (SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+
+        const float stx = stencil_X_smem <NX,NY,HALO,BDIMY> (SX, sx_smem, sxptr, dxi, z, x, y, dimmz, dimmx);
+
+        const float sty = ((C0 * ( sy_current - sy_back1 ) +
+                            C1 * ( sy_front1  - sy_back2 ) +
+                            C2 * ( sy_front2  - sy_back3 ) +
+                            C3 * ( sy_front3  - sy_back4 )) * dyi );
+
+        if (z < nzf && x < nxf)
         {
-            __shared__ float sx_smem[BLOCK_DIM_Y][BLOCK_DIM_X+2*HALO];
-            float sy_front1, sy_front2, sy_front3, sy_front4;
-            float sy_back1, sy_back2, sy_back3, sy_back4;
-            float sy_current;
-
-            sy_back3   = syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)];
-            sy_back2   = syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)];
-            sy_back1   = syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)];
-            sy_current = syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)];
-            sy_front1  = syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)];
-            sy_front2  = syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)];
-            sy_front3  = syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)];
-            sy_front4  = syptr[IDX(z,x,ny0-HALO+7+SY,dimmz,dimmx)];
-
-            __shared__ float rho_smem[BLOCK_DIM_Y+1][BLOCK_DIM_X+1];
-            float rho_current, rho_front1;
-            rho_front1 = rho[IDX(z,x,ny0,dimmz,dimmx)];
-
-            for(int y = ny0; 
-                    y < nyf; 
-                    y++)
-            {
-                /////////// register tiling-advance plane ////////////////
-                sy_back4   = sy_back3;
-                sy_back3   = sy_back2;
-                sy_back2   = sy_back1;
-                sy_back1   = sy_current;
-                sy_current = sy_front1;
-                sy_front1  = sy_front2;
-                sy_front2  = sy_front3;
-                sy_front3  = sy_front4;
-                sy_front4  = syptr[IDX(z,x,y+SY+HALO,dimmz,dimmx)];
-                ///////////////////////
-                rho_current = rho_front1;
-                rho_front1  = rho[IDX(z,x,y+1,dimmz,dimmx)];
-                //////////////////////////////////////////////////////////
-
-                const int tx = threadIdx.x+HALO;
-                const int ty = threadIdx.y;
-                ///////////// intra-block communication///////////////////
-                sx_smem[ty][tx] = sxptr[IDX(z,x+SX,y,dimmz,dimmx)];
-                //if (threadIdx.y < HALO)
-                //{
-                //    sx_smem[threadIdx.y                 ][tx] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                //    sx_smem[threadIdx.y+BLOCK_DIM_Y+HALO][tx] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                //}
-                if (threadIdx.x < HALO)
-                {
-                    sx_smem[ty][threadIdx.x                 ] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                    sx_smem[ty][threadIdx.x+BLOCK_DIM_X+HALO] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                }
-                /////////////////////////////////////////////////////////
-                rho_smem[ty][threadIdx.x] = rho[IDX(z,x,y,dimmz,dimmx)];
-                if (threadIdx.y < 1)
-                    rho_smem[ty+BLOCK_DIM_Y+1][threadIdx.x              ] = rho[IDX(z,x+BLOCK_DIM_Y+1,y,dimmz,dimmx)];
-                if (threadIdx.x < 1)
-                    rho_smem[ty              ][threadIdx.x+BLOCK_DIM_X+1] = rho[IDX(z+BLOCK_DIM_X+1,x,y,dimmz,dimmx)];
-                /////////////////////////////////////////////////////////
-                
-                ///////////// intra-warp communication /////////////////
-                float sz_current = szptr[IDX(z+SZ,x,y,dimmz,dimmx)];
-                float sz_front3 = __shfl_up(sz_current, 3);
-                float sz_front2 = __shfl_up(sz_current, 2);
-                float sz_front1 = __shfl_up(sz_current, 1);
-                float sz_back1  = __shfl_down(sz_current, 1);
-                float sz_back2  = __shfl_down(sz_current, 2);
-                float sz_back3  = __shfl_down(sz_current, 3);
-                float sz_back4  = __shfl_down(sz_current, 4);
-                ////////////////////////////////////////////////////////
-                __syncthreads();
-
-                const float lrho = (8.0f/ ( rho_current                       +
-                                            rho_smem[ty  ][threadIdx.x+1]     +
-                                            rho_smem[ty+1][threadIdx.x  ]     +
-                                            rho_front1                        +
-                                            rho[IDX(z  ,x+1,y+1,dimmz,dimmx)] +
-                                            rho[IDX(z+1,x+1,y  ,dimmz,dimmx)] +
-                                            rho[IDX(z+1,x  ,y+1,dimmz,dimmx)] +
-                                            rho[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
-
-                const float stz = ((C0 * ( sz_current - sz_back1 ) +
-                                    C1 * ( sz_front1  - sz_back2 ) +
-                                    C2 * ( sz_front2  - sz_back3 ) +
-                                    C3 * ( sz_front3  - sz_back4 )) * dzi );
-                
-                const float stx = ((C0 * ( sx_smem[ty][tx  ] - sx_smem[ty][tx-1] ) +
-                                    C1 * ( sx_smem[ty][tx+1] - sx_smem[ty][tx-2] ) +
-                                    C2 * ( sx_smem[ty][tx+2] - sx_smem[ty][tx-3] ) +
-                                    C3 * ( sx_smem[ty][tx+3] - sx_smem[ty][tx-4] )) * dxi );
-
-                const float sty = ((C0 * ( sy_current - sy_back1 ) +
-                                    C1 * ( sy_front1  - sy_back2 ) +
-                                    C2 * ( sy_front2  - sy_back3 ) +
-                                    C3 * ( sy_front3  - sy_back4 )) * dyi );
-
-                vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
-            }
+            vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
         }
     }
 }
@@ -841,7 +797,7 @@ void compute_component_vcell_BR_cuda ( float* vptr,
 
     cudaStream_t s = (cudaStream_t) stream;
 
-#ifdef OPTIMIZED
+#ifdef VCELL_BR
     compute_component_vcell_BR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -853,10 +809,12 @@ void compute_component_vcell_BR_cuda ( float* vptr,
     CUDA_CHECK(cudaGetLastError());
 };
 
-#ifdef OPTIMIZED
-template <const int HALO = 4, 
-          const int BLOCK_DIM_X = 16,
-          const int BLOCK_DIM_Y = 16>
+#ifdef VCELL_BL
+template <const int HALO  = 4, 
+          const int BDIMX = 32,
+          const int BDIMY = 4,
+          const int NX    = BDIMX+2*HALO,
+          const int NY    = BDIMY+2*HALO>
 __global__
 __launch_bounds__(128, 16) 
 void compute_component_vcell_BL_cuda_k ( float* __restrict__ vptr,
@@ -880,94 +838,51 @@ void compute_component_vcell_BL_cuda_k ( float* __restrict__ vptr,
                                    const int             dimmz,
                                    const int             dimmx)
 {
-    for(int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
-            z < nzf; 
-            z += gridDim.x * blockDim.x)
+    int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
+    int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
+    
+    __shared__ float sx_smem[NY][NX];
+    float sy_front1, sy_front2, sy_front3;
+    float sy_back1, sy_back2, sy_back3, sy_back4;
+    float sy_current;
+
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+
+    for(int y = ny0; 
+            y < nyf; 
+            y++)
     {
-        for(int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-                x < nxf; 
-                x += gridDim.y * blockDim.y)
+        /////////// register tiling-advance plane ////////////////
+        sy_back4   = sy_back3;
+        sy_back3   = sy_back2;
+        sy_back2   = sy_back1;
+        sy_back1   = sy_current;
+        sy_current = sy_front1;
+        sy_front1  = sy_front2;
+        sy_front2  = sy_front3;
+        sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,y+SY+HALO-1,dimmz,dimmx)] : 0.0f;
+        //////////////////////////////////////////////////////////
+        
+        const float lrho = rho_BL_shfl <BDIMX> (rho, z, x, y, dimmz, dimmx);
+
+        const float stz = stencil_Z_shfl <HALO,BDIMX> (SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+
+        const float stx = stencil_X_smem <NX,NY,HALO,BDIMY> (SX, sx_smem, sxptr, dxi, z, x, y, dimmz, dimmx);
+
+        const float sty = ((C0 * ( sy_current - sy_back1 ) +
+                            C1 * ( sy_front1  - sy_back2 ) +
+                            C2 * ( sy_front2  - sy_back3 ) +
+                            C3 * ( sy_front3  - sy_back4 )) * dyi );
+
+        if (z < nzf && x < nxf)
         {
-            __shared__ float sx_smem[BLOCK_DIM_Y][BLOCK_DIM_X+2*HALO];
-            float sy_front1, sy_front2, sy_front3, sy_front4;
-            float sy_back1, sy_back2, sy_back3, sy_back4;
-            float sy_current;
-
-            sy_back3   = syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)];
-            sy_back2   = syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)];
-            sy_back1   = syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)];
-            sy_current = syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)];
-            sy_front1  = syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)];
-            sy_front2  = syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)];
-            sy_front3  = syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)];
-            sy_front4  = syptr[IDX(z,x,ny0-HALO+7+SY,dimmz,dimmx)];
-
-            for(int y = ny0; 
-                    y < nyf; 
-                    y++)
-            {
-                /////////// register tiling-advance plane ////////////////
-                sy_back4   = sy_back3;
-                sy_back3   = sy_back2;
-                sy_back2   = sy_back1;
-                sy_back1   = sy_current;
-                sy_current = sy_front1;
-                sy_front1  = sy_front2;
-                sy_front2  = sy_front3;
-                sy_front3  = sy_front4;
-                sy_front4  = syptr[IDX(z,x,y+SY+HALO,dimmz,dimmx)];
-                //////////////////////////////////////////////////////////
-
-                const int tx = threadIdx.x+HALO;
-                const int ty = threadIdx.y;
-                ///////////// intra-block communication///////////////////
-                sx_smem[ty][tx] = sxptr[IDX(z,x+SX,y,dimmz,dimmx)];
-                //if (threadIdx.y < HALO)
-                //{
-                //    sx_smem[threadIdx.y                 ][tx] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                //    sx_smem[threadIdx.y+BLOCK_DIM_Y+HALO][tx] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                //}
-                if (threadIdx.x < HALO)
-                {
-                    sx_smem[ty][threadIdx.x                 ] = sxptr[IDX(z,x+SX-HALO,       y,dimmz,dimmx)];
-                    sx_smem[ty][threadIdx.x+BLOCK_DIM_X+HALO] = sxptr[IDX(z,x+SX+BLOCK_DIM_X,y,dimmz,dimmx)];
-                }
-                /////////////////////////////////////////////////////////
-                
-                ///////////// intra-warp communication /////////////////
-                float sz_current = szptr[IDX(z+SZ,x,y,dimmz,dimmx)];
-                float sz_front3 = __shfl_up(sz_current, 3);
-                float sz_front2 = __shfl_up(sz_current, 2);
-                float sz_front1 = __shfl_up(sz_current, 1);
-                float sz_back1  = __shfl_down(sz_current, 1);
-                float sz_back2  = __shfl_down(sz_current, 2);
-                float sz_back3  = __shfl_down(sz_current, 3);
-                float sz_back4  = __shfl_down(sz_current, 4);
-                ////////////////////////////////////////////////////////
-                float rho_current  = rho[IDX(z,x,y,dimmz,dimmx)];
-                float rho_front1   = __shfl_up(rho_current, 1);
-                ////////////////////////////////////////////////////////
-                __syncthreads();
-
-                const float lrho = (2.0f / (rho_current + rho_front1));
-
-                const float stz = ((C0 * ( sz_current - sz_back1 ) +
-                                    C1 * ( sz_front1  - sz_back2 ) +
-                                    C2 * ( sz_front2  - sz_back3 ) +
-                                    C3 * ( sz_front3  - sz_back4 )) * dzi );
-                
-                const float stx = ((C0 * ( sx_smem[ty][tx  ] - sx_smem[ty][tx-1] ) +
-                                    C1 * ( sx_smem[ty][tx+1] - sx_smem[ty][tx-2] ) +
-                                    C2 * ( sx_smem[ty][tx+2] - sx_smem[ty][tx-3] ) +
-                                    C3 * ( sx_smem[ty][tx+3] - sx_smem[ty][tx-4] )) * dxi );
-
-                const float sty = ((C0 * ( sy_current - sy_back1 ) +
-                                    C1 * ( sy_front1  - sy_back2 ) +
-                                    C2 * ( sy_front2  - sy_back3 ) +
-                                    C3 * ( sy_front3  - sy_back4 )) * dyi );
-
-                vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
-            }
+            vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
         }
     }
 }
@@ -1052,7 +967,7 @@ void compute_component_vcell_BL_cuda ( float* vptr,
 
     cudaStream_t s = (cudaStream_t) stream;
 
-#ifdef OPTIMIZED
+#ifdef VCELL_BL
     compute_component_vcell_BL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);

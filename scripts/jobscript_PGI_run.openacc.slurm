@@ -18,4 +18,7 @@ ulimit -c unlimited
 
 source ../environment_pgi.sh
 
+# estimated elapsed time 30 seconds
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
+
+mv fwi.00.log fwi.PGI.acc.${SLURM_JOB_ID}.log

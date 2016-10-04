@@ -681,25 +681,26 @@ void compute_component_scell_TR (s_t             s,
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11, cc12, cc13, cc14, cc15, cc16)             \
-                        present(cc22, cc23, cc24, cc25, cc26)                   \
-                        present(cc33, cc34, cc35, cc36)                         \
-                        present(cc44, cc45, cc46)                               \
-                        present(cc55, cc56)                                     \
-                        present(cc66)                                           \
-                        async(phase)
+                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
+                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
+                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
+                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
+                        present(cc55[start:nelems], cc56[start:nelems])                                     \
+                        present(cc66[start:nelems])                                           \
+                        async(phase) 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32)
+            #pragma acc loop independent device_type(nvidia) gang vector(32)
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -840,25 +841,26 @@ void compute_component_scell_TL (s_t             s,
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11, cc12, cc13, cc14, cc15, cc16)             \
-                        present(cc22, cc23, cc24, cc25, cc26)                   \
-                        present(cc33, cc34, cc35, cc36)                         \
-                        present(cc44, cc45, cc46)                               \
-                        present(cc55, cc56)                                     \
-                        present(cc66)                                           \
-                        async(phase)
+                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
+                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
+                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
+                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
+                        present(cc55[start:nelems], cc56[start:nelems])                                     \
+                        present(cc66[start:nelems])                                           \
+                        async(phase) 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent device_type(nvidia) gang vector(32) 
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif
@@ -1000,25 +1002,26 @@ void compute_component_scell_BR (s_t             s,
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11, cc12, cc13, cc14, cc15, cc16)             \
-                        present(cc22, cc23, cc24, cc25, cc26)                   \
-                        present(cc33, cc34, cc35, cc36)                         \
-                        present(cc44, cc45, cc46)                               \
-                        present(cc55, cc56)                                     \
-                        present(cc66)                                           \
+                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
+                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
+                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
+                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
+                        present(cc55[start:nelems], cc56[start:nelems])                                     \
+                        present(cc66[start:nelems])                                           \
                         async(phase) 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent device_type(nvidia) gang vector(32) 
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif
@@ -1160,25 +1163,26 @@ void compute_component_scell_BL (s_t             s,
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11, cc12, cc13, cc14, cc15, cc16)             \
-                        present(cc22, cc23, cc24, cc25, cc26)                   \
-                        present(cc33, cc34, cc35, cc36)                         \
-                        present(cc44, cc45, cc46)                               \
-                        present(cc55, cc56)                                     \
-                        present(cc66)                                           \
+                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
+                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
+                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
+                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
+                        present(cc55[start:nelems], cc56[start:nelems])                                     \
+                        present(cc66[start:nelems])                                           \
                         async(phase) 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop device_type(nvidia) gang worker(4)
+        #pragma acc loop independent device_type(nvidia) gang worker(4)
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent device_type(nvidia) gang vector(32) 
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif

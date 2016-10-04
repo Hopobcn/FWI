@@ -26,3 +26,5 @@ export KMP_AFFINITY=verbose,compact
 
 # expected elapsed time: 2:30 minutes
 ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
+
+mv fwi.00.log fwi.Intel.omp.${SLURM_JOB_ID}.log
