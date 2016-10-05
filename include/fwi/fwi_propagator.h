@@ -49,7 +49,7 @@ typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
 #if defined(_OPENACC) 
-#pragma acc routine seq
+////// IMPLEMENT /////
 #endif
 integer IDX (const integer z, 
              const integer x, 
@@ -58,7 +58,7 @@ integer IDX (const integer z,
              const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// IMPLEMENT /////
 #endif
 real stencil_Z(const integer off,
                const real* restrict ptr,
@@ -70,7 +70,7 @@ real stencil_Z(const integer off,
                const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// IMPLEMENT /////
 #endif
 real stencil_X(const integer off,
                const real* restrict ptr,
@@ -82,7 +82,7 @@ real stencil_X(const integer off,
                const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// IMPLEMENT /////
 #endif
 real stencil_Y(const integer off,
                const real* restrict ptr,
@@ -101,7 +101,7 @@ real stencil_Y(const integer off,
 /* ------------------------------------------------------------------------------ */
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// IMPLEMENT /////
 #endif
 real rho_BL ( const real* restrict rho,
               const integer z,
@@ -111,7 +111,7 @@ real rho_BL ( const real* restrict rho,
               const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real rho_TR ( const real* restrict rho,
               const integer z,
@@ -121,7 +121,7 @@ real rho_TR ( const real* restrict rho,
               const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real rho_BR ( const real* restrict rho,
               const integer z,
@@ -131,7 +131,7 @@ real rho_BR ( const real* restrict rho,
               const integer dimmx);
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real rho_TL ( const real* restrict rho,
               const integer z,
@@ -162,30 +162,14 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase);
 
-/* CUDA STUB */
-extern
-void compute_component_vcell_TL_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
 
+/* CUDA STUB declaration, implementation in a .cu file */
+extern
+void compute_component_vcell_TL_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 void compute_component_vcell_TR (      real* restrict vptr,
                                  const real* restrict szptr,
@@ -208,29 +192,15 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const integer        dimmz,
                                  const integer        dimmx,
                                  const phase_t        phase);
-/* CUDA STUB */
+
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_vcell_TR_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_vcell_TR_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -255,29 +225,14 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase);
 
-/* CUDA STUB */
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_vcell_BR_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_vcell_BR_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -302,29 +257,14 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase);
 
-/* CUDA STUB */
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_vcell_BL_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_vcell_BL_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void velocity_propagator(v_t           v,
@@ -356,7 +296,7 @@ void velocity_propagator(v_t           v,
 /* ------------------------------------------------------------------------------ */
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 void stress_update(real* restrict sptr,
                    const real     c1,
@@ -400,7 +340,7 @@ void stress_propagator(s_t           s,
                        const phase_t phase );
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_BR ( const real* restrict ptr, 
                      const integer z, 
@@ -409,7 +349,7 @@ real cell_coeff_BR ( const real* restrict ptr,
                      const integer dimmz, 
                      const integer dimmx );
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_TL ( const real* restrict ptr, 
                      const integer z, 
@@ -418,7 +358,7 @@ real cell_coeff_TL ( const real* restrict ptr,
                      const integer dimmz, 
                      const integer dimmx );
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_BL ( const real* restrict ptr, 
                      const integer z, 
@@ -427,7 +367,7 @@ real cell_coeff_BL ( const real* restrict ptr,
                      const integer dimmz, 
                      const integer dimmx );
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_TR ( const real* restrict ptr, 
                      const integer z, 
@@ -437,7 +377,7 @@ real cell_coeff_TR ( const real* restrict ptr,
                      const integer dimmx );
 
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_ARTM_BR ( const real* restrict ptr, 
                           const integer z, 
@@ -446,7 +386,7 @@ real cell_coeff_ARTM_BR ( const real* restrict ptr,
                           const integer dimmz, 
                           const integer dimmx);
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_ARTM_TL ( const real* restrict ptr, 
                           const integer z, 
@@ -455,7 +395,7 @@ real cell_coeff_ARTM_TL ( const real* restrict ptr,
                           const integer dimmz, 
                           const integer dimmx);
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_ARTM_BL ( const real* restrict ptr, 
                           const integer z, 
@@ -464,7 +404,7 @@ real cell_coeff_ARTM_BL ( const real* restrict ptr,
                           const integer dimmz, 
                           const integer dimmx);
 #if defined(_OPENACC)
-#pragma acc routine seq
+////// COMPLETE /////
 #endif
 real cell_coeff_ARTM_TR ( const real* restrict ptr, 
                           const integer z, 
@@ -494,60 +434,15 @@ void compute_component_scell_TR (s_t             s,
                                  const integer  dimmz,
                                  const integer  dimmx,
                                  const phase_t phase);
-/* STUB CUDA */
+
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_scell_TR_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_scell_TR_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void compute_component_scell_TL ( s_t             s,
@@ -571,60 +466,15 @@ void compute_component_scell_TL ( s_t             s,
                                   const integer   dimmz,
                                   const integer   dimmx,
                                   const phase_t   phase);
-/* CUDA STUB */
+
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_scell_TL_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_scell_TL_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void compute_component_scell_BR ( s_t             s,
@@ -648,61 +498,14 @@ void compute_component_scell_BR ( s_t             s,
                                   const integer   dimmz,
                                   const integer   dimmx,
                                   const phase_t   phase);
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
 
-/* CUDA STUB */
+/* CUDA STUB declaration, implementation in a .cu file */
 extern 
-void compute_component_scell_BR_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_scell_BR_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 void compute_component_scell_BL ( s_t             s,
@@ -726,60 +529,14 @@ void compute_component_scell_BL ( s_t             s,
                                   const integer   dimmz,
                                   const integer   dimmx,
                                   const phase_t   phase);
-/* CUDA STUB */
+#if defined(USE_CUDA)
+//// COMPLETE CUDA STUB ////
+
+/* CUDA STUB declaration, implementation in a .cu file */
 extern
-void compute_component_scell_BL_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
+void compute_component_scell_BL_cuda ( /* COMPLETE ME */ );
+////////////////////////////
+#endif /* end USE_CUDA */
 
 
 #ifdef __cplusplus

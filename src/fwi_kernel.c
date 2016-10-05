@@ -28,7 +28,9 @@ void set_array_to_random_real( real* restrict array, const integer length)
     print_debug("Array is being initialized to %f", randvalue);
 
 #if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
+    ////////// IMPLEMENT /////////
+
+    /////////////////////////////
 #endif
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
@@ -40,7 +42,9 @@ void set_array_to_random_real( real* restrict array, const integer length)
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
+    ////////// IMPLEMENT /////////
+
+    /////////////////////////////
 #endif
     for( integer i = 0; i < length; i++ )
         array[i] = value;
@@ -195,80 +199,10 @@ void alloc_memory_shot( const integer numberOfCells,
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
 #if defined(_OPENACC)
-    const integer datalen = numberOfCells;
+    ////////// IMPLEMENT /////////
+    // hint: allocate all data in GPU using pragmas
 
-    const real* rrho  = *rho;
-    
-    coeff_t cc = *c;
-    // TODO: Test that works with this shit
-    #pragma acc enter data create(cc)
-    #pragma acc enter data create(cc.c11[:datalen])
-    #pragma acc enter data create(cc.c12[:datalen])
-    #pragma acc enter data create(cc.c13[:datalen])
-    #pragma acc enter data create(cc.c14[:datalen])
-    #pragma acc enter data create(cc.c15[:datalen])
-    #pragma acc enter data create(cc.c16[:datalen])
-    #pragma acc enter data create(cc.c22[:datalen])
-    #pragma acc enter data create(cc.c23[:datalen])
-    #pragma acc enter data create(cc.c24[:datalen])
-    #pragma acc enter data create(cc.c25[:datalen])
-    #pragma acc enter data create(cc.c26[:datalen])
-    #pragma acc enter data create(cc.c33[:datalen])
-    #pragma acc enter data create(cc.c34[:datalen])
-    #pragma acc enter data create(cc.c35[:datalen])
-    #pragma acc enter data create(cc.c36[:datalen])
-    #pragma acc enter data create(cc.c44[:datalen])
-    #pragma acc enter data create(cc.c45[:datalen])
-    #pragma acc enter data create(cc.c46[:datalen])
-    #pragma acc enter data create(cc.c55[:datalen])
-    #pragma acc enter data create(cc.c56[:datalen])
-    #pragma acc enter data create(cc.c66[:datalen])
-
-    v_t vv = *v;
-
-    #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:datalen])
-    #pragma acc enter data create(vv.tl.v[:datalen])
-    #pragma acc enter data create(vv.tl.w[:datalen])
-    #pragma acc enter data create(vv.tr.u[:datalen])
-    #pragma acc enter data create(vv.tr.v[:datalen])
-    #pragma acc enter data create(vv.tr.w[:datalen])
-    #pragma acc enter data create(vv.bl.u[:datalen])
-    #pragma acc enter data create(vv.bl.v[:datalen])
-    #pragma acc enter data create(vv.bl.w[:datalen])
-    #pragma acc enter data create(vv.br.u[:datalen])
-    #pragma acc enter data create(vv.br.v[:datalen])
-    #pragma acc enter data create(vv.br.w[:datalen])
-
-    s_t ss = *s;
-    #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:datalen])
-    #pragma acc enter data create(ss.tl.xz[:datalen])
-    #pragma acc enter data create(ss.tl.yz[:datalen])
-    #pragma acc enter data create(ss.tl.xx[:datalen])
-    #pragma acc enter data create(ss.tl.xy[:datalen])
-    #pragma acc enter data create(ss.tl.yy[:datalen])
-    #pragma acc enter data create(ss.tr.zz[:datalen])
-    #pragma acc enter data create(ss.tr.xz[:datalen])
-    #pragma acc enter data create(ss.tr.yz[:datalen])
-    #pragma acc enter data create(ss.tr.xx[:datalen])
-    #pragma acc enter data create(ss.tr.xy[:datalen])
-    #pragma acc enter data create(ss.tr.yy[:datalen])
-    #pragma acc enter data create(ss.bl.zz[:datalen])
-    #pragma acc enter data create(ss.bl.xz[:datalen])
-    #pragma acc enter data create(ss.bl.yz[:datalen])
-    #pragma acc enter data create(ss.bl.xx[:datalen])
-    #pragma acc enter data create(ss.bl.xy[:datalen])
-    #pragma acc enter data create(ss.bl.yy[:datalen])
-    #pragma acc enter data create(ss.br.zz[:datalen])
-    #pragma acc enter data create(ss.br.xz[:datalen])
-    #pragma acc enter data create(ss.br.yz[:datalen])
-    #pragma acc enter data create(ss.br.xx[:datalen])
-    #pragma acc enter data create(ss.br.xy[:datalen])
-    #pragma acc enter data create(ss.br.yy[:datalen])
-
-    #pragma acc enter data create(rrho[:datalen])
-
+    /////////////////////////////
 #endif /* end of pragma _OPENACC */
     POP_RANGE
 };
@@ -281,74 +215,10 @@ void free_memory_shot( coeff_t *c,
     PUSH_RANGE
 
 #if defined(_OPENACC)
-    #pragma acc wait
+    ////////// IMPLEMENT /////////
+    // hint: deallocate all data in GPU before host deallocation
 
-    #pragma acc exit data delete(c->c11)
-    #pragma acc exit data delete(c->c12)
-    #pragma acc exit data delete(c->c13)
-    #pragma acc exit data delete(c->c14)
-    #pragma acc exit data delete(c->c15)
-    #pragma acc exit data delete(c->c16)
-    #pragma acc exit data delete(c->c22)
-    #pragma acc exit data delete(c->c23)
-    #pragma acc exit data delete(c->c24)
-    #pragma acc exit data delete(c->c25)
-    #pragma acc exit data delete(c->c26)
-    #pragma acc exit data delete(c->c33)
-    #pragma acc exit data delete(c->c34)
-    #pragma acc exit data delete(c->c35)
-    #pragma acc exit data delete(c->c36)
-    #pragma acc exit data delete(c->c44)
-    #pragma acc exit data delete(c->c45)
-    #pragma acc exit data delete(c->c46)
-    #pragma acc exit data delete(c->c55)
-    #pragma acc exit data delete(c->c56)
-    #pragma acc exit data delete(c->c66)
-    #pragma acc exit data delete(c)
-
-    #pragma acc exit data delete(v->tl.u)
-    #pragma acc exit data delete(v->tl.v)
-    #pragma acc exit data delete(v->tl.w)
-    #pragma acc exit data delete(v->tr.u)
-    #pragma acc exit data delete(v->tr.v)
-    #pragma acc exit data delete(v->tr.w)
-    #pragma acc exit data delete(v->bl.u)
-    #pragma acc exit data delete(v->bl.v)
-    #pragma acc exit data delete(v->bl.w)
-    #pragma acc exit data delete(v->br.u)
-    #pragma acc exit data delete(v->br.v)
-    #pragma acc exit data delete(v->br.w)
-
-
-    #pragma acc exit data delete(s->tl.zz)
-    #pragma acc exit data delete(s->tl.xz)
-    #pragma acc exit data delete(s->tl.yz)
-    #pragma acc exit data delete(s->tl.xx)
-    #pragma acc exit data delete(s->tl.xy)
-    #pragma acc exit data delete(s->tl.yy)
-    #pragma acc exit data delete(s->tr.zz)
-    #pragma acc exit data delete(s->tr.xz)
-    #pragma acc exit data delete(s->tr.yz)
-    #pragma acc exit data delete(s->tr.xx)
-    #pragma acc exit data delete(s->tr.xy)
-    #pragma acc exit data delete(s->tr.yy)
-    #pragma acc exit data delete(s->bl.zz)
-    #pragma acc exit data delete(s->bl.xz)
-    #pragma acc exit data delete(s->bl.yz)
-    #pragma acc exit data delete(s->bl.xx)
-    #pragma acc exit data delete(s->bl.xy)
-    #pragma acc exit data delete(s->bl.yy)
-    #pragma acc exit data delete(s->br.zz)
-    #pragma acc exit data delete(s->br.xz)
-    #pragma acc exit data delete(s->br.yz)
-    #pragma acc exit data delete(s->br.xx)
-    #pragma acc exit data delete(s->br.xy)
-    #pragma acc exit data delete(s->br.yy)
-    #pragma acc exit data delete(s)
-    
-    const real* rrho  = *rho;
-    #pragma acc exit data delete(rrho)
-
+    /////////////////////////////
 #endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
@@ -564,7 +434,10 @@ void load_initial_model ( const real    waveletFreq,
 
     int id;
 #if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &id );
+    ////////// IMPLEMENT /////////
+    // hint: set 'id' offset so each MPI proc read it's slice of data from the correct position
+
+    /////////////////////////////
 #else
     id = 0;
 #endif
@@ -609,27 +482,10 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 
 #if defined(_OPENACC)
-    const real* vtlu = v->tl.u;
-    const real* vtlv = v->tl.v;
-    const real* vtlw = v->tl.w;
+    ////////// IMPLEMENT /////////
+    // hint: update GPU memory after reading data from disk
 
-    const real* vtru = v->tr.u;
-    const real* vtrv = v->tr.v;
-    const real* vtrw = v->tr.w;
-
-    const real* vblu = v->bl.u;
-    const real* vblv = v->bl.v;
-    const real* vblw = v->bl.w;
-
-    const real* vbru = v->br.u;
-    const real* vbrv = v->br.v;
-    const real* vbrw = v->br.w;
-
-    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
-                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
-                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
-                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells]) \
-                       async(H2D)
+    /////////////////////////////
 #endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
@@ -655,8 +511,10 @@ void write_snapshot(char *folder,
 
     int domain, ndomains;
 #if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
-    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
+    ////////// IMPLEMENT /////////
+    // hint: each MPI proc should write it's slice of data to the correct position
+
+    /////////////////////////////
 #else
     domain = 0; ndomains = 1;
 #endif
@@ -667,10 +525,10 @@ void write_snapshot(char *folder,
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
 #if defined(_OPENACC)
-    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+    ////////// IMPLEMENT /////////
+    // hint: update HOST memory before writing to disc
+
+    /////////////////////////////
 #endif /* end pragma _OPENACC*/
 
     /* local variables */
@@ -760,8 +618,10 @@ void read_snapshot(char *folder,
 
     int domain, ndomains;
 #if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
-    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
+    ////////// IMPLEMENT /////////
+    // hint: each MPI proc should read it's slice of data rom the correct position
+
+    /////////////////////////////
 #else
     domain = 0; ndomains = 1;
 #endif
@@ -810,11 +670,10 @@ void read_snapshot(char *folder,
 #endif
 
 #if defined(_OPENACC)
-    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
-                       async(H2D)
+    ////////// IMPLEMENT /////////
+    // hint: update GPU data
+
+    /////////////////////////////
 #endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
@@ -863,11 +722,6 @@ void propagate_shot(time_d        direction,
 
         tglobal_start = dtime();
 
-        /* wait read_snapshot H2D copies */
-#if defined(_OPENACC)
-        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
-#endif
-
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
         /* ------------------------------------------------------------------------------ */
@@ -910,9 +764,6 @@ void propagate_shot(time_d        direction,
         const integer plane_size = dimmz * dimmx;
         /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
-#endif
-#if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO)
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -960,9 +811,6 @@ void propagate_shot(time_d        direction,
         exchange_stress_boundaries( s, plane_size, nyf, ny0);
 #endif
 
-#if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
-#endif
         tstress_total += (dtime() - tstress_start);
 
         tglobal_total += (dtime() - tglobal_start);
@@ -971,7 +819,10 @@ void propagate_shot(time_d        direction,
         if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
 
 #if defined(USE_MPI)
-        MPI_Barrier( MPI_COMM_WORLD );
+        ////////// IMPLEMENT /////////
+        // hint: barrier
+    
+        /////////////////////////////
 #endif
         POP_RANGE
     }

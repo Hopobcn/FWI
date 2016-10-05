@@ -94,7 +94,9 @@ source scripts/environment_pgi.sh
 cd build
 cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_OPENACC=YES -DUSE_CUDA_KERNELS=YES ..
 make utest
-```
+
+
+//// explicar com han de posar els #if defined(__OPENACC)```
 
 ### Questions/Steps:
 
@@ -127,23 +129,6 @@ Remember to **document** each step using `git`.
 
     For reference purposes this is the execution time of our OpenACC implementation with 1 K80 and freq 10.0 Hz:
     19.7872 s
-    With `nvprof`:
-
-    ==31606== Profiling application: ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
-    ==31606== Profiling result:
-    Time(%)      Time     Calls       Avg       Min       Max  Name
-     22.36%  6.18451s      1500  4.1230ms  421.53us  12.123ms  compute_component_scell_TR_707_gpu
-     21.85%  6.04346s      1500  4.0290ms  414.20us  12.329ms  compute_component_scell_BL_1189_gpu
-     21.25%  5.87930s      1500  3.9195ms  379.23us  11.288ms  compute_component_scell_BR_1028_gpu
-     12.45%  3.44318s      1500  2.2955ms  225.47us  6.4109ms  compute_component_scell_TL_867_gpu
-      5.91%  1.63478s      4500  363.28us  39.935us  1.1306ms  compute_component_vcell_BR_306_gpu
-      5.41%  1.49524s      4500  332.27us  36.543us  978.70us  compute_component_vcell_TR_234_gpu
-      5.38%  1.48904s      4500  330.90us  36.320us  921.74us  compute_component_vcell_BL_378_gpu
-      5.38%  1.48700s      4500  330.44us  36.767us  1.1637ms  compute_component_vcell_TL_162_gpu
-      0.01%  3.1546ms        34  92.781us  92.671us  93.407us  set_array_to_random_real_33_gpu
-      0.01%  2.2274ms        24  92.809us  92.670us  93.374us  set_array_to_constant_45_gpu
-      0.00%  242.01us        59  4.1010us  3.2320us  4.4150us  [CUDA memcpy HtoD]
-    (...)
 
 
 5. Implement a Multi-GPU implementation.
@@ -177,22 +162,6 @@ Remember to **document** each step using `git`.
 
      For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 10.0 Hz:
     20.4410 s
-    With `nvprof`:
-
-    ==31986== Profiling application: ../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
-    ==31986== Profiling result:
-    Time(%)      Time     Calls       Avg       Min       Max  Name
-     30.97%  11.3465s      1500  7.5644ms  819.51us  15.005ms  void compute_component_scell_TR_cuda_k
-     19.72%  7.22522s      1500  4.8168ms  299.07us  9.6079ms  void compute_component_scell_BL_cuda_k
-     19.27%  7.05922s      1500  4.7062ms  386.04us  13.415ms  void compute_component_scell_BR_cuda_k
-      9.45%  3.46312s      1500  2.3087ms  197.98us  6.3949ms  void compute_component_scell_TL_cuda_k
-      5.84%  2.13947s      4500  475.44us  50.176us  1.3116ms  void compute_component_vcell_BR_cuda_k
-      5.14%  1.88446s      4500  418.77us  42.271us  1.2819ms  void compute_component_vcell_TL_cuda_k
-      5.03%  1.84235s      4500  409.41us  43.743us  1.2252ms  void compute_component_vcell_TR_cuda_k
-      4.55%  1.66689s      4500  370.42us  40.032us  1.0153ms  void compute_component_vcell_BL_cuda_k
-      0.01%  3.1551ms        34  92.796us  92.671us  93.566us  set_array_to_random_real_33_gpu
-      0.01%  2.2275ms        24  92.811us  92.702us  93.214us  set_array_to_constant_45_gpu
-      0.00%  242.68us        59  4.1130us  3.2640us  4.5760us  [CUDA memcpy HtoD]
 
 
 ### References

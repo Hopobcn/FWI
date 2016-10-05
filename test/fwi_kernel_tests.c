@@ -164,7 +164,7 @@ TEST(kernel, set_array_to_random_real)
 
     srand(0);
 #if defined(_OPENACC)
-    #pragma acc data copy(array_cal[:NELEMS])
+    /// COMPLETE ME ///
 #endif
     {
         set_array_to_random_real( array_cal, NELEMS );
@@ -187,7 +187,7 @@ TEST(kernel, set_array_to_constant)
     }
 
 #if defined(_OPENACC)
-    #pragma acc data copy(array_cal[:NELEMS])
+    /// COMPLETE ME ///
 #endif
     {
         set_array_to_constant( array_cal,value, NELEMS );
