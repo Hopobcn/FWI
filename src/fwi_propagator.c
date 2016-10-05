@@ -135,13 +135,9 @@ void compute_component_vcell_TL (      real* restrict vptr,
 {
 #if !defined(USE_CUDA)
 
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end _OPENACC */
+#endif
     for(integer y=ny0; y < nyf; y++)
     {
         for(integer x=nx0; x < nxf; x++)
@@ -194,13 +190,9 @@ void compute_component_vcell_TR (      real* restrict vptr,
 {
 #ifndef USE_CUDA
 
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for(integer y=ny0; y < nyf; y++)
     {
         for(integer x=nx0; x < nxf; x++)
@@ -252,13 +244,9 @@ void compute_component_vcell_BR (      real* restrict vptr,
 {
 #ifndef USE_CUDA
 
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for(integer y=ny0; y < nyf; y++)
     {
         for(integer x=nx0; x < nxf; x++)
@@ -310,13 +298,9 @@ void compute_component_vcell_BL (      real* restrict vptr,
 {
 #ifndef USE_CUDA
 
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for(integer y=ny0; y < nyf; y++)
     {
         for(integer x=nx0; x < nxf; x++)
@@ -617,13 +601,9 @@ void compute_component_scell_TR (s_t             s,
 
 #ifndef USE_CUDA
     
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -746,14 +726,10 @@ void compute_component_scell_TL (s_t             s,
     const real* restrict cc66 = coeffs.c66;
     
 #ifndef USE_CUDA
-    
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -877,14 +853,10 @@ void compute_component_scell_BR (s_t             s,
     const real* restrict cc66 = coeffs.c66;
 
 #ifndef USE_CUDA
-    
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)
@@ -1009,13 +981,9 @@ void compute_component_scell_BL (s_t             s,
     
 #ifndef USE_CUDA
 
-#if defined(_OPENACC)
-    ////////// IMPLEMENT /////////
-    
-    /////////////////////////////
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
     #pragma omp parallel for
-#endif /* end pragma _OPENACC */
+#endif
     for (integer y = ny0; y < nyf; y++)
     {
         for (integer x = nx0; x < nxf; x++)

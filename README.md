@@ -96,7 +96,6 @@ cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_O
 make utest
 
 
-//// explicar com han de posar els #if defined(__OPENACC)```
 
 ### Questions/Steps:
 
@@ -111,6 +110,16 @@ Remember to **document** each step using `git`.
     From now on, use the PGI 16.5 compiler to work with OpenACC since it's the only fully supported compiler with OpenACC 2.5. (`gcc` >= 6.1.0 has OpenACC 2.0 support but has not been tested)
     We recommend reading the document "[The OpenACC Application Programmin Interface V2.5](www.openacc.org/sites/default/files/OpenACC_2pt5.pdf)" information about the OpenACC Spec 2.5.
     Again, remember to document all the code that you add.
+
+    Add preprocessor guards like:
+    ```
+    #if defined(_OPENACC)
+    #pragma acc <---etc-->
+    #elif defined(_OPENMP)
+    #pragma omp for
+    #endif
+    ```
+    This way you can recompile your application enabling/disabling this new functionality without breaking the previous implementation (seq/openmp).
 
 3. Test your OpenACC implementation
 
@@ -135,6 +144,8 @@ Remember to **document** each step using `git`.
 
     Once you have an optimized single-GPU OpenACC implementation you can proceed to implement a Multi-GPU implementation. Each Minotauro node has 4 K80.
     We recommend using MPI+OpenACC to get a multi-gpu execution.
+
+    Put preprocessor guards as much as possible to prevent braking the implementations that do not use MPI/OpenMP. 
 
 6. Test your Multi-GPU implementation
     Explain how you checked the correctness.

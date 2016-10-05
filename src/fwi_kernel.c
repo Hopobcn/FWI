@@ -671,7 +671,7 @@ void read_snapshot(char *folder,
 
 #if defined(_OPENACC)
     ////////// IMPLEMENT /////////
-    // hint: update GPU data
+    // OPENACC hint: update GPU data
 
     /////////////////////////////
 #endif /* end pragma _OPENACC */
