@@ -1,8 +1,5 @@
 #include "fwi_tests.h"
 
-#include <unity.h>
-#include <unity_fixture.h>
-
 #include "fwi_kernel.h"
 #include "fwi_propagator.h"
 
@@ -354,7 +351,7 @@ TEST(propagator, compute_component_vcell_TL)
     #pragma acc update host(v_cal.tl.u[:dimmz*dimmx*dimmy]) wait(phase)
 #endif
     
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
 }
 
 TEST(propagator, compute_component_vcell_TR)
@@ -407,7 +404,7 @@ TEST(propagator, compute_component_vcell_TR)
     #pragma acc update host(v_cal.tr.u[:dimmz*dimmx*dimmy]) wait(phase)
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
 }
 
 
@@ -461,7 +458,7 @@ TEST(propagator, compute_component_vcell_BR)
     #pragma acc update host(v_cal.br.u[:dimmz*dimmx*dimmy]) wait(phase)
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
 }
 
 TEST(propagator, compute_component_vcell_BL)
@@ -514,7 +511,7 @@ TEST(propagator, compute_component_vcell_BL)
     #pragma acc update host(v_cal.bl.u[:dimmz*dimmx*dimmy]) wait(phase)
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
 }
 
 TEST(propagator, velocity_propagator)
@@ -556,21 +553,21 @@ TEST(propagator, velocity_propagator)
                 dimmz, dimmx, phase);
     }
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.v, v_cal.bl.v, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.w, v_cal.bl.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.v, v_cal.bl.v, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.w, v_cal.bl.w, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.v, v_cal.br.v, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.w, v_cal.br.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.v, v_cal.br.v, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.w, v_cal.br.w, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.v, v_cal.tr.v, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.w, v_cal.tr.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.v, v_cal.tr.v, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.w, v_cal.tr.w, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.v, v_cal.tl.v, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.w, v_cal.tl.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.v, v_cal.tl.v, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.w, v_cal.tl.w, nelems );
 }
 
 TEST(propagator, stress_update)
@@ -619,7 +616,7 @@ TEST(propagator, stress_update)
                 dimmz, dimmx );
     }
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
 }
 
 
@@ -833,12 +830,12 @@ TEST(propagator, compute_component_scell_TR)
     #pragma acc update host(s_cal.tr.xy[:dimmz*dimmx*dimmy]) 
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
 }
 
 TEST(propagator, compute_component_scell_TL)
@@ -921,12 +918,12 @@ TEST(propagator, compute_component_scell_TL)
     #pragma acc update host(s_cal.tl.xy[:dimmz*dimmx*dimmy]) 
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
 }
 
 TEST(propagator, compute_component_scell_BR)
@@ -1011,12 +1008,12 @@ TEST(propagator, compute_component_scell_BR)
 #endif
 
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
 }
 
 TEST(propagator, compute_component_scell_BL)
@@ -1099,12 +1096,12 @@ TEST(propagator, compute_component_scell_BL)
     #pragma acc update host(s_cal.br.xy[:dimmz*dimmx*dimmy]) 
 #endif
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
 }
 
 TEST(propagator, stress_propagator)
@@ -1138,33 +1135,33 @@ TEST(propagator, stress_propagator)
                 dimmz, dimmx, phase);
     }
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xx, s_cal.bl.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yy, s_cal.bl.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.zz, s_cal.bl.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yz, s_cal.bl.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xz, s_cal.bl.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xy, s_cal.bl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xx, s_cal.bl.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yy, s_cal.bl.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.zz, s_cal.bl.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yz, s_cal.bl.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xz, s_cal.bl.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xy, s_cal.bl.xy, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
 
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
 }
 
 ////// TESTS RUNNER //////
