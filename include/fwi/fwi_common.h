@@ -75,6 +75,26 @@ extern const size_t ALIGN_REAL;
 /* (MPI-local) file for logging */
 extern FILE* logfile;
 
+// Structure that holds the 3D dimensions required (before padding&alignin)
+typedef struct
+{
+    int width;  /* width  in elements */
+    int height; /* height in elements */
+    int depth;  /* depth  in elements */
+} extent_t;
+
+// Structure that holds the 3D internal & external (padded) dimensions
+typedef struct
+{
+    int pitch; /* dimmz+padding */
+    int zsize; /* dimmz         */
+    int xsize; /* dimmx         */
+    int ysize; /* dimmy         */
+} dim_t;
+
+
+extent_t make_extent(size_t w, size_t h, size_t d);
+
 double TOGB(size_t bytes);
 
 /*  Compiler compatiblity macros */
@@ -156,6 +176,41 @@ void load_freqlist (  const char*  filename,
 
 void* __malloc ( const size_t alignment, const integer size);
 void  __free   ( void *ptr );
+
+/*
+ * params:
+ * [out] dim     : padded dimensions
+ * [in] aligment : aligment restrictions (usually 64-bytes (intel) or 128-bytes(cuda) )
+ * [in] req      : dimensions requested
+ *
+ * returns: aligned pointer
+ */
+void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req);
+
+/*
+ * params:
+ * [in] aligned_ptr : aligned pointer that stores in [-1] position the HOST base pointer ;-)
+ */
+void free3d_host(void** h_align_ptr);
+
+#if defined(_OPENACC)
+/*
+ * params:
+ * [out] dim     : padded dimensions
+ * [in] aligment : aligment restrictions (usually 64-bytes (intel) or 128-bytes(cuda) )
+ * [in] req      : dimensions requested
+ * [in/out] h_align_ptr : HOST aligned pointer that will be used to store the device base pointer
+ *                        
+ * returns: aligned pointer
+ */
+void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h_align_ptr);
+
+/*
+ * params:
+ * [in] h_align_ptr : HOST aligned pointer that stores in [-2] position the DEVICE base pointer ;-)
+ */
+void free3d_device(void** h_align_ptr);
+#endif
 
 void create_output_volumes(char* outputfolder, integer VolumeMemory);
 

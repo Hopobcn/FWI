@@ -54,8 +54,7 @@ typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 integer IDX (const integer z, 
              const integer x, 
              const integer y, 
-             const integer dimmz, 
-             const integer dimmx);
+             const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
@@ -66,32 +65,29 @@ real stencil_Z(const integer off,
                const integer z,
                const integer x,
                const integer y,
-               const integer dimmz,
-               const integer dimmx);
+               const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
 real stencil_X(const integer off,
                const real* restrict ptr,
-               const real dxi,
+               const real    dxi,
                const integer z,
                const integer x,
                const integer y,
-               const integer dimmz,
-               const integer dimmx);
+               const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
 real stencil_Y(const integer off,
                const real* restrict ptr,
-               const real dyi,
+               const real    dyi,
                const integer z,
                const integer x,
                const integer y,
-               const integer dimmz,
-               const integer dimmx);
+               const dim_t   dim);
 
 
 /* ------------------------------------------------------------------------------ */
@@ -107,8 +103,7 @@ real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
-              const integer dimmz,
-              const integer dimmx);
+              const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
@@ -117,8 +112,7 @@ real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
-              const integer dimmz,
-              const integer dimmx);
+              const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
@@ -127,8 +121,7 @@ real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
-              const integer dimmz,
-              const integer dimmx);
+              const dim_t   dim);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
@@ -137,8 +130,7 @@ real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,
               const integer y,
-              const integer dimmz,
-              const integer dimmx);
+              const dim_t   dim);
 
 void compute_component_vcell_TL (      real* restrict vptr,
                                  const real* restrict szptr,
@@ -158,8 +150,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const offset_t       _SZ,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
+                                 const dim_t          dim,
                                  const phase_t        phase);
 
 /* CUDA STUB */
@@ -182,8 +173,7 @@ void compute_component_vcell_TL_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -205,8 +195,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const offset_t       _SZ,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
+                                 const dim_t          dim,
                                  const phase_t        phase);
 /* CUDA STUB */
 extern
@@ -228,8 +217,7 @@ void compute_component_vcell_TR_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -251,8 +239,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const offset_t       _SZ,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
+                                 const dim_t          dim,
                                  const phase_t        phase);
 
 /* CUDA STUB */
@@ -275,8 +262,7 @@ void compute_component_vcell_BR_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -298,8 +284,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const offset_t       _SZ,
                                  const offset_t       _SX,
                                  const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
+                                 const dim_t          dim,
                                  const phase_t        phase);
 
 /* CUDA STUB */
@@ -322,8 +307,7 @@ void compute_component_vcell_BL_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -341,8 +325,7 @@ void velocity_propagator(v_t           v,
                          const integer nxf,
                          const integer ny0,
                          const integer nyf,
-                         const integer dimmz,
-                         const integer dimmx,
+                         const dim_t   dim,
                          const phase_t phase);
 
 
@@ -378,8 +361,7 @@ void stress_update(real* restrict sptr,
                    const real     w_x,
                    const real     w_y,
                    const real     w_z,
-                   const integer  dimmz,
-                   const integer  dimmx);
+                   const dim_t    dim);
 
 void stress_propagator(s_t           s,
                        v_t           v,
@@ -395,8 +377,7 @@ void stress_propagator(s_t           s,
                        const integer nxf,
                        const integer ny0,
                        const integer nyf,
-                       const integer dimmz,
-                       const integer dimmx,
+                       const dim_t   dim,
                        const phase_t phase );
 
 #if defined(_OPENACC)
@@ -406,8 +387,7 @@ real cell_coeff_BR ( const real* restrict ptr,
                      const integer z, 
                      const integer x, 
                      const integer y, 
-                     const integer dimmz, 
-                     const integer dimmx );
+                     const dim_t   dim );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -415,8 +395,7 @@ real cell_coeff_TL ( const real* restrict ptr,
                      const integer z, 
                      const integer x, 
                      const integer y, 
-                     const integer dimmz, 
-                     const integer dimmx );
+                     const dim_t dim );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -424,8 +403,7 @@ real cell_coeff_BL ( const real* restrict ptr,
                      const integer z, 
                      const integer x, 
                      const integer y, 
-                     const integer dimmz, 
-                     const integer dimmx );
+                     const dim_t dim );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -433,8 +411,7 @@ real cell_coeff_TR ( const real* restrict ptr,
                      const integer z, 
                      const integer x, 
                      const integer y, 
-                     const integer dimmz, 
-                     const integer dimmx );
+                     const dim_t dim );
 
 #if defined(_OPENACC)
 #pragma acc routine seq
@@ -443,8 +420,7 @@ real cell_coeff_ARTM_BR ( const real* restrict ptr,
                           const integer z, 
                           const integer x, 
                           const integer y, 
-                          const integer dimmz, 
-                          const integer dimmx);
+                          const dim_t dim);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -452,8 +428,7 @@ real cell_coeff_ARTM_TL ( const real* restrict ptr,
                           const integer z, 
                           const integer x, 
                           const integer y, 
-                          const integer dimmz, 
-                          const integer dimmx);
+                          const dim_t dim);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -461,8 +436,7 @@ real cell_coeff_ARTM_BL ( const real* restrict ptr,
                           const integer z, 
                           const integer x, 
                           const integer y, 
-                          const integer dimmz, 
-                          const integer dimmx);
+                          const dim_t dim);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
@@ -470,8 +444,7 @@ real cell_coeff_ARTM_TR ( const real* restrict ptr,
                           const integer z, 
                           const integer x, 
                           const integer y, 
-                          const integer dimmz, 
-                          const integer dimmx);
+                          const dim_t dim);
 
 void compute_component_scell_TR (s_t             s,
                                  point_v_t       vnode_z,
@@ -488,12 +461,11 @@ void compute_component_scell_TR (s_t             s,
                                  const integer   nxf,
                                  const integer   ny0,
                                  const integer   nyf,
-                                 const offset_t _SZ,
-                                 const offset_t _SX,
-                                 const offset_t _SY,
-                                 const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t phase);
+                                 const offset_t  _SZ,
+                                 const offset_t  _SX,
+                                 const offset_t  _SY,
+                                 const dim_t     dim,
+                                 const phase_t   phase);
 /* STUB CUDA */
 extern
 void compute_component_scell_TR_cuda ( float* sxxptr,
@@ -545,8 +517,7 @@ void compute_component_scell_TR_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -565,11 +536,10 @@ void compute_component_scell_TL ( s_t             s,
                                   const integer   nxf,
                                   const integer   ny0,
                                   const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
+                                  const offset_t  _SZ,
+                                  const offset_t  _SX,
+                                  const offset_t  _SY,
+                                  const dim_t     dim,
                                   const phase_t   phase);
 /* CUDA STUB */
 extern
@@ -622,8 +592,7 @@ void compute_component_scell_TL_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -642,11 +611,10 @@ void compute_component_scell_BR ( s_t             s,
                                   const integer   nxf,
                                   const integer   ny0,
                                   const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
+                                  const offset_t  _SZ,
+                                  const offset_t  _SX,
+                                  const offset_t  _SY,
+                                  const dim_t     dim,
                                   const phase_t   phase);
 
 /* CUDA STUB */
@@ -700,8 +668,7 @@ void compute_component_scell_BR_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 
@@ -720,11 +687,10 @@ void compute_component_scell_BL ( s_t             s,
                                   const integer   nxf,
                                   const integer   ny0,
                                   const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
+                                  const offset_t  _SZ,
+                                  const offset_t  _SX,
+                                  const offset_t  _SY,
+                                  const dim_t     dim,
                                   const phase_t   phase);
 /* CUDA STUB */
 extern
@@ -777,8 +743,7 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 

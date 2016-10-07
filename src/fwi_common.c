@@ -1,5 +1,6 @@
 #include "fwi_common.h"
 
+
 /* extern variables declared in the header file */
 const integer  WRITTEN_FIELDS =   12; /* >= 12.  */
 const integer  HALO           =    4; /* >= 4    */ 
@@ -9,10 +10,24 @@ const real     IO_CHUNK_SIZE  = 1024.f * 1024.f;
 
 const size_t ALIGN_INT     = 16;
 const size_t ALIGN_INTEGER = 16;
-const size_t ALIGN_REAL    = 64;
+const size_t ALIGN_REAL    = 128; /* CUDA L1 cache line: 128bytes */
 
 //extern 
 FILE* logfile = NULL;
+
+
+
+extent_t make_extent(size_t w, size_t h, size_t d)
+{
+    extent_t e = {0};
+
+    e.width  = w;
+    e.height = h;
+    e.depth  = d;
+
+    return e;
+}
+
 
 void log_info (const char *fmt, ...) 
 {
@@ -419,6 +434,110 @@ void __free ( void* ptr)
 {
     free( ptr );
 };
+
+void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req)
+{
+    const size_t ALIGN = alignment;
+
+    void* h_base_ptr;
+
+    size_t padding = ( (size_t)abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
+    assert( padding%sizeof(real) == 0 );
+    
+    dim->pitch = req.width + (padding / sizeof(real));
+    dim->zsize = req.width;
+    dim->xsize = req.height;
+    dim->ysize = req.depth;
+
+    const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
+    /* 
+     * 'size' is a perfect aligned 3D volume size [pitch x xsize x ysize] if your access have stride 0
+     *  BUT our accesses have a stride HALO: ptr[HALO] is typically the first internal position.
+     *      so we have to align to that stride also!
+     */
+
+    h_base_ptr = (void*) malloc( size+ALIGN-1 );
+
+    uintptr_t mask = ~(uintptr_t)(ALIGN-1);
+
+    void** h_ptr = (void**) ((((uintptr_t)h_base_ptr+ALIGN-1) & mask) + (ALIGN-4-12));
+
+#if defined(DEBUG)
+    fprintf(stdout, "--malloc3d: h_base_ptr %p h_alig_ptr %p\n", 
+            h_base_ptr, *h_ptr);
+#endif
+
+    /* 
+     * since we have to call 'free' and 'acc_free' with base pointers 
+     * we have to store them in the innaccessible part 
+     * WARNING: any ovewrite of this information will cause a SEGFAULT in the free
+     */
+    h_ptr[-1] = h_base_ptr;
+
+    return h_ptr;
+}
+
+void free3d_host(void** h_align_ptr)
+{
+    /* deallocate memory from the base pointers */
+    void* h_base_ptr = h_align_ptr[-1];
+
+    free(h_base_ptr);
+}
+
+#if defined(_OPENACC)
+void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h_align_ptr)
+{
+    const size_t ALIGN = alignment;
+
+    void* d_base_ptr;
+
+    size_t padding = ( (size_t)abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
+    assert( padding%sizeof(real) == 0 );
+    
+    dim->pitch = req.width + (padding / sizeof(real));
+    dim->zsize = req.width;
+    dim->xsize = req.height;
+    dim->ysize = req.depth;
+
+    const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
+    /* 
+     * 'size' is a perfect aligned 3D volume size [pitch x xsize x ysize] if your access have stride 0
+     *  BUT our accesses have a stride HALO: ptr[HALO] is typically the first internal position.
+     *      so we have to align to that stride also!
+     */
+
+    d_base_ptr =     acc_malloc( size+ALIGN-1 );
+
+    uintptr_t mask = ~(uintptr_t)(ALIGN-1);
+
+    // TODO: figure out what this -4-12 is..
+    void** d_ptr = (void**) ((((uintptr_t)d_base_ptr+ALIGN-1) & mask) + (ALIGN-4-12));
+
+#if defined(DEBUG)
+    fprintf(stdout, "--malloc3d: d_base_ptr %p d_alig_ptr %p\n", 
+            d_base_ptr, *d_ptr);
+#endif
+
+    /* 
+     * since we have to call 'free' and 'acc_free' with base pointers 
+     * we have to store them in the innaccessible part 
+     * WARNING: any ovewrite of this information will cause a SEGFAULT in the free
+     */
+    h_align_ptr[-2] = d_base_ptr;
+
+    return d_ptr;
+}
+
+void free3d_device(void** h_align_ptr)
+{
+    /* deallocate memory from the base pointers */
+    void* d_base_ptr = h_align_ptr[-2];
+
+    acc_free(d_base_ptr);
+}
+#endif
+
 
 FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)
 {

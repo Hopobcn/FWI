@@ -46,7 +46,7 @@ void set_array_to_constant( real* restrict array, const real value, const intege
         array[i] = value;
 }
 
-void check_memory_shot( const integer numberOfCells,
+void check_memory_shot( const dim_t dim,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -54,6 +54,8 @@ void check_memory_shot( const integer numberOfCells,
 {
 #if defined(DEBUG)
     print_debug("Checking memory shot values");
+
+    int numberOfCells = dim.pitch * dim.xsize * dim.ysize;
 
     real UNUSED(value);
     for( int i=0; i < numberOfCells; i++)
@@ -106,7 +108,8 @@ void check_memory_shot( const integer numberOfCells,
 };
 
 
-void alloc_memory_shot( const integer numberOfCells,
+void alloc_memory_shot( const extent_t req,
+                        dim_t   *dim,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -114,115 +117,172 @@ void alloc_memory_shot( const integer numberOfCells,
 {
     PUSH_RANGE
 
-    const integer size = numberOfCells * sizeof(real);
+    //const integer size = numberOfCells * sizeof(real);
 
-    print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
+    //print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
 
     /* allocate coefficients */
-    c->c11 = (real*) __malloc( ALIGN_REAL, size);
-    c->c12 = (real*) __malloc( ALIGN_REAL, size);
-    c->c13 = (real*) __malloc( ALIGN_REAL, size);
-    c->c14 = (real*) __malloc( ALIGN_REAL, size);
-    c->c15 = (real*) __malloc( ALIGN_REAL, size);
-    c->c16 = (real*) __malloc( ALIGN_REAL, size);
+    c->c11 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c12 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c13 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c14 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c15 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c16 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    c->c22 = (real*) __malloc( ALIGN_REAL, size);
-    c->c23 = (real*) __malloc( ALIGN_REAL, size);
-    c->c24 = (real*) __malloc( ALIGN_REAL, size);
-    c->c25 = (real*) __malloc( ALIGN_REAL, size);
-    c->c26 = (real*) __malloc( ALIGN_REAL, size);
+    c->c22 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c23 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c24 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c25 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c26 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    c->c33 = (real*) __malloc( ALIGN_REAL, size);
-    c->c34 = (real*) __malloc( ALIGN_REAL, size);
-    c->c35 = (real*) __malloc( ALIGN_REAL, size);
-    c->c36 = (real*) __malloc( ALIGN_REAL, size);
+    c->c33 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c34 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c35 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c36 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    c->c44 = (real*) __malloc( ALIGN_REAL, size);
-    c->c45 = (real*) __malloc( ALIGN_REAL, size);
-    c->c46 = (real*) __malloc( ALIGN_REAL, size);
+    c->c44 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c45 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c46 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    c->c55 = (real*) __malloc( ALIGN_REAL, size);
-    c->c56 = (real*) __malloc( ALIGN_REAL, size);
-    c->c66 = (real*) __malloc( ALIGN_REAL, size);
+    c->c55 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c56 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c66 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
     /* allocate velocity components */
-    v->tl.u = (real*) __malloc( ALIGN_REAL, size);
-    v->tl.v = (real*) __malloc( ALIGN_REAL, size);
-    v->tl.w = (real*) __malloc( ALIGN_REAL, size);
+    v->tl.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tl.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tl.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    v->tr.u = (real*) __malloc( ALIGN_REAL, size);
-    v->tr.v = (real*) __malloc( ALIGN_REAL, size);
-    v->tr.w = (real*) __malloc( ALIGN_REAL, size);
+    v->tr.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tr.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tr.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    v->bl.u = (real*) __malloc( ALIGN_REAL, size);
-    v->bl.v = (real*) __malloc( ALIGN_REAL, size);
-    v->bl.w = (real*) __malloc( ALIGN_REAL, size);
+    v->bl.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->bl.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->bl.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    v->br.u = (real*) __malloc( ALIGN_REAL, size);
-    v->br.v = (real*) __malloc( ALIGN_REAL, size);
-    v->br.w = (real*) __malloc( ALIGN_REAL, size);
+    v->br.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->br.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->br.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
     /* allocate stress components   */
-    s->tl.zz = (real*) __malloc( ALIGN_REAL, size);
-    s->tl.xz = (real*) __malloc( ALIGN_REAL, size);
-    s->tl.yz = (real*) __malloc( ALIGN_REAL, size);
-    s->tl.xx = (real*) __malloc( ALIGN_REAL, size);
-    s->tl.xy = (real*) __malloc( ALIGN_REAL, size);
-    s->tl.yy = (real*) __malloc( ALIGN_REAL, size);
+    s->tl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    s->tr.zz = (real*) __malloc( ALIGN_REAL, size);
-    s->tr.xz = (real*) __malloc( ALIGN_REAL, size);
-    s->tr.yz = (real*) __malloc( ALIGN_REAL, size);
-    s->tr.xx = (real*) __malloc( ALIGN_REAL, size);
-    s->tr.xy = (real*) __malloc( ALIGN_REAL, size);
-    s->tr.yy = (real*) __malloc( ALIGN_REAL, size);
+    s->tr.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    s->bl.zz = (real*) __malloc( ALIGN_REAL, size);
-    s->bl.xz = (real*) __malloc( ALIGN_REAL, size);
-    s->bl.yz = (real*) __malloc( ALIGN_REAL, size);
-    s->bl.xx = (real*) __malloc( ALIGN_REAL, size);
-    s->bl.xy = (real*) __malloc( ALIGN_REAL, size);
-    s->bl.yy = (real*) __malloc( ALIGN_REAL, size);
+    s->bl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
-    s->br.zz = (real*) __malloc( ALIGN_REAL, size);
-    s->br.xz = (real*) __malloc( ALIGN_REAL, size);
-    s->br.yz = (real*) __malloc( ALIGN_REAL, size);
-    s->br.xx = (real*) __malloc( ALIGN_REAL, size);
-    s->br.xy = (real*) __malloc( ALIGN_REAL, size);
-    s->br.yy = (real*) __malloc( ALIGN_REAL, size);
+    s->br.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
     /* allocate density array       */
-    *rho = (real*) __malloc( ALIGN_REAL, size);
+    *rho = (real*) malloc3d_host(dim, ALIGN_REAL, req);
 
 #if defined(_OPENACC)
-    const integer datalen = numberOfCells;
+
+    const integer datalen = dim->pitch * dim->xsize * dim->ysize;
 
     const real* rrho  = *rho;
     
-    coeff_t cc = *c;
-    // TODO: Test that works with this shit
-    #pragma acc enter data create(cc)
-    #pragma acc enter data create(cc.c11[:datalen])
-    #pragma acc enter data create(cc.c12[:datalen])
-    #pragma acc enter data create(cc.c13[:datalen])
-    #pragma acc enter data create(cc.c14[:datalen])
-    #pragma acc enter data create(cc.c15[:datalen])
-    #pragma acc enter data create(cc.c16[:datalen])
-    #pragma acc enter data create(cc.c22[:datalen])
-    #pragma acc enter data create(cc.c23[:datalen])
-    #pragma acc enter data create(cc.c24[:datalen])
-    #pragma acc enter data create(cc.c25[:datalen])
-    #pragma acc enter data create(cc.c26[:datalen])
-    #pragma acc enter data create(cc.c33[:datalen])
-    #pragma acc enter data create(cc.c34[:datalen])
-    #pragma acc enter data create(cc.c35[:datalen])
-    #pragma acc enter data create(cc.c36[:datalen])
-    #pragma acc enter data create(cc.c44[:datalen])
-    #pragma acc enter data create(cc.c45[:datalen])
-    #pragma acc enter data create(cc.c46[:datalen])
-    #pragma acc enter data create(cc.c55[:datalen])
-    #pragma acc enter data create(cc.c56[:datalen])
-    #pragma acc enter data create(cc.c66[:datalen])
+    coeff_t c_h = *c;
+    coeff_t c_d;
+
+    c_d.c11 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c11);
+    c_d.c12 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c12);
+    c_d.c13 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c13);
+    c_d.c14 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c14);
+    c_d.c15 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c15);
+    c_d.c16 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c16);
+
+    c_d.c22 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c22);
+    c_d.c23 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c23);
+    c_d.c24 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c24);
+    c_d.c25 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c25);
+    c_d.c26 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c26);
+
+    c_d.c33 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c33);
+    c_d.c34 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c34);
+    c_d.c35 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c35);
+    c_d.c36 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c36);
+
+    c_d.c44 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c44);
+    c_d.c45 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c45);
+    c_d.c46 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c46);
+
+    c_d.c55 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c55);
+    c_d.c56 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c56);
+    c_d.c66 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c66);
+    
+    acc_map_data( c_h.c11, c_d.c11, datalen );
+    acc_map_data( c_h.c12, c_d.c12, datalen );
+    acc_map_data( c_h.c13, c_d.c13, datalen );
+    acc_map_data( c_h.c14, c_d.c14, datalen );
+    acc_map_data( c_h.c15, c_d.c15, datalen );
+    acc_map_data( c_h.c16, c_d.c16, datalen );
+                                  
+    acc_map_data( c_h.c22, c_d.c22, datalen );
+    acc_map_data( c_h.c23, c_d.c23, datalen );
+    acc_map_data( c_h.c24, c_d.c24, datalen );
+    acc_map_data( c_h.c25, c_d.c25, datalen );
+    acc_map_data( c_h.c26, c_d.c26, datalen );
+                                  
+    acc_map_data( c_h.c33, c_d.c33, datalen );
+    acc_map_data( c_h.c34, c_d.c34, datalen );
+    acc_map_data( c_h.c35, c_d.c35, datalen );
+    acc_map_data( c_h.c36, c_d.c36, datalen );
+                                  
+    acc_map_data( c_h.c44, c_d.c44, datalen );
+    acc_map_data( c_h.c45, c_d.c45, datalen );
+    acc_map_data( c_h.c46, c_d.c46, datalen );
+                                  
+    acc_map_data( c_h.c55, c_d.c55, datalen );
+    acc_map_data( c_h.c56, c_d.c56, datalen );
+                                  
+    acc_map_data( c_h.c66, c_d.c66, datalen );
+
+    #pragma acc enter data create(dim)
+
+   //#pragma acc enter data create(cc)
+   //#pragma acc enter data create(cc.c11[:datalen])
+   //#pragma acc enter data create(cc.c12[:datalen])
+   //#pragma acc enter data create(cc.c13[:datalen])
+   //#pragma acc enter data create(cc.c14[:datalen])
+   //#pragma acc enter data create(cc.c15[:datalen])
+   //#pragma acc enter data create(cc.c16[:datalen])
+   //#pragma acc enter data create(cc.c22[:datalen])
+   //#pragma acc enter data create(cc.c23[:datalen])
+   //#pragma acc enter data create(cc.c24[:datalen])
+   //#pragma acc enter data create(cc.c25[:datalen])
+   //#pragma acc enter data create(cc.c26[:datalen])
+   //#pragma acc enter data create(cc.c33[:datalen])
+   //#pragma acc enter data create(cc.c34[:datalen])
+   //#pragma acc enter data create(cc.c35[:datalen])
+   //#pragma acc enter data create(cc.c36[:datalen])
+   //#pragma acc enter data create(cc.c44[:datalen])
+   //#pragma acc enter data create(cc.c45[:datalen])
+   //#pragma acc enter data create(cc.c46[:datalen])
+   //#pragma acc enter data create(cc.c55[:datalen])
+   //#pragma acc enter data create(cc.c56[:datalen])
+   //#pragma acc enter data create(cc.c66[:datalen])
 
     v_t vv = *v;
 
@@ -436,9 +496,7 @@ void free_memory_shot( coeff_t *c,
  * Loads initial values from coeffs, stress and velocity.
  */
 void load_initial_model ( const real    waveletFreq,
-                          const integer dimmz,
-                          const integer dimmx,
-                          const integer dimmy,
+                          const dim_t dim,
                           coeff_t *c,
                           s_t     *s,
                           v_t     *v,
@@ -446,7 +504,7 @@ void load_initial_model ( const real    waveletFreq,
 {
     PUSH_RANGE
 
-    const int numberOfCells = dimmz * dimmx * dimmy;
+    const int numberOfCells = dim.pitch * dim.xsize * dim.ysize;
 
     /* initialize stress */
     set_array_to_constant( s->tl.zz, 0, numberOfCells);
@@ -643,9 +701,7 @@ void load_initial_model ( const real    waveletFreq,
 void write_snapshot(char *folder,
                     int suffix,
                     v_t *v,
-                    const integer dimmz,
-                    const integer dimmx,
-                    const integer dimmy)
+                    const dim_t dim)
 {
     PUSH_RANGE
 
@@ -661,8 +717,8 @@ void write_snapshot(char *folder,
     domain = 0; ndomains = 1;
 #endif
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
-    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
+    const integer cellsInVolume  = (dim.pitch) * (dim.xsize) * ( (dim.ysize-2*HALO)/ndomains );
+    const integer cellsInHALOs   = (dim.pitch) * (dim.xsize) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
@@ -735,9 +791,7 @@ void write_snapshot(char *folder,
 void read_snapshot(char *folder,
                    int suffix,
                    v_t *v,
-                   const integer dimmz,
-                   const integer dimmx,
-                   const integer dimmy)
+                   const dim_t dim)
 {
     PUSH_RANGE
 
@@ -766,8 +820,8 @@ void read_snapshot(char *folder,
     domain = 0; ndomains = 1;
 #endif
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
-    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
+    const integer cellsInVolume  = (dim.pitch) * (dim.xsize) * ( (dim.ysize-2*HALO)/ndomains );
+    const integer cellsInHALOs   = (dim.pitch) * (dim.xsize) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
@@ -841,9 +895,7 @@ void propagate_shot(time_d        direction,
                     integer       stacki,
                     char          *folder,
                     real          *UNUSED(dataflush),
-                    integer       dimmz,
-                    integer       dimmx,
-                    integer       dimmy)
+                    dim_t         dim)
 {
     PUSH_RANGE
 
@@ -859,7 +911,7 @@ void propagate_shot(time_d        direction,
         if( t % 10 == 0 ) print_info("Computing %d-th timestep", t);
 
         /* perform IO */
-        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
+        if ( t%stacki == 0 && direction == BACKWARD) read_snapshot(folder, ntbwd-t, &v, dim);
 
         tglobal_start = dtime();
 
@@ -880,7 +932,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx,
+                            dim,
                             ONE_L);
 
         /* Phase 1. Computation of the right-most planes of the domain */
@@ -891,7 +943,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
+                            dim,
                             ONE_R);
 
         /* Phase 2. Computation of the central planes. */
@@ -904,10 +956,10 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
+                            dim,
                             TWO);
 #if defined(USE_MPI)
-        const integer plane_size = dimmz * dimmx;
+        const integer plane_size = dim.pitch * dim.xsize;
         /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
 #endif
@@ -928,7 +980,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
-                          dimmz, dimmx,
+                          dim,
                           ONE_L);
 
         /* Phase 1. Computation of the right-most planes of the domain */
@@ -939,7 +991,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           nyf - 2*HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
+                          dim,
                           ONE_R);
 
         /* Phase 2 computation. Central planes of the domain */
@@ -952,7 +1004,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
+                          dim,
                           TWO);
 
 #if defined(USE_MPI)
@@ -968,7 +1020,7 @@ void propagate_shot(time_d        direction,
         tglobal_total += (dtime() - tglobal_start);
 
         /* perform IO */
-        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, dimmz, dimmx, dimmy);
+        if ( t%stacki == 0 && direction == FORWARD) write_snapshot(folder, ntbwd-t, &v, dim);
 
 #if defined(USE_MPI)
         MPI_Barrier( MPI_COMM_WORLD );

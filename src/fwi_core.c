@@ -62,6 +62,11 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     /* set GLOBAL integration limits */
     const integer nyf = dimmy;
 #endif
+    /* requested 3D volume size (old dimmz,dimmx,dimmz): */
+    extent_t req = make_extent( dimmz, dimmx, dimmz );
+    /* padded & aligned 3D volume size */
+    dim_t dim;
+
     /* set GLOBAL integration limits -COMMON PART-*/
     const integer nz0 = 0;
     const integer ny0 = 0;
@@ -77,23 +82,17 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     print_debug("The length of local arrays is " I " cells zxy[%d][%d][%d]", numberOfCells, nzf, nxf, nyf);
 
     /* allocate shot memory */
-    alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
+    alloc_memory_shot  ( req, &dim, &coeffs, &s, &v, &rho);
 
-#if defined(USE_MPI)
     /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, dimmz, dimmx, edimmy, &coeffs, &s, &v, rho);
-#else
-    /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, dimmz, dimmx, dimmy, &coeffs, &s, &v, rho);
-#endif
+    load_initial_model ( waveletFreq, dim, &coeffs, &s, &v, rho);
 
     /* Allocate memory for IO buffer */
     real* io_buffer = (real*) __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
 
     /* inspects every array positions for leaks. Enabled when DEBUG flag is defined */
-    check_memory_shot  ( numberOfCells, &coeffs, &s, &v, rho);
+    check_memory_shot  ( dim, &coeffs, &s, &v, rho);
 
-    
     switch( propagator )
     {
     case( RTM_KERNEL ):
@@ -108,7 +107,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         dimmz, dimmx, dimmy);
+                         dim);
 
         end_t = dtime();
 
@@ -124,7 +123,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         dimmz, dimmx, dimmy);
+                         dim);
 
         end_t = dtime();
 
@@ -172,8 +171,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         numberOfCells,
-                         dimmz, dimmx);
+                         dim);
 
         end_t = dtime();
 

@@ -36,7 +36,8 @@ void set_array_to_constant(real* restrict array,
                            const real value,
                            const integer length);
 
-void alloc_memory_shot( const integer numberOfCells,
+void alloc_memory_shot( const extent_t req,
+                        dim_t   *dim,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -47,7 +48,7 @@ void free_memory_shot( coeff_t *c,
                        v_t     *v,
                        real    **rho);
 
-void check_memory_shot( const integer numberOfCells,
+void check_memory_shot( const dim_t dim,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -56,9 +57,7 @@ void check_memory_shot( const integer numberOfCells,
 /* --------------- I/O RELATED FUNCTIONS -------------------------------------- */
 
 void load_initial_model ( const real    waveletFreq,
-                          const integer dimmz,
-                          const integer dimmx,
-                          const integer dimmy,
+                          const dim_t dim,
                           coeff_t *c,
                           s_t     *s,
                           v_t     *v,
@@ -67,16 +66,12 @@ void load_initial_model ( const real    waveletFreq,
 void write_snapshot ( char         *folder,
                       const int     suffix,
                       v_t          *v,
-                      const integer dimmz,
-                      const integer dimmx,
-                      const integer dimmy);
+                      const dim_t  dim);
 
 void read_snapshot ( char         *folder,
                      const int     suffix,
                      v_t          *v,
-                     const integer dimmz,
-                     const integer dimmx,
-                     const integer dimmy);
+                     const dim_t   dim);
 
 
 /* --------------- WAVE PROPAGATOR FUNCTIONS --------------------------------- */
@@ -101,9 +96,7 @@ void propagate_shot ( time_d        direction,
                      integer       stacki,
                      char          *folder,
                      real          *dataflush,
-                     integer       datalen,
-                     integer       dimmz,
-                     integer       dimmx);
+                     dim_t         dim);
 
 
 /* --------------- BOUNDARY EXCHANGES ---------------------------------------- */

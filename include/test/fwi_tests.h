@@ -11,9 +11,8 @@
 
 
 // global vars
-extern const integer dimmz;
-extern const integer dimmx;
-extern const integer dimmy;
+extern const extent_t req;
+extern       dim_t    dim;
 extern       integer nelems;
 
 extern v_t v_ref;
