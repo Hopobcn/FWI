@@ -1,4 +1,4 @@
-#include "fwi_common.h"
+#include "fwi/fwi_common.h"
 
 /* extern variables declared in the header file */
 const integer  WRITTEN_FIELDS =   12; /* >= 12.  */

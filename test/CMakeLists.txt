@@ -6,7 +6,7 @@ add_executable(fwi-tests
 )
 
 target_include_directories(fwi-tests PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/test
+    ${PROJECT_SOURCE_DIR}/include
 )
 
 target_link_libraries(fwi-tests

@@ -1,4 +1,4 @@
-#include "fwi_tests.h"
+#include "test/fwi_tests.h"
 
 
 /// HELPER FUNCTIONS /////

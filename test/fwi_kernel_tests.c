@@ -1,9 +1,9 @@
-#include "fwi_tests.h"
+#include "test/fwi_tests.h"
 
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include "fwi_kernel.h"
+#include "fwi/fwi_kernel.h"
 
 
 

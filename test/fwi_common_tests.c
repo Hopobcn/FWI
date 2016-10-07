@@ -1,7 +1,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include "fwi_common.h"
+#include "fwi/fwi_common.h"
 
 TEST_GROUP(common);
 

@@ -1,7 +1,7 @@
-#include "fwi_tests.h"
+#include "test/fwi_tests.h"
 
-#include "fwi_kernel.h"
-#include "fwi_propagator.h"
+#include "fwi/fwi_kernel.h"
+#include "fwi/fwi_propagator.h"
 
 
 

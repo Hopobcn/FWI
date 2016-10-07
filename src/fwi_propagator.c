@@ -1,4 +1,4 @@
-#include "fwi_propagator.h"
+#include "fwi/fwi_propagator.h"
 
 inline
 integer IDX (const integer z, 
