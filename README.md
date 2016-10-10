@@ -12,17 +12,17 @@ Please follow that order. Each step has to be documented using `git`. Every time
 
 ### How to get started:
 **Fork** this repository (you will need push rights to be able to upload your results). Then `clone` your repository into your local machine and upload the whole directory to Minotauro using `scp` or `rsync`.
-There is no connectivity inside Minotauro to the outside world so you will have to copy the entire directory from Minotauro to be able to push to github.
+There is no connectivity inside Minotauro to the outside world so you will have to copy the entire directory from Minotauro to your laptop to be able to push to github.
 
 Example using `rsync`:
 
 Local to Minotauro:
 ```bash
-rsync -azP --delete --exclude 'build' ./FWI/ USER@mt2.bsc:~/hackathon/FWI
+rsync -azP --delete --exclude 'build' /home/foo/hackathon/FWI/ USER@mt2.bsc:~/hackathon/FWI
 ```
 Minotauro to Local:
 ```bash
-rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/FWI .
+rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/FWI /home/foo/hackathon
 ```
 
 ### Build Instructions:
@@ -30,12 +30,12 @@ rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/FWI .
 This application uses CMake to discover all dependences and build the application. Therefore the build process follows the typical build process of every cmake application.
 
 ```bash
-cmake -DCMAKE_C_COMPILER=<foo-compiler> [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ]  <path-to-project-base-dir>
+cmake -DCMAKE_C_COMPILER=<foo-compiler> [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ... ]  <path-to-project-base-dir>
 ```
 
 __WARNING:__ *Always* make *out-of-source* builds (don't execute cmake from the project root directory):
 ```bash
-cd FWI-PROJECT-DIR
+cd ~/hackathon/FWI
 mkdir build && cd build
 cmake <options> ..
 make
@@ -74,7 +74,7 @@ We also provide a matrix of the three compilers supported (`icc >= 16.0.2`, `gcc
 
 *The code is prepared to use OpenMP parallelization or OpenACC acceleration, not both at the same time, so please use only one option at build time.
 
-CMake also provides a set of BUILD_TYPES. In our case we will use `Release` for performance tests and `Debug` for debugging the application (default is set to `Release`). Example:
+CMake also provides a set of BUILD_TYPES. In our case we will use `Release` for performance tests and `Debug` for debugging the application (the default is set to `Release`). Example:
 ```bash
 cmake -DCMAKE_C_COMPILER=<foo-compiler> -DCMAKE_BUILD_TYPE=Debug [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ]  <path-to-project-base-dir>
 make
@@ -134,7 +134,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
     * BSCTOOLS
     * Any other
     
-    CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE` is enabled:
+    CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE=ON` is provided:
     ```bash
     source scripts/environment_gcc.sh
     cd build
@@ -144,7 +144,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
     <--- run gprof                                         --->
     ```
 
-    We also added support for launching the SLURM jobs  (`scripts/job_*.slurm`) with cmake/make (if you want to tweak this go to `main/CMakeLists.txt`):
+    We also added support for launching SLURM jobs  (`scripts/job_*.slurm`) with cmake/make (if you want to tweak this go to `main/CMakeLists.txt`):
     ```bash
     # to launch script/jobscript_<COMPILER>_run.sequential.slurm execute:
     make run-seq
@@ -155,7 +155,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
     # to launch script/jobscript_<COMPILER>_run.openacc.slurm execute:
     make run-openacc
      ```
-    
+    Otherwise use `mnsubmit` to launch your jobs.
+
 2. **Parallelize with OpenACC with 1 GPU**
 
     From now on, use the PGI 16.5 compiler to work with OpenACC since it's the only fully supported compiler with OpenACC 2.5. (`gcc` >= 6.1.0 has OpenACC 2.0 support but has not been tested)
@@ -167,14 +168,14 @@ All executions **should** be performed in compute nodes. We provide some scripts
     #if defined(_OPENACC)
     #pragma acc <---etc-->
     #elif defined(_OPENMP)
-    #pragma omp for
+    #pragma omp for <--etc-->
     #endif
     ```
     This way you can recompile your application enabling/disabling this new functionality without breaking the previous implementation (seq/openmp).
 
 3. **Test your OpenACC implementation**
 
-    The serial implementation comes with a set of tests that check the correct execution of some parts of the program:
+    The serial implementation comes with a set of tests that checks the correct execution of some parts of the program:
     ```bash
     make utest
     ```
@@ -199,9 +200,11 @@ All executions **should** be performed in compute nodes. We provide some scripts
     Put preprocessor guards as much as possible to prevent braking the implementations that do not use MPI/OpenMP. 
 
 6. **Test your Multi-GPU implementation**
+    
     Explain how you checked the correctness.
 
-7. Optimize the Multi-GPU implementation
+7. **Optimize the Multi-GPU implementation**
+
     Optimize your implementation and report execution times of your solution.
 
 8. **Implement velocity (vcell) kernels with CUDA + Tests**
@@ -222,7 +225,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
     Report kernel times.
 
-     For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 10.0 Hz:
+    For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 10.0 Hz:
     20.4410 s
 
 
