@@ -50,6 +50,13 @@ typedef union
     assert_equal_float_array( (ref), (opt), (nelems), __FILE__, __LINE__ ); \
 }
 
+bool    is_negative(Float_t f); 
+int32_t raw_mantissa(Float_t f);
+int32_t raw_exponent(Float_t f);
+
+bool assert_float_equal_ULPs(float A, float B, int maxUlpsDiff);
+int diff_in_ULPs(float A, float B);
+
 void assert_equal_float_array( float* ref, float* opt, const int nelems, const char* file, const int line );
 
 
