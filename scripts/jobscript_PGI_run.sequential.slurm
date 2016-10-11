@@ -10,7 +10,7 @@
 # @ tasks_per_node   = 1
 # @ cpus_per_task    = 1
 # @ gpus_per_node    = 1
-# @ wall_clock_limit = 00:05:00
+# @ wall_clock_limit = 00:10:00
 # @ features         = k80
 ###############################################################
 
@@ -21,7 +21,7 @@ source ../environment_pgi.sh
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
-# estimated elapsed time 2:30 minutes
-../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt
+# estimated elapsed time 8:30 minutes
+../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.profile.txt
 
 mv fwi.00.log fwi.PGI.seq.${SLURM_JOB_ID}.log

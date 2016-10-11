@@ -10,7 +10,7 @@
 # @ tasks_per_node   = 1
 # @ cpus_per_task    = 1
 # @ gpus_per_node    = 1
-# @ wall_clock_limit = 00:05:00
+# @ wall_clock_limit = 00:08:00
 # @ features         = k80
 ###############################################################
 
@@ -21,7 +21,7 @@ source ../environment_icc.sh
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
-# Estimated elapsd time: 1:00 minute
-../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.small.txt
+# Estimated elapsd time: 5:00 minutes
+../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.profile.txt
 
 mv fwi.00.log fwi.Intel.seq.${SLURM_JOB_ID}.log

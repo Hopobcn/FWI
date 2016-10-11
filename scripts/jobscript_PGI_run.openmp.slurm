@@ -10,7 +10,7 @@
 # @ tasks_per_node   = 1
 # @ cpus_per_task    = 16
 # @ gpus_per_node    = 4
-# @ wall_clock_limit = 00:07:00
+# @ wall_clock_limit = 00:20:00
 # @ features         = k80
 ###############################################################
 
@@ -23,7 +23,7 @@ export OMP_NUM_THREADS=16
 export MP_BIND=yes
 export MP_BLIST=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
-# estimated elapsed time 5:30 minutes
-../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.medium.txt
+# estimated elapsed time 17:00 minutes
+../../build/bin/fwi ../../data/fwi_params.txt ../../data/fwi_frequencies.txt
 
 mv fwi.00.log fwi.PGI.omp.${SLURM_JOB_ID}.log
