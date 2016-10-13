@@ -206,61 +206,32 @@ void alloc_memory_shot( const extent_t req,
     coeff_t c_h = *c;
     coeff_t c_d;
 
-    c_d.c11 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c11);
-    c_d.c12 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c12);
-    c_d.c13 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c13);
-    c_d.c14 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c14);
-    c_d.c15 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c15);
-    c_d.c16 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c16);
+    c_d.c11 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c11);
+    c_d.c12 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c12);
+    c_d.c13 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c13);
+    c_d.c14 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c14);
+    c_d.c15 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c15);
+    c_d.c16 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c16);
 
-    c_d.c22 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c22);
-    c_d.c23 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c23);
-    c_d.c24 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c24);
-    c_d.c25 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c25);
-    c_d.c26 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c26);
+    c_d.c22 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c22);
+    c_d.c23 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c23);
+    c_d.c24 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c24);
+    c_d.c25 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c25);
+    c_d.c26 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c26);
 
-    c_d.c33 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c33);
-    c_d.c34 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c34);
-    c_d.c35 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c35);
-    c_d.c36 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c36);
+    c_d.c33 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c33);
+    c_d.c34 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c34);
+    c_d.c35 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c35);
+    c_d.c36 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c36);
 
-    c_d.c44 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c44);
-    c_d.c45 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c45);
-    c_d.c46 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c46);
+    c_d.c44 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c44);
+    c_d.c45 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c45);
+    c_d.c46 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c46);
 
-    c_d.c55 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c55);
-    c_d.c56 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c56);
-    c_d.c66 = (real*) malloc3d_device(dim, ALIGN_REAL, req, &c_h.c66);
+    c_d.c55 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c55);
+    c_d.c56 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c56);
+    c_d.c66 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c66);
     
-    acc_map_data( c_h.c11, c_d.c11, datalen );
-    acc_map_data( c_h.c12, c_d.c12, datalen );
-    acc_map_data( c_h.c13, c_d.c13, datalen );
-    acc_map_data( c_h.c14, c_d.c14, datalen );
-    acc_map_data( c_h.c15, c_d.c15, datalen );
-    acc_map_data( c_h.c16, c_d.c16, datalen );
-                                  
-    acc_map_data( c_h.c22, c_d.c22, datalen );
-    acc_map_data( c_h.c23, c_d.c23, datalen );
-    acc_map_data( c_h.c24, c_d.c24, datalen );
-    acc_map_data( c_h.c25, c_d.c25, datalen );
-    acc_map_data( c_h.c26, c_d.c26, datalen );
-                                  
-    acc_map_data( c_h.c33, c_d.c33, datalen );
-    acc_map_data( c_h.c34, c_d.c34, datalen );
-    acc_map_data( c_h.c35, c_d.c35, datalen );
-    acc_map_data( c_h.c36, c_d.c36, datalen );
-                                  
-    acc_map_data( c_h.c44, c_d.c44, datalen );
-    acc_map_data( c_h.c45, c_d.c45, datalen );
-    acc_map_data( c_h.c46, c_d.c46, datalen );
-                                  
-    acc_map_data( c_h.c55, c_d.c55, datalen );
-    acc_map_data( c_h.c56, c_d.c56, datalen );
-                                  
-    acc_map_data( c_h.c66, c_d.c66, datalen );
-
-    #pragma acc enter data create(dim)
-
    //#pragma acc enter data create(cc)
    //#pragma acc enter data create(cc.c11[:datalen])
    //#pragma acc enter data create(cc.c12[:datalen])
@@ -284,50 +255,102 @@ void alloc_memory_shot( const extent_t req,
    //#pragma acc enter data create(cc.c56[:datalen])
    //#pragma acc enter data create(cc.c66[:datalen])
 
-    v_t vv = *v;
+    v_t v_d;
 
-    #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:datalen])
-    #pragma acc enter data create(vv.tl.v[:datalen])
-    #pragma acc enter data create(vv.tl.w[:datalen])
-    #pragma acc enter data create(vv.tr.u[:datalen])
-    #pragma acc enter data create(vv.tr.v[:datalen])
-    #pragma acc enter data create(vv.tr.w[:datalen])
-    #pragma acc enter data create(vv.bl.u[:datalen])
-    #pragma acc enter data create(vv.bl.v[:datalen])
-    #pragma acc enter data create(vv.bl.w[:datalen])
-    #pragma acc enter data create(vv.br.u[:datalen])
-    #pragma acc enter data create(vv.br.v[:datalen])
-    #pragma acc enter data create(vv.br.w[:datalen])
+    /* allocate velocity components */
+    v_d.tl.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.u);
+    v_d.tl.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.v);
+    v_d.tl.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.w);
+           
+    v_d.tr.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.u);
+    v_d.tr.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.v);
+    v_d.tr.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.w);
+           
+    v_d.bl.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.u);
+    v_d.bl.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.v);
+    v_d.bl.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.w);
+           
+    v_d.br.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.u);
+    v_d.br.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.v);
+    v_d.br.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.w);
 
-    s_t ss = *s;
-    #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:datalen])
-    #pragma acc enter data create(ss.tl.xz[:datalen])
-    #pragma acc enter data create(ss.tl.yz[:datalen])
-    #pragma acc enter data create(ss.tl.xx[:datalen])
-    #pragma acc enter data create(ss.tl.xy[:datalen])
-    #pragma acc enter data create(ss.tl.yy[:datalen])
-    #pragma acc enter data create(ss.tr.zz[:datalen])
-    #pragma acc enter data create(ss.tr.xz[:datalen])
-    #pragma acc enter data create(ss.tr.yz[:datalen])
-    #pragma acc enter data create(ss.tr.xx[:datalen])
-    #pragma acc enter data create(ss.tr.xy[:datalen])
-    #pragma acc enter data create(ss.tr.yy[:datalen])
-    #pragma acc enter data create(ss.bl.zz[:datalen])
-    #pragma acc enter data create(ss.bl.xz[:datalen])
-    #pragma acc enter data create(ss.bl.yz[:datalen])
-    #pragma acc enter data create(ss.bl.xx[:datalen])
-    #pragma acc enter data create(ss.bl.xy[:datalen])
-    #pragma acc enter data create(ss.bl.yy[:datalen])
-    #pragma acc enter data create(ss.br.zz[:datalen])
-    #pragma acc enter data create(ss.br.xz[:datalen])
-    #pragma acc enter data create(ss.br.yz[:datalen])
-    #pragma acc enter data create(ss.br.xx[:datalen])
-    #pragma acc enter data create(ss.br.xy[:datalen])
-    #pragma acc enter data create(ss.br.yy[:datalen])
 
-    #pragma acc enter data create(rrho[:datalen])
+   //v_t vv = *v;
+   //#pragma acc enter data copyin(vv)
+   //#pragma acc enter data create(vv.tl.u[:datalen])
+   //#pragma acc enter data create(vv.tl.v[:datalen])
+   //#pragma acc enter data create(vv.tl.w[:datalen])
+   //#pragma acc enter data create(vv.tr.u[:datalen])
+   //#pragma acc enter data create(vv.tr.v[:datalen])
+   //#pragma acc enter data create(vv.tr.w[:datalen])
+   //#pragma acc enter data create(vv.bl.u[:datalen])
+   //#pragma acc enter data create(vv.bl.v[:datalen])
+   //#pragma acc enter data create(vv.bl.w[:datalen])
+   //#pragma acc enter data create(vv.br.u[:datalen])
+   //#pragma acc enter data create(vv.br.v[:datalen])
+   //#pragma acc enter data create(vv.br.w[:datalen])
+
+    s_t s_d;
+    /* allocate stress components   */
+    s_d.tl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.zz);
+    s_d.tl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xz);
+    s_d.tl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.yz);
+    s_d.tl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xx);
+    s_d.tl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xy);
+    s_d.tl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.yy);
+    
+    s_d.tr.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.zz);
+    s_d.tr.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xz);
+    s_d.tr.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.yz);
+    s_d.tr.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xx);
+    s_d.tr.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xy);
+    s_d.tr.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.yy);
+    
+    s_d.bl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.zz);
+    s_d.bl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xz);
+    s_d.bl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.yz);
+    s_d.bl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xx);
+    s_d.bl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xy);
+    s_d.bl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.yy);
+    
+    s_d.br.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.zz);
+    s_d.br.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xz);
+    s_d.br.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.yz);
+    s_d.br.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xx);
+    s_d.br.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xy);
+    s_d.br.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.yy);
+
+
+   //s_t ss = *s;
+   //#pragma acc enter data copyin(ss)
+   //#pragma acc enter data create(ss.tl.zz[:datalen])
+   //#pragma acc enter data create(ss.tl.xz[:datalen])
+   //#pragma acc enter data create(ss.tl.yz[:datalen])
+   //#pragma acc enter data create(ss.tl.xx[:datalen])
+   //#pragma acc enter data create(ss.tl.xy[:datalen])
+   //#pragma acc enter data create(ss.tl.yy[:datalen])
+   //#pragma acc enter data create(ss.tr.zz[:datalen])
+   //#pragma acc enter data create(ss.tr.xz[:datalen])
+   //#pragma acc enter data create(ss.tr.yz[:datalen])
+   //#pragma acc enter data create(ss.tr.xx[:datalen])
+   //#pragma acc enter data create(ss.tr.xy[:datalen])
+   //#pragma acc enter data create(ss.tr.yy[:datalen])
+   //#pragma acc enter data create(ss.bl.zz[:datalen])
+   //#pragma acc enter data create(ss.bl.xz[:datalen])
+   //#pragma acc enter data create(ss.bl.yz[:datalen])
+   //#pragma acc enter data create(ss.bl.xx[:datalen])
+   //#pragma acc enter data create(ss.bl.xy[:datalen])
+   //#pragma acc enter data create(ss.bl.yy[:datalen])
+   //#pragma acc enter data create(ss.br.zz[:datalen])
+   //#pragma acc enter data create(ss.br.xz[:datalen])
+   //#pragma acc enter data create(ss.br.yz[:datalen])
+   //#pragma acc enter data create(ss.br.xx[:datalen])
+   //#pragma acc enter data create(ss.br.xy[:datalen])
+   //#pragma acc enter data create(ss.br.yy[:datalen])
+
+    malloc3d_device(dim, ALIGN_REAL, req, (void*) *rho);
+
+   //#pragma acc enter data create(rrho[:datalen])
 
 #endif /* end of pragma _OPENACC */
     POP_RANGE
@@ -343,151 +366,227 @@ void free_memory_shot( coeff_t *c,
 #if defined(_OPENACC)
     #pragma acc wait
 
-    #pragma acc exit data delete(c->c11)
-    #pragma acc exit data delete(c->c12)
-    #pragma acc exit data delete(c->c13)
-    #pragma acc exit data delete(c->c14)
-    #pragma acc exit data delete(c->c15)
-    #pragma acc exit data delete(c->c16)
-    #pragma acc exit data delete(c->c22)
-    #pragma acc exit data delete(c->c23)
-    #pragma acc exit data delete(c->c24)
-    #pragma acc exit data delete(c->c25)
-    #pragma acc exit data delete(c->c26)
-    #pragma acc exit data delete(c->c33)
-    #pragma acc exit data delete(c->c34)
-    #pragma acc exit data delete(c->c35)
-    #pragma acc exit data delete(c->c36)
-    #pragma acc exit data delete(c->c44)
-    #pragma acc exit data delete(c->c45)
-    #pragma acc exit data delete(c->c46)
-    #pragma acc exit data delete(c->c55)
-    #pragma acc exit data delete(c->c56)
-    #pragma acc exit data delete(c->c66)
-    #pragma acc exit data delete(c)
+   //#pragma acc exit data delete(c->c11)
+   //#pragma acc exit data delete(c->c12)
+   //#pragma acc exit data delete(c->c13)
+   //#pragma acc exit data delete(c->c14)
+   //#pragma acc exit data delete(c->c15)
+   //#pragma acc exit data delete(c->c16)
+   //#pragma acc exit data delete(c->c22)
+   //#pragma acc exit data delete(c->c23)
+   //#pragma acc exit data delete(c->c24)
+   //#pragma acc exit data delete(c->c25)
+   //#pragma acc exit data delete(c->c26)
+   //#pragma acc exit data delete(c->c33)
+   //#pragma acc exit data delete(c->c34)
+   //#pragma acc exit data delete(c->c35)
+   //#pragma acc exit data delete(c->c36)
+   //#pragma acc exit data delete(c->c44)
+   //#pragma acc exit data delete(c->c45)
+   //#pragma acc exit data delete(c->c46)
+   //#pragma acc exit data delete(c->c55)
+   //#pragma acc exit data delete(c->c56)
+   //#pragma acc exit data delete(c->c66)
+   //#pragma acc exit data delete(c)
 
-    #pragma acc exit data delete(v->tl.u)
-    #pragma acc exit data delete(v->tl.v)
-    #pragma acc exit data delete(v->tl.w)
-    #pragma acc exit data delete(v->tr.u)
-    #pragma acc exit data delete(v->tr.v)
-    #pragma acc exit data delete(v->tr.w)
-    #pragma acc exit data delete(v->bl.u)
-    #pragma acc exit data delete(v->bl.v)
-    #pragma acc exit data delete(v->bl.w)
-    #pragma acc exit data delete(v->br.u)
-    #pragma acc exit data delete(v->br.v)
-    #pragma acc exit data delete(v->br.w)
+   //#pragma acc exit data delete(v->tl.u)
+   //#pragma acc exit data delete(v->tl.v)
+   //#pragma acc exit data delete(v->tl.w)
+   //#pragma acc exit data delete(v->tr.u)
+   //#pragma acc exit data delete(v->tr.v)
+   //#pragma acc exit data delete(v->tr.w)
+   //#pragma acc exit data delete(v->bl.u)
+   //#pragma acc exit data delete(v->bl.v)
+   //#pragma acc exit data delete(v->bl.w)
+   //#pragma acc exit data delete(v->br.u)
+   //#pragma acc exit data delete(v->br.v)
+   //#pragma acc exit data delete(v->br.w)
 
 
-    #pragma acc exit data delete(s->tl.zz)
-    #pragma acc exit data delete(s->tl.xz)
-    #pragma acc exit data delete(s->tl.yz)
-    #pragma acc exit data delete(s->tl.xx)
-    #pragma acc exit data delete(s->tl.xy)
-    #pragma acc exit data delete(s->tl.yy)
-    #pragma acc exit data delete(s->tr.zz)
-    #pragma acc exit data delete(s->tr.xz)
-    #pragma acc exit data delete(s->tr.yz)
-    #pragma acc exit data delete(s->tr.xx)
-    #pragma acc exit data delete(s->tr.xy)
-    #pragma acc exit data delete(s->tr.yy)
-    #pragma acc exit data delete(s->bl.zz)
-    #pragma acc exit data delete(s->bl.xz)
-    #pragma acc exit data delete(s->bl.yz)
-    #pragma acc exit data delete(s->bl.xx)
-    #pragma acc exit data delete(s->bl.xy)
-    #pragma acc exit data delete(s->bl.yy)
-    #pragma acc exit data delete(s->br.zz)
-    #pragma acc exit data delete(s->br.xz)
-    #pragma acc exit data delete(s->br.yz)
-    #pragma acc exit data delete(s->br.xx)
-    #pragma acc exit data delete(s->br.xy)
-    #pragma acc exit data delete(s->br.yy)
-    #pragma acc exit data delete(s)
-    
-    const real* rrho  = *rho;
-    #pragma acc exit data delete(rrho)
+   //#pragma acc exit data delete(s->tl.zz)
+   //#pragma acc exit data delete(s->tl.xz)
+   //#pragma acc exit data delete(s->tl.yz)
+   //#pragma acc exit data delete(s->tl.xx)
+   //#pragma acc exit data delete(s->tl.xy)
+   //#pragma acc exit data delete(s->tl.yy)
+   //#pragma acc exit data delete(s->tr.zz)
+   //#pragma acc exit data delete(s->tr.xz)
+   //#pragma acc exit data delete(s->tr.yz)
+   //#pragma acc exit data delete(s->tr.xx)
+   //#pragma acc exit data delete(s->tr.xy)
+   //#pragma acc exit data delete(s->tr.yy)
+   //#pragma acc exit data delete(s->bl.zz)
+   //#pragma acc exit data delete(s->bl.xz)
+   //#pragma acc exit data delete(s->bl.yz)
+   //#pragma acc exit data delete(s->bl.xx)
+   //#pragma acc exit data delete(s->bl.xy)
+   //#pragma acc exit data delete(s->bl.yy)
+   //#pragma acc exit data delete(s->br.zz)
+   //#pragma acc exit data delete(s->br.xz)
+   //#pragma acc exit data delete(s->br.yz)
+   //#pragma acc exit data delete(s->br.xx)
+   //#pragma acc exit data delete(s->br.xy)
+   //#pragma acc exit data delete(s->br.yy)
+   //#pragma acc exit data delete(s)
+   //
+   //const real* rrho  = *rho;
+   //#pragma acc exit data delete(rrho)
+
+    /* deallocate coefficients */
+    free3d_device( (void*) c->c11 );
+    free3d_device( (void*) c->c12 );
+    free3d_device( (void*) c->c13 );
+    free3d_device( (void*) c->c14 );
+    free3d_device( (void*) c->c15 );
+    free3d_device( (void*) c->c16 );
+
+    free3d_device( (void*) c->c22 );
+    free3d_device( (void*) c->c23 );
+    free3d_device( (void*) c->c24 );
+    free3d_device( (void*) c->c25 );
+    free3d_device( (void*) c->c26 );
+    free3d_device( (void*) c->c33 );
+
+    free3d_device( (void*) c->c34 );
+    free3d_device( (void*) c->c35 );
+    free3d_device( (void*) c->c36 );
+
+    free3d_device( (void*) c->c44 );
+    free3d_device( (void*) c->c45 );
+    free3d_device( (void*) c->c46 );
+
+    free3d_device( (void*) c->c55 );
+    free3d_device( (void*) c->c56 );
+
+    free3d_device( (void*) c->c66 );
+
+    /* deallocate velocity components */
+    free3d_device( (void*) v->tl.u );
+    free3d_device( (void*) v->tl.v );
+    free3d_device( (void*) v->tl.w );
+
+    free3d_device( (void*) v->tr.u );
+    free3d_device( (void*) v->tr.v );
+    free3d_device( (void*) v->tr.w );
+
+    free3d_device( (void*) v->bl.u );
+    free3d_device( (void*) v->bl.v );
+    free3d_device( (void*) v->bl.w );
+
+    free3d_device( (void*) v->br.u );
+    free3d_device( (void*) v->br.v );
+    free3d_device( (void*) v->br.w );
+
+    /* deallocate stres components   */
+    free3d_device( (void*) s->tl.zz );
+    free3d_device( (void*) s->tl.xz );
+    free3d_device( (void*) s->tl.yz );
+    free3d_device( (void*) s->tl.xx );
+    free3d_device( (void*) s->tl.xy );
+    free3d_device( (void*) s->tl.yy );
+
+    free3d_device( (void*) s->tr.zz );
+    free3d_device( (void*) s->tr.xz );
+    free3d_device( (void*) s->tr.yz );
+    free3d_device( (void*) s->tr.xx );
+    free3d_device( (void*) s->tr.xy );
+    free3d_device( (void*) s->tr.yy );
+
+    free3d_device( (void*) s->bl.zz );
+    free3d_device( (void*) s->bl.xz );
+    free3d_device( (void*) s->bl.yz );
+    free3d_device( (void*) s->bl.xx );
+    free3d_device( (void*) s->bl.xy );
+    free3d_device( (void*) s->bl.yy );
+
+    free3d_device( (void*) s->br.zz );
+    free3d_device( (void*) s->br.xz );
+    free3d_device( (void*) s->br.yz );
+    free3d_device( (void*) s->br.xx );
+    free3d_device( (void*) s->br.xy );
+    free3d_device( (void*) s->br.yy );
+
+    /* deallocate density array       */
+    free3d_device( (void*) *rho );
 
 #endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
-    __free( (void*) c->c11 );
-    __free( (void*) c->c12 );
-    __free( (void*) c->c13 );
-    __free( (void*) c->c14 );
-    __free( (void*) c->c15 );
-    __free( (void*) c->c16 );
+    free3d_host( (void*) c->c11 );
+    free3d_host( (void*) c->c12 );
+    free3d_host( (void*) c->c13 );
+    free3d_host( (void*) c->c14 );
+    free3d_host( (void*) c->c15 );
+    free3d_host( (void*) c->c16 );
 
-    __free( (void*) c->c22 );
-    __free( (void*) c->c23 );
-    __free( (void*) c->c24 );
-    __free( (void*) c->c25 );
-    __free( (void*) c->c26 );
-    __free( (void*) c->c33 );
+    free3d_host( (void*) c->c22 );
+    free3d_host( (void*) c->c23 );
+    free3d_host( (void*) c->c24 );
+    free3d_host( (void*) c->c25 );
+    free3d_host( (void*) c->c26 );
+    free3d_host( (void*) c->c33 );
 
-    __free( (void*) c->c34 );
-    __free( (void*) c->c35 );
-    __free( (void*) c->c36 );
+    free3d_host( (void*) c->c34 );
+    free3d_host( (void*) c->c35 );
+    free3d_host( (void*) c->c36 );
 
-    __free( (void*) c->c44 );
-    __free( (void*) c->c45 );
-    __free( (void*) c->c46 );
+    free3d_host( (void*) c->c44 );
+    free3d_host( (void*) c->c45 );
+    free3d_host( (void*) c->c46 );
 
-    __free( (void*) c->c55 );
-    __free( (void*) c->c56 );
+    free3d_host( (void*) c->c55 );
+    free3d_host( (void*) c->c56 );
 
-    __free( (void*) c->c66 );
+    free3d_host( (void*) c->c66 );
 
     /* deallocate velocity components */
-    __free( (void*) v->tl.u );
-    __free( (void*) v->tl.v );
-    __free( (void*) v->tl.w );
+    free3d_host( (void*) v->tl.u );
+    free3d_host( (void*) v->tl.v );
+    free3d_host( (void*) v->tl.w );
 
-    __free( (void*) v->tr.u );
-    __free( (void*) v->tr.v );
-    __free( (void*) v->tr.w );
+    free3d_host( (void*) v->tr.u );
+    free3d_host( (void*) v->tr.v );
+    free3d_host( (void*) v->tr.w );
 
-    __free( (void*) v->bl.u );
-    __free( (void*) v->bl.v );
-    __free( (void*) v->bl.w );
+    free3d_host( (void*) v->bl.u );
+    free3d_host( (void*) v->bl.v );
+    free3d_host( (void*) v->bl.w );
 
-    __free( (void*) v->br.u );
-    __free( (void*) v->br.v );
-    __free( (void*) v->br.w );
+    free3d_host( (void*) v->br.u );
+    free3d_host( (void*) v->br.v );
+    free3d_host( (void*) v->br.w );
 
     /* deallocate stres components   */
-    __free( (void*) s->tl.zz );
-    __free( (void*) s->tl.xz );
-    __free( (void*) s->tl.yz );
-    __free( (void*) s->tl.xx );
-    __free( (void*) s->tl.xy );
-    __free( (void*) s->tl.yy );
+    free3d_host( (void*) s->tl.zz );
+    free3d_host( (void*) s->tl.xz );
+    free3d_host( (void*) s->tl.yz );
+    free3d_host( (void*) s->tl.xx );
+    free3d_host( (void*) s->tl.xy );
+    free3d_host( (void*) s->tl.yy );
 
-    __free( (void*) s->tr.zz );
-    __free( (void*) s->tr.xz );
-    __free( (void*) s->tr.yz );
-    __free( (void*) s->tr.xx );
-    __free( (void*) s->tr.xy );
-    __free( (void*) s->tr.yy );
+    free3d_host( (void*) s->tr.zz );
+    free3d_host( (void*) s->tr.xz );
+    free3d_host( (void*) s->tr.yz );
+    free3d_host( (void*) s->tr.xx );
+    free3d_host( (void*) s->tr.xy );
+    free3d_host( (void*) s->tr.yy );
 
-    __free( (void*) s->bl.zz );
-    __free( (void*) s->bl.xz );
-    __free( (void*) s->bl.yz );
-    __free( (void*) s->bl.xx );
-    __free( (void*) s->bl.xy );
-    __free( (void*) s->bl.yy );
+    free3d_host( (void*) s->bl.zz );
+    free3d_host( (void*) s->bl.xz );
+    free3d_host( (void*) s->bl.yz );
+    free3d_host( (void*) s->bl.xx );
+    free3d_host( (void*) s->bl.xy );
+    free3d_host( (void*) s->bl.yy );
 
-    __free( (void*) s->br.zz );
-    __free( (void*) s->br.xz );
-    __free( (void*) s->br.yz );
-    __free( (void*) s->br.xx );
-    __free( (void*) s->br.xy );
-    __free( (void*) s->br.yy );
-
+    free3d_host( (void*) s->br.zz );
+    free3d_host( (void*) s->br.xz );
+    free3d_host( (void*) s->br.yz );
+    free3d_host( (void*) s->br.xx );
+    free3d_host( (void*) s->br.xy );
+    free3d_host( (void*) s->br.yy );
 
     /* deallocate density array       */
-    __free( (void*) *rho );
+    free3d_host( (void*) *rho );
 
     POP_RANGE
 };

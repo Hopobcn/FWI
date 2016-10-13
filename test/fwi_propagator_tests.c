@@ -51,129 +51,129 @@ TEST_SETUP(propagator)
     nelems = dim.pitch * dim.xsize * dim.ysize;
 
     /* constants initialization */
-  //init_array(c_ref.c11, nelems);
-  //init_array(c_ref.c12, nelems);
-  //init_array(c_ref.c13, nelems);
-  //init_array(c_ref.c14, nelems);
-  //init_array(c_ref.c15, nelems);
-  //init_array(c_ref.c16, nelems);
+    init_array(c_ref.c11, nelems);
+    init_array(c_ref.c12, nelems);
+    init_array(c_ref.c13, nelems);
+    init_array(c_ref.c14, nelems);
+    init_array(c_ref.c15, nelems);
+    init_array(c_ref.c16, nelems);
 
-  //init_array(c_ref.c22, nelems);
-  //init_array(c_ref.c23, nelems);
-  //init_array(c_ref.c24, nelems);
-  //init_array(c_ref.c25, nelems);
-  //init_array(c_ref.c26, nelems);
+    init_array(c_ref.c22, nelems);
+    init_array(c_ref.c23, nelems);
+    init_array(c_ref.c24, nelems);
+    init_array(c_ref.c25, nelems);
+    init_array(c_ref.c26, nelems);
 
-  //init_array(c_ref.c33, nelems);
-  //init_array(c_ref.c34, nelems);
-  //init_array(c_ref.c35, nelems);
-  //init_array(c_ref.c36, nelems);
+    init_array(c_ref.c33, nelems);
+    init_array(c_ref.c34, nelems);
+    init_array(c_ref.c35, nelems);
+    init_array(c_ref.c36, nelems);
 
-  //init_array(c_ref.c44, nelems);
-  //init_array(c_ref.c45, nelems);
-  //init_array(c_ref.c46, nelems);
+    init_array(c_ref.c44, nelems);
+    init_array(c_ref.c45, nelems);
+    init_array(c_ref.c46, nelems);
 
-  //init_array(c_ref.c55, nelems);
-  //init_array(c_ref.c56, nelems);
+    init_array(c_ref.c55, nelems);
+    init_array(c_ref.c56, nelems);
 
-  //init_array(c_ref.c66, nelems);
+    init_array(c_ref.c66, nelems);
 
-  ///* velocity [reference] initialization */
-  //init_array(v_ref.tl.u, nelems);
-  //init_array(v_ref.tl.v, nelems);
-  //init_array(v_ref.tl.w, nelems);
+    /* velocity [reference] initialization */
+    init_array(v_ref.tl.u, nelems);
+    init_array(v_ref.tl.v, nelems);
+    init_array(v_ref.tl.w, nelems);
 
-  //init_array(v_ref.tr.u, nelems);
-  //init_array(v_ref.tr.v, nelems);
-  //init_array(v_ref.tr.w, nelems);
+    init_array(v_ref.tr.u, nelems);
+    init_array(v_ref.tr.v, nelems);
+    init_array(v_ref.tr.w, nelems);
 
-  //init_array(v_ref.bl.u, nelems);
-  //init_array(v_ref.bl.v, nelems);
-  //init_array(v_ref.bl.w, nelems);
+    init_array(v_ref.bl.u, nelems);
+    init_array(v_ref.bl.v, nelems);
+    init_array(v_ref.bl.w, nelems);
 
-  //init_array(v_ref.br.u, nelems);
-  //init_array(v_ref.br.v, nelems);
-  //init_array(v_ref.br.w, nelems);
+    init_array(v_ref.br.u, nelems);
+    init_array(v_ref.br.v, nelems);
+    init_array(v_ref.br.w, nelems);
 
-  ///* stresses [reference] initialization */
-  //init_array(s_ref.tl.zz, nelems);
-  //init_array(s_ref.tl.xz, nelems);
-  //init_array(s_ref.tl.yz, nelems);
-  //init_array(s_ref.tl.xx, nelems);
-  //init_array(s_ref.tl.xy, nelems);
-  //init_array(s_ref.tl.yy, nelems);
+    /* stresses [reference] initialization */
+    init_array(s_ref.tl.zz, nelems);
+    init_array(s_ref.tl.xz, nelems);
+    init_array(s_ref.tl.yz, nelems);
+    init_array(s_ref.tl.xx, nelems);
+    init_array(s_ref.tl.xy, nelems);
+    init_array(s_ref.tl.yy, nelems);
 
-  //init_array(s_ref.tr.zz, nelems);
-  //init_array(s_ref.tr.xz, nelems);
-  //init_array(s_ref.tr.yz, nelems);
-  //init_array(s_ref.tr.xx, nelems);
-  //init_array(s_ref.tr.xy, nelems);
-  //init_array(s_ref.tr.yy, nelems);
+    init_array(s_ref.tr.zz, nelems);
+    init_array(s_ref.tr.xz, nelems);
+    init_array(s_ref.tr.yz, nelems);
+    init_array(s_ref.tr.xx, nelems);
+    init_array(s_ref.tr.xy, nelems);
+    init_array(s_ref.tr.yy, nelems);
 
-  //init_array(s_ref.bl.zz, nelems);
-  //init_array(s_ref.bl.xz, nelems);
-  //init_array(s_ref.bl.yz, nelems);
-  //init_array(s_ref.bl.xx, nelems);
-  //init_array(s_ref.bl.xy, nelems);
-  //init_array(s_ref.bl.yy, nelems);
+    init_array(s_ref.bl.zz, nelems);
+    init_array(s_ref.bl.xz, nelems);
+    init_array(s_ref.bl.yz, nelems);
+    init_array(s_ref.bl.xx, nelems);
+    init_array(s_ref.bl.xy, nelems);
+    init_array(s_ref.bl.yy, nelems);
 
-  //init_array(s_ref.br.zz, nelems);
-  //init_array(s_ref.br.xz, nelems);
-  //init_array(s_ref.br.yz, nelems);
-  //init_array(s_ref.br.xx, nelems);
-  //init_array(s_ref.br.xy, nelems);
-  //init_array(s_ref.br.yy, nelems);
+    init_array(s_ref.br.zz, nelems);
+    init_array(s_ref.br.xz, nelems);
+    init_array(s_ref.br.yz, nelems);
+    init_array(s_ref.br.xx, nelems);
+    init_array(s_ref.br.xy, nelems);
+    init_array(s_ref.br.yy, nelems);
 
-  ///* init rho */
-  //init_array(rho_ref, nelems);
+    /* init rho */
+    init_array(rho_ref, nelems);
 
-  /////////////////////////////////
-  //// Copy 'ref' values into 'cal'
-  //// to start from equal solutions
+    ///////////////////////////////
+    // Copy 'ref' values into 'cal'
+    // to start from equal solutions
 
-  //copy_array(v_cal.tl.u, v_ref.tl.u, nelems);
-  //copy_array(v_cal.tl.v, v_ref.tl.v, nelems);
-  //copy_array(v_cal.tl.w, v_ref.tl.w, nelems);
+    copy_array(v_cal.tl.u, v_ref.tl.u, nelems);
+    copy_array(v_cal.tl.v, v_ref.tl.v, nelems);
+    copy_array(v_cal.tl.w, v_ref.tl.w, nelems);
 
-  //copy_array(v_cal.tr.u, v_ref.tr.u, nelems);
-  //copy_array(v_cal.tr.v, v_ref.tr.v, nelems);
-  //copy_array(v_cal.tr.w, v_ref.tr.w, nelems);
+    copy_array(v_cal.tr.u, v_ref.tr.u, nelems);
+    copy_array(v_cal.tr.v, v_ref.tr.v, nelems);
+    copy_array(v_cal.tr.w, v_ref.tr.w, nelems);
 
-  //copy_array(v_cal.bl.u, v_ref.bl.u, nelems);
-  //copy_array(v_cal.bl.v, v_ref.bl.v, nelems);
-  //copy_array(v_cal.bl.w, v_ref.bl.w, nelems);
+    copy_array(v_cal.bl.u, v_ref.bl.u, nelems);
+    copy_array(v_cal.bl.v, v_ref.bl.v, nelems);
+    copy_array(v_cal.bl.w, v_ref.bl.w, nelems);
 
-  //copy_array(v_cal.br.u, v_ref.br.u, nelems);
-  //copy_array(v_cal.br.v, v_ref.br.v, nelems);
-  //copy_array(v_cal.br.w, v_ref.br.w, nelems);
+    copy_array(v_cal.br.u, v_ref.br.u, nelems);
+    copy_array(v_cal.br.v, v_ref.br.v, nelems);
+    copy_array(v_cal.br.w, v_ref.br.w, nelems);
 
-  //copy_array(s_cal.tl.zz, s_ref.tl.zz, nelems);
-  //copy_array(s_cal.tl.xz, s_ref.tl.xz, nelems);
-  //copy_array(s_cal.tl.yz, s_ref.tl.yz, nelems);
-  //copy_array(s_cal.tl.xx, s_ref.tl.xx, nelems);
-  //copy_array(s_cal.tl.xy, s_ref.tl.xy, nelems);
-  //copy_array(s_cal.tl.yy, s_ref.tl.yy, nelems);
+    copy_array(s_cal.tl.zz, s_ref.tl.zz, nelems);
+    copy_array(s_cal.tl.xz, s_ref.tl.xz, nelems);
+    copy_array(s_cal.tl.yz, s_ref.tl.yz, nelems);
+    copy_array(s_cal.tl.xx, s_ref.tl.xx, nelems);
+    copy_array(s_cal.tl.xy, s_ref.tl.xy, nelems);
+    copy_array(s_cal.tl.yy, s_ref.tl.yy, nelems);
 
-  //copy_array(s_cal.tr.zz, s_ref.tr.zz, nelems);
-  //copy_array(s_cal.tr.xz, s_ref.tr.xz, nelems);
-  //copy_array(s_cal.tr.yz, s_ref.tr.yz, nelems);
-  //copy_array(s_cal.tr.xx, s_ref.tr.xx, nelems);
-  //copy_array(s_cal.tr.xy, s_ref.tr.xy, nelems);
-  //copy_array(s_cal.tr.yy, s_ref.tr.yy, nelems);
+    copy_array(s_cal.tr.zz, s_ref.tr.zz, nelems);
+    copy_array(s_cal.tr.xz, s_ref.tr.xz, nelems);
+    copy_array(s_cal.tr.yz, s_ref.tr.yz, nelems);
+    copy_array(s_cal.tr.xx, s_ref.tr.xx, nelems);
+    copy_array(s_cal.tr.xy, s_ref.tr.xy, nelems);
+    copy_array(s_cal.tr.yy, s_ref.tr.yy, nelems);
 
-  //copy_array(s_cal.bl.zz, s_ref.bl.zz, nelems);
-  //copy_array(s_cal.bl.xz, s_ref.bl.xz, nelems);
-  //copy_array(s_cal.bl.yz, s_ref.bl.yz, nelems);
-  //copy_array(s_cal.bl.xx, s_ref.bl.xx, nelems);
-  //copy_array(s_cal.bl.xy, s_ref.bl.xy, nelems);
-  //copy_array(s_cal.bl.yy, s_ref.bl.yy, nelems);
+    copy_array(s_cal.bl.zz, s_ref.bl.zz, nelems);
+    copy_array(s_cal.bl.xz, s_ref.bl.xz, nelems);
+    copy_array(s_cal.bl.yz, s_ref.bl.yz, nelems);
+    copy_array(s_cal.bl.xx, s_ref.bl.xx, nelems);
+    copy_array(s_cal.bl.xy, s_ref.bl.xy, nelems);
+    copy_array(s_cal.bl.yy, s_ref.bl.yy, nelems);
 
-  //copy_array(s_cal.br.zz, s_ref.br.zz, nelems);
-  //copy_array(s_cal.br.xz, s_ref.br.xz, nelems);
-  //copy_array(s_cal.br.yz, s_ref.br.yz, nelems);
-  //copy_array(s_cal.br.xx, s_ref.br.xx, nelems);
-  //copy_array(s_cal.br.xy, s_ref.br.xy, nelems);
-  //copy_array(s_cal.br.yy, s_ref.br.yy, nelems);
+    copy_array(s_cal.br.zz, s_ref.br.zz, nelems);
+    copy_array(s_cal.br.xz, s_ref.br.xz, nelems);
+    copy_array(s_cal.br.yz, s_ref.br.yz, nelems);
+    copy_array(s_cal.br.xx, s_ref.br.xx, nelems);
+    copy_array(s_cal.br.xy, s_ref.br.xy, nelems);
+    copy_array(s_cal.br.yy, s_ref.br.yy, nelems);
 }
 
 TEST_TEAR_DOWN(propagator)
@@ -333,7 +333,7 @@ TEST(propagator, compute_component_vcell_TL)
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dim);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dim);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dim);
-
+    
                 v_ref.tl.u[IDX(z,x,y,dim)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -350,7 +350,7 @@ TEST(propagator, compute_component_vcell_TL)
     #pragma acc update host(v_cal.tl.u[:nelems]) wait(phase)
 #endif
     
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tl.u, v_cal.tl.u, dim );
 }
 
 TEST(propagator, compute_component_vcell_TR)
@@ -403,7 +403,7 @@ TEST(propagator, compute_component_vcell_TR)
     #pragma acc update host(v_cal.tr.u[:nelems]) wait(phase)
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tr.u, v_cal.tr.u, dim );
 }
 
 
@@ -457,7 +457,7 @@ TEST(propagator, compute_component_vcell_BR)
     #pragma acc update host(v_cal.br.u[:nelems]) wait(phase)
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.br.u, v_cal.br.u, dim );
 }
 
 TEST(propagator, compute_component_vcell_BL)
@@ -510,7 +510,7 @@ TEST(propagator, compute_component_vcell_BL)
     #pragma acc update host(v_cal.bl.u[:nelems]) wait(phase)
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.bl.u, v_cal.bl.u, dim );
 }
 
 TEST(propagator, velocity_propagator)
@@ -552,21 +552,21 @@ TEST(propagator, velocity_propagator)
                 dim, phase);
     }
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.v, v_cal.bl.v, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.w, v_cal.bl.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.bl.u, v_cal.bl.u, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.bl.v, v_cal.bl.v, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.bl.w, v_cal.bl.w, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.v, v_cal.br.v, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.w, v_cal.br.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.br.u, v_cal.br.u, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.br.v, v_cal.br.v, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.br.w, v_cal.br.w, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.v, v_cal.tr.v, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.w, v_cal.tr.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tr.u, v_cal.tr.u, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tr.v, v_cal.tr.v, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tr.w, v_cal.tr.w, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.v, v_cal.tl.v, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.w, v_cal.tl.w, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tl.u, v_cal.tl.u, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tl.v, v_cal.tl.v, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( v_ref.tl.w, v_cal.tl.w, dim );
 }
 
 TEST(propagator, stress_update)
@@ -615,7 +615,7 @@ TEST(propagator, stress_update)
                 dim );
     }
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xz, s_cal.tr.xz, dim );
 }
 
 
@@ -829,12 +829,12 @@ TEST(propagator, compute_component_scell_TR)
     #pragma acc update host(s_cal.tr.xy[:nelems]) 
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xx, s_cal.tr.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.yy, s_cal.tr.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.zz, s_cal.tr.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.yz, s_cal.tr.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xz, s_cal.tr.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xy, s_cal.tr.xy, dim );
 }
 
 TEST(propagator, compute_component_scell_TL)
@@ -917,12 +917,12 @@ TEST(propagator, compute_component_scell_TL)
     #pragma acc update host(s_cal.tl.xy[:nelems]) 
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xx, s_cal.tl.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.yy, s_cal.tl.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.zz, s_cal.tl.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.yz, s_cal.tl.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xz, s_cal.tl.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xy, s_cal.tl.xy, dim );
 }
 
 TEST(propagator, compute_component_scell_BR)
@@ -1007,12 +1007,12 @@ TEST(propagator, compute_component_scell_BR)
 #endif
 
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xx, s_cal.br.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yy, s_cal.br.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.zz, s_cal.br.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yz, s_cal.br.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xz, s_cal.br.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xy, s_cal.br.xy, dim );
 }
 
 TEST(propagator, compute_component_scell_BL)
@@ -1095,12 +1095,12 @@ TEST(propagator, compute_component_scell_BL)
     #pragma acc update host(s_cal.br.xy[:nelems]) 
 #endif
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xx, s_cal.br.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yy, s_cal.br.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.zz, s_cal.br.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yz, s_cal.br.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xz, s_cal.br.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xy, s_cal.br.xy, dim );
 }
 
 TEST(propagator, stress_propagator)
@@ -1134,33 +1134,33 @@ TEST(propagator, stress_propagator)
                 dim, phase);
     }
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xx, s_cal.bl.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yy, s_cal.bl.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.zz, s_cal.bl.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.yz, s_cal.bl.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xz, s_cal.bl.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xy, s_cal.bl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.xx, s_cal.bl.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.yy, s_cal.bl.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.zz, s_cal.bl.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.yz, s_cal.bl.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.xz, s_cal.bl.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.bl.xy, s_cal.bl.xy, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.zz, s_cal.br.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yz, s_cal.br.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xz, s_cal.br.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xy, s_cal.br.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xx, s_cal.br.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yy, s_cal.br.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.zz, s_cal.br.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.yz, s_cal.br.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xz, s_cal.br.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.br.xy, s_cal.br.xy, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.zz, s_cal.tl.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yz, s_cal.tl.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xz, s_cal.tl.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xy, s_cal.tl.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xx, s_cal.tl.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.yy, s_cal.tl.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.zz, s_cal.tl.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.yz, s_cal.tl.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xz, s_cal.tl.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tl.xy, s_cal.tl.xy, dim );
 
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.zz, s_cal.tr.zz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yz, s_cal.tr.yz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xz, s_cal.tr.xz, nelems );
-    CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xy, s_cal.tr.xy, nelems );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xx, s_cal.tr.xx, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.yy, s_cal.tr.yy, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.zz, s_cal.tr.zz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.yz, s_cal.tr.yz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xz, s_cal.tr.xz, dim );
+    CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY( s_ref.tr.xy, s_cal.tr.xy, dim );
 }
 
 ////// TESTS RUNNER //////

@@ -49,7 +49,14 @@ typedef union
     assert_equal_float_array( (ref), (opt), (nelems), __FILE__, __LINE__ ); \
 }
 
+#define CUSTOM_ASSERT_EQUAL_FLOAT_3D_ARRAY(ref,opt,dim)                     \
+{                                                                           \
+    assert_equal_float_3d_array( (ref), (opt), (dim), __FILE__, __LINE__ ); \
+}
+
 void assert_equal_float_array( float* ref, float* opt, const int nelems, const char* file, const int line );
+void assert_equal_float_3d_array( float* ref, float* opt, dim_t dim, const char* file, const int line );
+
 
 
 #endif /* end of _FWI_TESTS_H_ definiton */

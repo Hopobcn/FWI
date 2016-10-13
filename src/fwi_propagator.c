@@ -129,7 +129,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    const integer nelems = dim.pitch * dim.xsize * dim.ysize;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
                         copyin(vptr[start:nelems]) \

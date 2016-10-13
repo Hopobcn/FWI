@@ -435,36 +435,36 @@ void __free ( void* ptr)
     free( ptr );
 };
 
+/*
+ * \param[out] dim        calculated 3D dimensions with padding
+ * \param[in]  alignment  required aligment in bytes
+ * \param[in]  req        required 3D dimensions in number of elements
+ * \return     aligned allocation
+ */
 void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req)
 {
     const size_t ALIGN = alignment;
 
-    void* h_base_ptr;
-
-    size_t padding = ( (size_t)abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
+    int padding = ( abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
     assert( padding%sizeof(real) == 0 );
-    
+   
     dim->pitch = req.width + (padding / sizeof(real));
     dim->zsize = req.width;
     dim->xsize = req.height;
     dim->ysize = req.depth;
 
     const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
-    /* 
-     * 'size' is a perfect aligned 3D volume size [pitch x xsize x ysize] if your access have stride 0
-     *  BUT our accesses have a stride HALO: ptr[HALO] is typically the first internal position.
-     *      so we have to align to that stride also!
-     */
+    const size_t offset = (ALIGN-1)+(ALIGN-(HALO*sizeof(real)));
+    
+    void* h_base_ptr = (void*) malloc( size+offset );
 
-    h_base_ptr = (void*) malloc( size+ALIGN-1 );
+    size_t mask = ~(size_t)(ALIGN-1);
 
-    uintptr_t mask = ~(uintptr_t)(ALIGN-1);
-
-    void** h_ptr = (void**) ((((uintptr_t)h_base_ptr+ALIGN-1) & mask) + (ALIGN-4-12));
+    void* h_ptr = (char*)((uintptr_t)((char*)h_base_ptr+offset) & mask) - (HALO*sizeof(real));
 
 #if defined(DEBUG)
-    fprintf(stdout, "--malloc3d: h_base_ptr %p h_alig_ptr %p\n", 
-            h_base_ptr, *h_ptr);
+    fprintf(stdout, "--malloc3d[H]: h_base_ptr %p h_alig_ptr %p | &ptr[halo] %p | dim[pitch %d z %d, x %d, y %d] \n", 
+            h_base_ptr, h_ptr, &((real*)h_ptr)[HALO], dim->pitch, dim->zsize, dim->xsize, dim->ysize);
 #endif
 
     /* 
@@ -472,27 +472,25 @@ void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req)
      * we have to store them in the innaccessible part 
      * WARNING: any ovewrite of this information will cause a SEGFAULT in the free
      */
-    h_ptr[-1] = h_base_ptr;
+    ((void**)h_ptr)[-1] = h_base_ptr;
 
     return h_ptr;
 }
 
-void free3d_host(void** h_align_ptr)
+void free3d_host(void* h_align_ptr)
 {
     /* deallocate memory from the base pointers */
-    void* h_base_ptr = h_align_ptr[-1];
+    void* h_base_ptr = ((void**)h_align_ptr)[-1];
 
     free(h_base_ptr);
 }
 
 #if defined(_OPENACC)
-void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h_align_ptr)
+void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void* h_align_ptr)
 {
     const size_t ALIGN = alignment;
 
-    void* d_base_ptr;
-
-    size_t padding = ( (size_t)abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
+    int padding = ( abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
     assert( padding%sizeof(real) == 0 );
     
     dim->pitch = req.width + (padding / sizeof(real));
@@ -501,22 +499,16 @@ void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h
     dim->ysize = req.depth;
 
     const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
-    /* 
-     * 'size' is a perfect aligned 3D volume size [pitch x xsize x ysize] if your access have stride 0
-     *  BUT our accesses have a stride HALO: ptr[HALO] is typically the first internal position.
-     *      so we have to align to that stride also!
-     */
+    const size_t offset = (ALIGN-1)+(ALIGN-(HALO*sizeof(real)));
 
-    d_base_ptr =     acc_malloc( size+ALIGN-1 );
+    void* d_base_ptr = acc_malloc( size+offset );
 
-    uintptr_t mask = ~(uintptr_t)(ALIGN-1);
+    size_t mask = ~(size_t)(ALIGN-1);
 
-    // TODO: figure out what this -4-12 is..
-    void** d_ptr = (void**) ((((uintptr_t)d_base_ptr+ALIGN-1) & mask) + (ALIGN-4-12));
+    void* d_ptr = (char*)((uintptr_t)((char*)d_base_ptr+offset) & mask) - (HALO*sizeof(real));
 
 #if defined(DEBUG)
-    fprintf(stdout, "--malloc3d: d_base_ptr %p d_alig_ptr %p\n", 
-            d_base_ptr, *d_ptr);
+    fprintf(stdout, "--malloc3d[D]: d_base_ptr %p d_alig_ptr %p | &d_ptr[halo] %p\n", d_base_ptr, d_ptr, (real*)d_ptr+HALO );
 #endif
 
     /* 
@@ -524,15 +516,23 @@ void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h
      * we have to store them in the innaccessible part 
      * WARNING: any ovewrite of this information will cause a SEGFAULT in the free
      */
-    h_align_ptr[-2] = d_base_ptr;
+    ((void**)h_align_ptr)[-2] = d_base_ptr;
+
+    assert(d_ptr+size <= d_base_ptr+size+offset);
+
+    // OpenACC map data:
+    acc_map_data(h_align_ptr, d_ptr, size);
 
     return d_ptr;
 }
 
-void free3d_device(void** h_align_ptr)
+void free3d_device(void* h_align_ptr)
 {
+    // OpenACC unmap data:
+    acc_unmap_data(h_align_ptr);
+
     /* deallocate memory from the base pointers */
-    void* d_base_ptr = h_align_ptr[-2];
+    void* d_base_ptr = ((void**)h_align_ptr)[-2];
 
     acc_free(d_base_ptr);
 }

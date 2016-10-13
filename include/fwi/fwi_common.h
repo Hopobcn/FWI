@@ -191,7 +191,7 @@ void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req);
  * params:
  * [in] aligned_ptr : aligned pointer that stores in [-1] position the HOST base pointer ;-)
  */
-void free3d_host(void** h_align_ptr);
+void free3d_host(void* h_align_ptr);
 
 #if defined(_OPENACC)
 /*

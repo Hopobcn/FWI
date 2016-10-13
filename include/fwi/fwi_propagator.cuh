@@ -1,6 +1,8 @@
 #ifndef _FWI_PROPAGATOR_CUDA_H_
 #define _FWI_PROPAGATOR_CUDA_H_
 
+#include "fwi_common.h"
+
 #define CUDA_CHECK(call) { gpu_assert((call), __FILE__, __LINE__); }
 inline void gpu_assert(cudaError_t code, const char* file, int line)
 {
@@ -31,8 +33,7 @@ void compute_component_vcell_TL_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -54,8 +55,7 @@ void compute_component_vcell_TR_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -77,8 +77,7 @@ void compute_component_vcell_BR_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -100,8 +99,7 @@ void compute_component_vcell_BL_cuda ( float* vptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -154,8 +152,7 @@ void compute_component_scell_TR_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -208,8 +205,7 @@ void compute_component_scell_TL_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -262,8 +258,7 @@ void compute_component_scell_BR_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 extern "C"
@@ -316,8 +311,7 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
                                  const int    SZ,
                                  const int    SX,
                                  const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
+                                 const dim_t  dim,
                                  void*        stream);
 
 #endif /* end of _FWI_PROPAGATOR_CUDA_H_ definition */

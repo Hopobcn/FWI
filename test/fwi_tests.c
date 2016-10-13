@@ -80,6 +80,41 @@ void assert_equal_float_array( float* ref, float* opt, const int nelems, const c
     fprintf(stdout, "\nMAX DIFF: %d ULPs", max_diff);
 }
 
+void assert_equal_float_3d_array( float* ref, float* opt, dim_t dim, const char* file, const int line )
+{
+    int maxULP = 16384;
+    int max_diff = 0;
+
+    for (int y = HALO; y < dim.ysize-HALO; y++)
+    for (int x = HALO; x < dim.xsize-HALO; x++)
+    for (int z = HALO; z < dim.zsize-HALO; z++)
+    {
+        float ref_e = ref[IDX(z,x,y,dim)];
+        float opt_e = opt[IDX(z,x,y,dim)];
+        const int diff = diff_in_ULPs(ref_e, opt_e);
+
+        if (max_diff < diff) max_diff = diff;
+
+        if ( !assert_float_equal_ULPs(ref_e, opt_e, maxULP) )
+        {
+            fprintf(stderr, "ERROR:%s:%d: in element (%d,%d,%d) : ref %e !=\t %e \topt by %d ULP\n",
+                   file, line, z,x,y, ref_e, opt_e, diff );
+
+            Float_t uref, uopt;
+            uref.f = ref_e;
+            uopt.f = opt_e;
+            fprintf(stderr, "REF: sign %d mantissa %023d exponent %08d\n",
+                is_negative(uref), raw_mantissa(uref), raw_exponent(uref));
+            fprintf(stderr, "OPT: sign %d mantissa %023d exponent %08d\n",
+                is_negative(uopt), raw_mantissa(uopt), raw_exponent(uopt));
+
+
+            exit(1); //UNITY_FAIL_AND_BAIL;
+        }
+    }
+    fprintf(stdout, "\nMAX DIFF: %d ULPs", max_diff);
+}
+
 ///// UNITY TEST RUNNER //////
 static void run_all_tests(void)
 {
