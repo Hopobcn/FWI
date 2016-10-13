@@ -1024,11 +1024,12 @@ float cell_coeff_BR_smem (      float ptr_smem[NY][NX],
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     ///////////// intra-block communication///////////////////
-    ptr_smem[ty][tx] = ptr_gmem[IDX(z,x,y,dim)];
-    if (tx < 1) ptr_smem[ty][tx+BDIMX] = ptr_gmem[IDX(z+BDIMX,x,y,dim)];
-    if (ty < 1) ptr_smem[ty+BDIMY][tx] = ptr_gmem[IDX(z,x+BDIMY,y,dim)];
+    ptr_smem[ty][tx] = (z < dim.zsize && x < dim.xsize) ? ptr_gmem[IDX(z,x,y,dim)] : 0.0f;
+    if (tx < 1) ptr_smem[ty][tx+BDIMX] = (z+BDIMX < dim.zsize && x < dim.xsize) ? ptr_gmem[IDX(z+BDIMX,x,y,dim)] : 0.0f;
+    if (ty < 1) ptr_smem[ty+BDIMY][tx] = (z < dim.zsize && x+BDIMY < dim.xsize) ? ptr_gmem[IDX(z,x+BDIMY,y,dim)] : 0.0f;
     if (tx == 0 && ty == 0) 
-                ptr_smem[ty+BDIMY][tx+BDIMX] = ptr_gmem[IDX(z+BDIMX,x+BDIMY,y,dim)];
+                ptr_smem[ty+BDIMY][tx+BDIMX] = (z+BDIMX<dim.zsize && x+BDIMY<dim.xsize) ? ptr_gmem[IDX(z+BDIMX,x+BDIMY,y,dim)] : 0.0f;
+
     __syncthreads();
 
     return ( 1.0f / ( 2.5f  *(ptr_smem[ty  ][tx  ] +
@@ -1113,16 +1114,19 @@ float cell_coeff_TR_smem (      float ptr_smem[NY][NX],
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     ///////////// intra-block communication///////////////////
-    ptr_smem[ty][tx] = ptr_gmem[IDX(z,x,y,dim)];
-    if (ty < 1) ptr_smem[ty+BDIMY][tx] = ptr_gmem[IDX(z,x+BDIMY,y,dim)];
+    ptr_smem[ty][tx] = (z<dim.zsize && x<dim.xsize) ? ptr_gmem[IDX(z,x,y,dim)] : 0.0f;
+    if (ty < 1) ptr_smem[ty+BDIMY][tx] = (z+dim.zsize && x+BDIMY<dim.xsize) ? ptr_gmem[IDX(z,x+BDIMY,y,dim)] : 0.0f;
+
     __syncthreads();
 
     const float current      = ptr_smem[ty  ][tx];
     const float current_down = ptr_smem[ty+1][tx];
 
     __syncthreads();
-    ptr_smem[ty][tx] = ptr_gmem[IDX(z,x,y+1,dim)];
-    if (ty < 1) ptr_smem[ty+BDIMY][tx] = ptr_gmem[IDX(z,x+BDIMY,y+1,dim)];
+
+    ptr_smem[ty][tx] = (z<dim.zsize && x<dim.xsize) ? ptr_gmem[IDX(z,x,y+1,dim)] : 0.0f;
+    if (ty < 1) ptr_smem[ty+BDIMY][tx] = (z+dim.zsize && x+BDIMY<dim.xsize) ? ptr_gmem[IDX(z,x+BDIMY,y+1,dim)] : 0.0f;
+
     __syncthreads();
 
     const float front      = ptr_smem[ty  ][tx];
@@ -1339,37 +1343,27 @@ void compute_component_scell_TR_cuda_k ( float* __restrict__ sxxptr,
 
     for(int y = ny0; y < nyf; y++)
     {
-        float c11, c12, c13, c14, c15, c16;
-        float c22, c23, c24, c25, c26;
-        float c33, c34, c35, c36;
-        float c44, c45, c46;
-        float c55, c56;
-        float c66;
-
-        if (z < dim.zsize && x < dim.xsize)
-        {
-            c11 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc11, z, x, y, dim);
-            c12 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc12, z, x, y, dim);
-            c13 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc13, z, x, y, dim);
-            c14 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc14, z, x, y, dim);
-            c15 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc15, z, x, y, dim);
-            c16 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc16, z, x, y, dim);
-            c22 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc22, z, x, y, dim);
-            c23 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc23, z, x, y, dim);
-            c24 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc24, z, x, y, dim);
-            c25 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc25, z, x, y, dim);
-            c26 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc26, z, x, y, dim);
-            c33 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc33, z, x, y, dim);
-            c34 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc34, z, x, y, dim);
-            c35 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc35, z, x, y, dim);
-            c36 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc36, z, x, y, dim);
-            c44 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc44, z, x, y, dim);
-            c45 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc45, z, x, y, dim);
-            c46 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc46, z, x, y, dim);
-            c55 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc55, z, x, y, dim);
-            c56 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc56, z, x, y, dim);
-            c66 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc66, z, x, y, dim);
-        }
+        const float c11 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc11, z, x, y, dim);
+        const float c12 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc12, z, x, y, dim);
+        const float c13 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc13, z, x, y, dim);
+        const float c14 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc14, z, x, y, dim);
+        const float c15 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc15, z, x, y, dim);
+        const float c16 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc16, z, x, y, dim);
+        const float c22 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc22, z, x, y, dim);
+        const float c23 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc23, z, x, y, dim);
+        const float c24 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc24, z, x, y, dim);
+        const float c25 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc25, z, x, y, dim);
+        const float c26 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc26, z, x, y, dim);
+        const float c33 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc33, z, x, y, dim);
+        const float c34 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc34, z, x, y, dim);
+        const float c35 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc35, z, x, y, dim);
+        const float c36 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc36, z, x, y, dim);
+        const float c44 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc44, z, x, y, dim);
+        const float c45 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc45, z, x, y, dim);
+        const float c46 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc46, z, x, y, dim);
+        const float c55 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc55, z, x, y, dim);
+        const float c56 = cell_coeff_ARTM_TR_smem <NX,NY,BDIMY>(bsmem, cc56, z, x, y, dim);
+        const float c66 = cell_coeff_TR_smem      <NX,NY,BDIMY>(bsmem, cc66, z, x, y, dim);
 
         const float u_x = stencil_X_smem <NX,NY,HALO,BDIMY>(SX, bsmem, vxu, dxi, z, x, y, dim);
         const float v_x = stencil_X_smem <NX,NY,HALO,BDIMY>(SX, bsmem, vxv, dxi, z, x, y, dim);
@@ -1991,37 +1985,27 @@ void compute_component_scell_BR_cuda_k ( float* __restrict__ sxxptr,
 
     for(int y = ny0; y < nyf; y++)
     {
-        float c11, c12, c13, c14, c15, c16;
-        float c22, c23, c24, c25, c26;
-        float c33, c34, c35, c36;
-        float c44, c45, c46;
-        float c55, c56;
-        float c66;
-
-        if (z < dim.zsize && x < dim.xsize)
-        {
-            c11 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc11, z, x, y, dim);
-            c12 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc12, z, x, y, dim);
-            c13 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc13, z, x, y, dim);
-            c14 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc14, z, x, y, dim);
-            c15 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc15, z, x, y, dim);
-            c16 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc16, z, x, y, dim);
-            c22 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc22, z, x, y, dim);
-            c23 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc23, z, x, y, dim);
-            c24 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc24, z, x, y, dim);
-            c25 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc25, z, x, y, dim);
-            c26 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc26, z, x, y, dim);
-            c33 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc33, z, x, y, dim);
-            c34 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc34, z, x, y, dim);
-            c35 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc35, z, x, y, dim);
-            c36 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc36, z, x, y, dim);
-            c44 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc44, z, x, y, dim);
-            c45 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc45, z, x, y, dim);
-            c46 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc46, z, x, y, dim);
-            c55 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc55, z, x, y, dim);
-            c56 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc56, z, x, y, dim);
-            c66 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc66, z, x, y, dim);
-        }
+        const float c11 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc11, z, x, y, dim);
+        const float c12 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc12, z, x, y, dim);
+        const float c13 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc13, z, x, y, dim);
+        const float c14 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc14, z, x, y, dim);
+        const float c15 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc15, z, x, y, dim);
+        const float c16 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc16, z, x, y, dim);
+        const float c22 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc22, z, x, y, dim);
+        const float c23 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc23, z, x, y, dim);
+        const float c24 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc24, z, x, y, dim);
+        const float c25 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc25, z, x, y, dim);
+        const float c26 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc26, z, x, y, dim);
+        const float c33 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc33, z, x, y, dim);
+        const float c34 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc34, z, x, y, dim);
+        const float c35 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc35, z, x, y, dim);
+        const float c36 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc36, z, x, y, dim);
+        const float c44 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc44, z, x, y, dim);
+        const float c45 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc45, z, x, y, dim);
+        const float c46 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc46, z, x, y, dim);
+        const float c55 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc55, z, x, y, dim);
+        const float c56 = cell_coeff_ARTM_BR_smem <NX,NY,BDIMX,BDIMY>(bsmem, cc56, z, x, y, dim);
+        const float c66 = cell_coeff_BR_smem      <NX,NY,BDIMX,BDIMY>(bsmem, cc66, z, x, y, dim);
 
         const float u_x = stencil_X_smem <NX,NY,HALO,BDIMY>(SX, bsmem, vxu, dxi, z, x, y, dim);
         const float v_x = stencil_X_smem <NX,NY,HALO,BDIMY>(SX, bsmem, vxv, dxi, z, x, y, dim);
