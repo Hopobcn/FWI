@@ -56,7 +56,7 @@ The FWI/CMakeLists.txt has been modified to accept those options:
 | PROFILE          | OFF           | Add profile information to the binary |                                          |
 
 To facilitate your job we provide three scripts `environment_icc.sh`, `environment_gcc.sh` and `environment_pgi.sh` that will load the required modules to compile the application with the supported compilers.
-But if you feel lucky you can load any other modules available in Minotauro. `module avail` will display all applications/compilers/tools available in this cluster which can be loaded with `module load <name>` and unloaded with `module unload <name>`. 
+But if you feel lucky you can load any other modules available in Minotauro. `module avail` will display all applications/compilers/tools available in this cluster which can be loaded with `module load <name>` and unloaded with `module unload <name>`.
 For more information read the [Minotauro User Gudie](http://www.bsc.es/user-support/mt.php)
 
 We also provide a matrix of the three compilers supported (`icc >= 16.0.2`, `gcc >= 4.9.3` and `pgcc >= 16.5`) with all CMake valid options:
@@ -123,17 +123,17 @@ Remember to **document** each step using `git`.
 
 All executions **should** be performed in compute nodes. We provide some scripts under the folder `scripts` that can be copied and modified by you to do whatever you want.
 **Do not** modify the execution wall time.
-    
+
 1. **Profile the sequential program and give a report of the most time consuming parts of this application. Also tell which of those parts should be ported to the GPU and why.**
 
 
     You have the liberty to choose which profiler/tool to use. Some possible options would be:
-    
+
     * GNU profiler (gprof)
     * NVIDIA profiler (nvprof) (it supports CPU sampling)
     * BSCTOOLS
     * Any other
-    
+
     CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE=ON` is provided:
     ```bash
     source scripts/environment_gcc.sh
@@ -197,10 +197,10 @@ All executions **should** be performed in compute nodes. We provide some scripts
     Once you have an optimized single-GPU OpenACC implementation you can proceed to implement a Multi-GPU implementation. Each Minotauro node has 4 K80.
     We recommend using MPI+OpenACC to get a multi-gpu execution.
 
-    Put preprocessor guards as much as possible to prevent braking the implementations that do not use MPI/OpenMP. 
+    Put preprocessor guards as much as possible to prevent braking the implementations that do not use MPI/OpenMP.
 
 6. **Test your Multi-GPU implementation**
-    
+
     Explain how you checked the correctness.
 
 7. **Optimize the Multi-GPU implementation**
@@ -232,6 +232,9 @@ All executions **should** be performed in compute nodes. We provide some scripts
 ### References
 
 [Minotauro User Gudie](http://www.bsc.es/user-support/mt.php)
-[The OpenACC Application Programmin Interface V2.5](www.openacc.org/sites/default/files/OpenACC_2pt5.pdf)
+
+[The OpenACC Application Programmin Interface V2.5](http://www.openacc.org/sites/default/files/OpenACC_2pt5.pdf)
+
 [CUDA C Programming Guide](http://docs.nvidia.com/cuda/cuda-c-programming-guide)
+
 [CMAKE Documentation](https://cmake.org/cmake/help/v3.6/)
