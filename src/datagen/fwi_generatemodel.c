@@ -21,9 +21,14 @@
 
 int main(int argc, const char *argv[])
 {
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <params_file> <frequency_file>\n", argv[0]);
+        exit(0);
+    }
+
     /* set seed for random number generator */
     srand(314);
-    
+
     real lenz,lenx,leny,vmin,srclen,rcvlen;
     char outputfolder[200];
 
@@ -45,7 +50,7 @@ int main(int argc, const char *argv[])
         real dx = vmin / (16.0 * waveletFreq);
         real dy = vmin / (16.0 * waveletFreq);
         real dz = vmin / (16.0 * waveletFreq);
-     
+
         /* number of cells along axis */
         integer dimmz = roundup( ceil( lenz / dz ) + 2*HALO, HALO);
         integer dimmy = roundup( ceil( leny / dy ) + 2*HALO, HALO);
@@ -56,7 +61,7 @@ int main(int argc, const char *argv[])
         fprintf(stderr, "Elements/array = "I"\n", numberOfCells);
 
         char modelname[300];
-        sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
+        sprintf( modelname, "../data/inputmodels/velocitymodel_%.2f.bin", waveletFreq );
 
         FILE* model = safe_fopen( modelname, "wb", __FILE__, __LINE__);
 

@@ -44,3 +44,5 @@ if (TRACE_CUDA)
         ${CUDA_TRACE_LIBRARY}
     )
 endif (TRACE_CUDA)
+
+add_subdirectory(datagen)
