@@ -421,7 +421,7 @@ void load_initial_model ( const real    waveletFreq,
     char modelname[300];
 
      /* open initial model, binary file */
-    sprintf( modelname, "../InputModels/velocitymodel_%.2f.bin", waveletFreq );
+    sprintf( modelname, "../data/inputmodels/velocitymodel_%.2f.bin", waveletFreq );
 
     print_info("Loading input model %s from disk (this could take a while)", modelname);
 

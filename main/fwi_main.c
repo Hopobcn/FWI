@@ -4,6 +4,11 @@
 
 int main(int argc, char* argv[])
 {
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <params_file> <frequency_file>\n", argv[0]);
+        exit(0);
+    }
+
     double tstart, tend;
     tstart = dtime();
 
