@@ -72,10 +72,7 @@ extern const size_t ALIGN_INT;
 extern const size_t ALIGN_INTEGER;
 extern const size_t ALIGN_REAL;
 
-/* (MPI-local) file for logging */
-extern FILE* logfile;
 
-double TOGB(size_t bytes);
 
 /*  Compiler compatiblity macros */
 #if defined(__GNUC__)
@@ -94,24 +91,21 @@ double TOGB(size_t bytes);
 #define IO_CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 static inline void checkErrors(const integer error, const char *filename, int line)
 {
-    if ( error < 0 ) {                     
+    if ( error < 0 ) {
         fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
         exit(-1);
     }
 };
+
+double TOGB(size_t bytes);
+double dtime(void);
+int max_int( int a, int b);
 
 FILE* safe_fopen  ( const char *filename, const char *mode, const char* srcfilename, const int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber);
 void  safe_fwrite ( const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
 void  safe_fread  (       void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
 integer roundup(integer number, integer multiple);
-
-void log_info  (const char *fmt, ...);
-void log_error (const char *fmt, ...);
-
-int max_int( int a, int b);
-
-double dtime(void);
 
 void read_fwi_parameters (const char *fname,
                           real *lenz,
@@ -174,7 +168,7 @@ void create_folder(const char *folder);
   #define print_debug(M, ...)
 #endif
 
-void fwi_writelog(const char *SourceFileName, 
+void fwi_writelog(const char *SourceFileName,
                   const int LineNumber,
                   const char *FunctionName,
                   const char* MessageHeader,
@@ -187,24 +181,6 @@ void fwi_writelog(const char *SourceFileName,
 #else
     #define PUSH_RANGE
     #define POP_RANGE
-#endif
-
-int parse_env(const char* name);
-
-// 
-// GPU-Affinity related functions:
-//
-#if defined(USE_MPI)
-int mpi_get_rank();
-int mpi_get_local_rank();
-#endif
-//Obs: due a BUG with PGI 16.5 & CUDA 7.5 we can't just 'include <cuda.h>' in C files
-//     we have to use NVCC and PGI separately and link the result
-#if 0
-#if defined(__cplusplus)
-extern "C"
-#endif
-int select_gpu_and_pin_proc(int rank, int local_rank);
 #endif
 
 #endif // end of _FWI_COMMON_H_ definition

@@ -43,15 +43,13 @@ typedef struct {
 #define C2 1.6f
 #define C3 1.8f
 
-#define ASSUMED_DISTANCE 16
-
 typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
-integer IDX (const integer z, 
-             const integer x, 
-             const integer y, 
-             const integer dimmz, 
+integer IDX (const integer z,
+             const integer x,
+             const integer y,
+             const integer dimmz,
              const integer dimmx);
 
 real stencil_Z(const integer off,
@@ -312,60 +310,60 @@ void stress_propagator(s_t           s,
                        const integer dimmx,
                        const phase_t phase );
 
-real cell_coeff_BR ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_BR ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 
-real cell_coeff_TL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TL ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 
-real cell_coeff_BL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_BL ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 
-real cell_coeff_TR ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TR ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 
-real cell_coeff_ARTM_BR ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_BR ( const real* restrict ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 
-real cell_coeff_ARTM_TL ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_TL ( const real* restrict ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 
-real cell_coeff_ARTM_BL ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_BL ( const real* restrict ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 
-real cell_coeff_ARTM_TR ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_TR ( const real* restrict ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 
 void compute_component_scell_TR (s_t             s,
@@ -457,7 +455,7 @@ void compute_component_scell_BR ( s_t             s,
 //// COMPLETE CUDA STUB ////
 
 /* CUDA STUB declaration, implementation in a .cu file */
-extern 
+extern
 void compute_component_scell_BR_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
