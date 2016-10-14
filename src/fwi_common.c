@@ -30,8 +30,20 @@ int max_int( int a, int b)
     return ((a >= b) ? a : b);
 };
 
+integer roundup(integer number, integer multiple)
+{
+    if (multiple == 0)
+        return number;
 
-void read_fwi_parameters (const char *fname,
+    int remainder = number % multiple;
+    if (remainder == 0)
+        return number;
+
+    return number + multiple - remainder;
+};
+
+
+void read_fwi_parameters (const char *restrict fname,
                           real *lenz,
                           real *lenx,
                           real *leny,
@@ -51,11 +63,11 @@ void read_fwi_parameters (const char *fname,
 
     /* these three values are not needed for the shared memory implementation */
     int NotNeededValue;
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) ); //nshots
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) ); //ngrads
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) ); //ntests
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) ); //slavemem
+    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) ); //workermem
 
     /* Recover the value of the output directory path */
     IO_CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
@@ -66,33 +78,145 @@ void read_fwi_parameters (const char *fname,
     fclose(fp);
 };
 
-/*
-  This function is intended to round up a number (number) to the nearest multiple of the register
-  size. In this way, we assure that the dimensions of the domain are suited to the most aggressive
-  compiler optimizations.
- */
-integer roundup(integer number, integer multiple)
+void store_shot_parameters( const int     shotid,
+                            const int     stacki,
+                            const real    dt,
+                            const int     nt_fwd,
+                            const int     nt_bwd,
+                            const real    dz,
+                            const real    dx,
+                            const real    dy,
+                            const integer dimmz,
+                            const integer dimmx,
+                            const integer dimmy,
+                            const char*   outputfolder,
+                            const real    waveletFreq)
 {
-    if (multiple == 0)
-        return number;
+    char name[200];
 
-    int remainder = number % multiple;
-    if (remainder == 0)
-        return number;
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat",
+            outputfolder, waveletFreq, shotid);
 
-    return number + multiple - remainder;
+    print_debug("Storing parameters for shot %d into %s", shotid, name);
+
+    FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
+
+    fprintf(fp, "%f\n", dz     );
+    fprintf(fp, "%f\n", dx     );
+    fprintf(fp, "%f\n", dy     );
+    fprintf(fp,  I"\n", dimmz  );
+    fprintf(fp,  I"\n", dimmx  );
+    fprintf(fp,  I"\n", dimmy  );
+    fprintf(fp, "%d\n", nt_fwd );
+    fprintf(fp, "%d\n", nt_bwd );
+    fprintf(fp, "%f\n", dt     );
+    fprintf(fp, "%d\n", stacki );
+
+    fclose(fp);
 };
 
-/*
- NAME:allocate_shot_memory
- PURPOSE: Create files to store final preconditioner and gradient results. Must be initialized with zeroes.
+void load_shot_parameters(const int   shotid,
+                          int*        stacki,
+                          real*       dt,
+                          int*        nt_fwd,
+                          int*        nt_bwd,
+                          real*       dz,
+                          real*       dx,
+                          real*       dy,
+                          integer*    dimmz,
+                          integer*    dimmx,
+                          integer*    dimmy,
+                          const char* outputfolder,
+                          const real  waveletFreq)
+{
+    char name[200];
 
- outputfolder     (in) folder where snapshot data is store
- VolumeMemory     (in) memory needed to store the domain
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", outputfolder, waveletFreq, shotid);
+    print_debug("Loading parameters for freq %d shot %d from %s", waveletFreq, shotid, name);
 
- RETURN none
- */
-void create_output_volumes(char *outputfolder, integer VolumeMemory)
+    FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
+
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
+    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
+    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
+
+    safe_fclose( name, fp, __FILE__, __LINE__);
+};
+
+
+void load_freqlist( const char*  filename,
+                          int*   nfreqs,
+                          real** freqlist )
+{
+    int count  = 0;
+    real freq;
+
+    FILE *freqfile = safe_fopen( filename, "r", __FILE__, __LINE__);
+
+    while( 1 )
+    {
+        int n = fscanf( freqfile, "%f", &freq);
+
+        if ( n == 1 )
+        {
+            count += 1;
+        }
+        else if (errno != 0)
+        {
+            print_error("Error while reading freqlist file");
+            break;
+        }
+        else if ( n == EOF )
+        {
+            break;
+        }
+    }
+
+    /* Allocate memory for frequencies */
+    *freqlist = (real*) __malloc( ALIGN_REAL, count * sizeof(real));
+
+    /* return to initial position */
+    fseek( freqfile, 0, SEEK_SET);
+    count = 0;
+
+    /* read again the file, storing the wavelet frequencies this time */
+    while( 1 )
+    {
+        int n = fscanf( freqfile, "%f", &freq);
+
+        if ( n == 1 )
+        {
+            (*freqlist)[count++] = freq;
+        }
+        else if (errno != 0)
+        {
+            print_error("Error while reading freqlist file");
+            break;
+        }
+        else if ( n == EOF )
+        {
+            break;
+        }
+    }
+    fclose( freqfile );
+
+    *nfreqs = count;
+
+    print_info("A total of %d frequencies were found...", *nfreqs );
+    for( int i=0; i<count; i++)
+        print_info("     %.2f Hz", (*freqlist)[i] );
+};
+
+
+void create_output_volumes(const char*   outputfolder,
+                           const integer VolumeMemory)
 {
     print_debug("Creating output files in %s", outputfolder);
 
@@ -126,17 +250,7 @@ void create_output_volumes(char *outputfolder, integer VolumeMemory)
 #endif
 }
 
-/*
- NAME:create_folder
- PURPOSE:During execution creates temporal folders to organize necessary data for the execution
-
- folder      (in) name of the temporal folder created
- parent_rank (in) name of the rank related to the data archived in to the folder
- shotID      (in) identifier of the shot related to the data to be archived in to the folder
-
- RETURN none
- */
-void create_folder(const char *folder)
+void create_folder(const char* folder)
 {
     if (mkdir_p(folder) != 0) {
         print_error("cant create folder %s (Err code: %s)", folder, strerror(errno));
@@ -145,12 +259,6 @@ void create_folder(const char *folder)
     print_debug("Folder '%s' created",folder);
 };
 
-/*
- NAME: mkdir_p
- PURPOSE: creates the hierarchy of folders requested, if they do not exist.
-
- RETURN 0 if successful, !=0 otherwise
- */
 int mkdir_p(const char *dir)
 {
     char tmp[256];
@@ -185,196 +293,51 @@ int mkdir_p(const char *dir)
     return 0;
 }
 
-void store_shot_parameters(int     shotid,
-                           int     *stacki,
-                           real    *dt,
-                           int     *nt_fwd,
-                           int     *nt_bwd,
-                           real    *dz,
-                           real    *dx,
-                           real    *dy,
-                           integer *dimmz,
-                           integer *dimmx,
-                           integer *dimmy,
-                           char    *outputfolder,
-                           real    waveletFreq)
-{
-    char name[200];
-
-    sprintf(name, "%s/shotparams_%2.1f.%05d.dat",
-            outputfolder, waveletFreq, shotid);
-
-    print_debug("Storing parameters for shot %d into %s", shotid, name);
-
-    FILE *fp = safe_fopen(name, "w", __FILE__, __LINE__);
-
-    fprintf(fp, "%f\n",  (real   ) *dz     );
-    fprintf(fp, "%f\n",  (real   ) *dx     );
-    fprintf(fp, "%f\n",  (real   ) *dy     );
-    fprintf(fp,  I"\n", (integer) *dimmz  );
-    fprintf(fp,  I"\n", (integer) *dimmx  );
-    fprintf(fp,  I"\n", (integer) *dimmy  );
-    fprintf(fp, "%d\n",  (int    ) *nt_fwd );
-    fprintf(fp, "%d\n",  (int    ) *nt_bwd );
-    fprintf(fp, "%f\n",  (real   ) *dt     );
-    fprintf(fp, "%d\n",  (int    ) *stacki );
-
-    fclose(fp);
-};
-
-void load_shot_parameters(int     shotid,
-                          int     *stacki,
-                          real    *dt,
-                          int     *nt_fwd,
-                          int     *nt_bwd,
-                          real    *dz,
-                          real    *dx,
-                          real    *dy,
-                          integer *dimmz,
-                          integer *dimmx,
-                          integer *dimmy,
-                          char    *outputfolder,
-                          real    waveletFreq)
-{
-    char name[200];
-
-    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", outputfolder, waveletFreq, shotid);
-    print_debug("Loading parameters for freq %d shot %d from %s", waveletFreq, shotid, name);
-
-    FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
-
-    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dz     ) );
-    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dx     ) );
-    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dy     ) );
-    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
-    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
-    IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
-    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
-    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
-    IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
-    IO_CHECK( fscanf(fp, "%d\n",  (int*    ) stacki ) );
-
-    safe_fclose( name, fp, __FILE__, __LINE__);
-};
-
-void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
-{
-    int count  = 0;
-    real freq;
-
-    FILE *freqfile = safe_fopen( filename, "r", __FILE__, __LINE__);
-
-    while( 1 )
-    {
-        int n = fscanf( freqfile, "%f", &freq);
-
-        if ( n == 1 )
-        {
-            count += 1;
-        }
-        else if (errno != 0)
-        {
-            print_error("Error while reading freqlist file");
-            break;
-        }
-        else if ( n == EOF )
-        {
-            break;
-        }
-    }
 
 
-    /* Allocate memory for frequencies */
-    *freqlist = (real*) __malloc( ALIGN_REAL, count * sizeof(real));
-
-    /* return to initial position */
-    fseek( freqfile, 0, SEEK_SET);
-    count = 0;
-
-
-
-    /* read again the file, storing the wavelet frequencies this time */
-    while( 1 )
-    {
-        int n = fscanf( freqfile, "%f", &freq);
-
-        if ( n == 1 )
-        {
-            (*freqlist)[count++] = freq;
-        }
-        else if (errno != 0)
-        {
-            print_error("Error while reading freqlist file");
-            break;
-        }
-        else if ( n == EOF )
-        {
-            break;
-        }
-    }
-    fclose( freqfile );
-
-    *nfreqs = count;
-
-    print_info("A total of %d frequencies were found...", *nfreqs );
-    for( int i=0; i<count; i++)
-        print_info("     %.2f Hz", (*freqlist)[i] );
-};
-
-void* __malloc( size_t alignment, const integer size)
-{
-    void *buffer;
-    int error;
-
-    if( (error=posix_memalign( &buffer, alignment, size)) != 0)
-    {
-        print_error("Cant allocate buffer correctly");
-        abort();
-    }
-
-    return (buffer);
-};
-
-void __free ( void* ptr)
-{
-    free( ptr );
-};
-
-FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)
+FILE* safe_fopen(const char* filename,
+                 const char* mode,
+                 const char* srcfilename,
+                 const int   linenumber)
 {
     FILE* temp = fopen( filename, mode);
 
-    if( temp == NULL){
+    if( temp == NULL)
+    {
         print_error("Cant open filename %s, openmode '%s' (called from %s - %d)",
                     filename, mode, srcfilename, linenumber);
         exit(-1);
     }
+
     return temp;
 };
 
-void safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber)
+void safe_fclose (const char* filename,
+                        FILE* stream,
+                  const char* srcfilename,
+                  const int linenumber)
 {
     if ( fclose( stream ) != 0)
     {
         print_error("Cant close filename %s (called from %s - %d)", filename, srcfilename, linenumber);
         abort();
     }
-
-/*if ( unlink(filename)  != 0)
-  {
-    fprintf(stderr, "%s:%d: Cant unlink file %s correctly!\n", srcfilename, linenumber, filename );
-    abort();
-  }*/
 };
 
 
 inline
-void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
+void safe_fwrite (const void*  ptr,
+                        size_t size,
+                        size_t nmemb,
+                        FILE*  stream,
+                  const char*  srcfilename,
+                  const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
     print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
 #else
-    if( stream == NULL ){
+    if( stream == NULL )
+    {
         print_error("Invalid stream\n");
         abort();
     }
@@ -402,12 +365,18 @@ void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, cons
 };
 
 inline
-void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
+void safe_fread (      void*  ptr,
+                       size_t size,
+                       size_t nmemb,
+                       FILE*  stream,
+                 const char*  srcfilename,
+                 const int    linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
     print_info("Warning: we are not doing any IO (called from %s).", __FUNCTION__);
 #else
-    if( stream == NULL ){
+    if( stream == NULL )
+    {
         print_error("Invalid\n");
         abort();
     }
@@ -425,11 +394,11 @@ void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char*
 
 
 
-void fwi_writelog(const char *SourceFileName,
-                  const int LineNumber,
-                  const char *FunctionName,
+void fwi_writelog(const char* SourceFileName,
+                  const int   LineNumber,
+                  const char* FunctionName,
                   const char* MessageHeader,
-                  const char *fmt,
+                  const char* fmt,
                   ...)
 {
 #if defined(USE_MPI)
@@ -453,5 +422,24 @@ void fwi_writelog(const char *SourceFileName,
     va_end(args);
 
     safe_fclose ( LogFileName, fp, __FILE__, __LINE__);
+};
+
+void* __malloc( size_t alignment, const integer size)
+{
+    void *buffer;
+    int error;
+
+    if( (error=posix_memalign( &buffer, alignment, size)) != 0)
+    {
+        print_error("Cant allocate buffer correctly");
+        abort();
+    }
+
+    return (buffer);
+};
+
+void __free ( void* ptr)
+{
+    free( ptr );
 };
 

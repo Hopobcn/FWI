@@ -46,12 +46,35 @@ typedef struct {
 typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
+/*
+ * \brief linearizes 3D indexing
+ *
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return linear index
+ */
 integer IDX (const integer z,
              const integer x,
              const integer y,
              const integer dimmz,
              const integer dimmx);
 
+/*
+ * \brief computes a 8-point stencil over Z dimension
+ *
+ * \param off   [in] offset (0 if BACKWARD or 1 if FORWARD)
+ * \param ptr   [in] base pointer of a 3D volume
+ * \param dzi   [in] delta in Z dimension
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return stencil computation in Z dim
+ */
 real stencil_Z(const integer off,
                const real* restrict ptr,
                const real    dzi,
@@ -61,6 +84,19 @@ real stencil_Z(const integer off,
                const integer dimmz,
                const integer dimmx);
 
+/*
+ * \brief computes a 8-point stencil over X dimension
+ *
+ * \param off   [in] offset (0 if BACKWARD or 1 if FORWARD)
+ * \param ptr   [in] base pointer of a 3D volume
+ * \param dxi   [in] delta in X dimension
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return stencil computation in X dim
+ */
 real stencil_X(const integer off,
                const real* restrict ptr,
                const real dxi,
@@ -70,6 +106,19 @@ real stencil_X(const integer off,
                const integer dimmz,
                const integer dimmx);
 
+/*
+ * \brief computes a 8-point stencil over Y dimension
+ *
+ * \param off   [in] offset (0 if BACKWARD or 1 if FORWARD)
+ * \param ptr   [in] base pointer of a 3D volume
+ * \param dyi   [in] delta in Y dimension
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return stencil computation in Y dim
+ */
 real stencil_Y(const integer off,
                const real* restrict ptr,
                const real dyi,
@@ -82,10 +131,21 @@ real stencil_Y(const integer off,
 
 /* ------------------------------------------------------------------------------ */
 /*                                                                                */
-/*                               CALCULO DE VELOCIDADES                           */
+/*                             VELOCITY COMPUTATIONS                              */
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
+/*
+ * \brief computes rho BL coefficient
+ *
+ * \param rho   [in] base pointer of a 3D volume
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return rho BL coefficient
+ */
 real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -93,6 +153,17 @@ real rho_BL ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+/*
+ * \brief computes rho TR coefficient
+ *
+ * \param rho   [in] base pointer of a 3D volume
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return rho TR coefficient
+ */
 real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -100,6 +171,17 @@ real rho_TR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+/*
+ * \brief computes rho BR coefficient
+ *
+ * \param rho   [in] base pointer of a 3D volume
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return rho BR coefficient
+ */
 real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -107,6 +189,17 @@ real rho_BR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+/*
+ * \brief computes rho TL coefficient
+ *
+ * \param rho   [in] base pointer of a 3D volume
+ * \param z     [in] index in Z dimension (contiguous in memory)
+ * \param x     [in] index in X dimension (second most contiguous)
+ * \param y     [in] index in Y dimension (less contiguous)
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \return rho TL coefficient
+ */
 real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -114,6 +207,31 @@ real rho_TL ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
+/*
+ * \brief computes velocity TL
+ *
+ * \param vptr  [inout] pointer from point_v_t
+ * \param szptr [in] pointer from point_s_t
+ * \param sxptr [in] pointer from point_s_t
+ * \param syptr [in] pointer from point_s_t
+ * \param rho   [in] pointer
+ * \param dt    [in] delta time
+ * \param dzi   [in] delta Z dimension
+ * \param dxi   [in] delta X dimension
+ * \param dyi   [in] delta Y dimension
+ * \param nz0   [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf   [in] last  element in Z dimension
+ * \param nx0   [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf   [in] last  element in X dimension
+ * \param ny0   [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf   [in] last  element in Y dimension
+ * \param SZ    [in] offset in Z dimension
+ * \param SX    [in] offset in X dimension
+ * \param SY    [in] offset in Y dimension
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \param phase [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
 void compute_component_vcell_TL (      real* restrict vptr,
                                  const real* restrict szptr,
                                  const real* restrict sxptr,
@@ -129,9 +247,9 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const integer        nxf,
                                  const integer        ny0,
                                  const integer        nyf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
+                                 const offset_t       SZ,
+                                 const offset_t       SX,
+                                 const offset_t       SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
                                  const phase_t        phase);
@@ -139,12 +257,42 @@ void compute_component_vcell_TL (      real* restrict vptr,
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_vcell_TL'
+ *
+ * This function acts as a 'glue' between 'compute_component_vcell_TL' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_vcell_TL_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
+/*
+ * \brief computes velocity TR
+ *
+ * \param vptr  [inout] pointer from point_v_t
+ * \param szptr [in] pointer from point_s_t
+ * \param sxptr [in] pointer from point_s_t
+ * \param syptr [in] pointer from point_s_t
+ * \param rho   [in] pointer
+ * \param dt    [in] delta time
+ * \param dzi   [in] delta Z dimension
+ * \param dxi   [in] delta X dimension
+ * \param dyi   [in] delta Y dimension
+ * \param nz0   [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf   [in] last  element in Z dimension
+ * \param nx0   [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf   [in] last  element in X dimension
+ * \param ny0   [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf   [in] last  element in Y dimension
+ * \param SZ    [in] offset in Z dimension
+ * \param SX    [in] offset in X dimension
+ * \param SY    [in] offset in Y dimension
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \param phase [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
 void compute_component_vcell_TR (      real* restrict vptr,
                                  const real* restrict szptr,
                                  const real* restrict sxptr,
@@ -160,9 +308,9 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const integer        nxf,
                                  const integer        ny0,
                                  const integer        nyf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
+                                 const offset_t       SZ,
+                                 const offset_t       SX,
+                                 const offset_t       SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
                                  const phase_t        phase);
@@ -170,13 +318,42 @@ void compute_component_vcell_TR (      real* restrict vptr,
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_vcell_TR'
+ *
+ * This function acts as a 'glue' between 'compute_component_vcell_TR' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_vcell_TR_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
-
+/*
+ * \brief computes velocity BR
+ *
+ * \param vptr  [inout] pointer from point_v_t
+ * \param szptr [in] pointer from point_s_t
+ * \param sxptr [in] pointer from point_s_t
+ * \param syptr [in] pointer from point_s_t
+ * \param rho   [in] pointer
+ * \param dt    [in] delta time
+ * \param dzi   [in] delta Z dimension
+ * \param dxi   [in] delta X dimension
+ * \param dyi   [in] delta Y dimension
+ * \param nz0   [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf   [in] last  element in Z dimension
+ * \param nx0   [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf   [in] last  element in X dimension
+ * \param ny0   [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf   [in] last  element in Y dimension
+ * \param SZ    [in] offset in Z dimension
+ * \param SX    [in] offset in X dimension
+ * \param SY    [in] offset in Y dimension
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \param phase [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
 void compute_component_vcell_BR (      real* restrict vptr,
                                  const real* restrict szptr,
                                  const real* restrict sxptr,
@@ -192,9 +369,9 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const integer        nxf,
                                  const integer        nz0,
                                  const integer        nzf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
+                                 const offset_t       SZ,
+                                 const offset_t       SX,
+                                 const offset_t       SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
                                  const phase_t        phase);
@@ -202,13 +379,42 @@ void compute_component_vcell_BR (      real* restrict vptr,
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_vcell_BR'
+ *
+ * This function acts as a 'glue' between 'compute_component_vcell_BR' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_vcell_BR_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
-
+/*
+ * \brief computes velocity BL
+ *
+ * \param vptr  [inout] pointer from point_v_t
+ * \param szptr [in] pointer from point_s_t
+ * \param sxptr [in] pointer from point_s_t
+ * \param syptr [in] pointer from point_s_t
+ * \param rho   [in] pointer
+ * \param dt    [in] delta time
+ * \param dzi   [in] delta Z dimension
+ * \param dxi   [in] delta X dimension
+ * \param dyi   [in] delta Y dimension
+ * \param nz0   [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf   [in] last  element in Z dimension
+ * \param nx0   [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf   [in] last  element in X dimension
+ * \param ny0   [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf   [in] last  element in Y dimension
+ * \param SZ    [in] offset in Z dimension
+ * \param SX    [in] offset in X dimension
+ * \param SY    [in] offset in Y dimension
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \param phase [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
 void compute_component_vcell_BL (      real* restrict vptr,
                                  const real* restrict szptr,
                                  const real* restrict sxptr,
@@ -224,9 +430,9 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const integer        nxf,
                                  const integer        nz0,
                                  const integer        nzf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
+                                 const offset_t       SZ,
+                                 const offset_t       SX,
+                                 const offset_t       SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
                                  const phase_t        phase);
@@ -234,13 +440,39 @@ void compute_component_vcell_BL (      real* restrict vptr,
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_vcell_BL'
+ *
+ * This function acts as a 'glue' between 'compute_component_vcell_BL' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_vcell_BL_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
 
+/*
+ * \brief computes velocity propagation
+ *
+ * \param v     [in] v_t structure
+ * \param s     [in] s_t structure
+ * \param coeffs [in] coeff_t coefficients (not used)
+ * \param rho   [in] pointer
+ * \param dt    [in] delta time
+ * \param dzi   [in] delta Z dimension
+ * \param dxi   [in] delta X dimension
+ * \param dyi   [in] delta Y dimension
+ * \param nz0   [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf   [in] last  element in Z dimension
+ * \param nx0   [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf   [in] last  element in X dimension
+ * \param ny0   [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf   [in] last  element in Y dimension
+ * \param dimmz [in] size of Z dimension
+ * \param dimmx [in] size of X dimension
+ * \param phase [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
 void velocity_propagator(v_t           v,
                          s_t           s,
                          coeff_t       coeffs,
@@ -262,12 +494,29 @@ void velocity_propagator(v_t           v,
 
 
 
+/* ------------------------------------------------------------------------------ */
+/*                                                                                */
+/*                              STRESS COMPUTATIONS                               */
+/*                                                                                */
+/* ------------------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------------------ */
-/*                                                                                */
-/*                               CALCULO DE TENSIONES                             */
-/*                                                                                */
-/* ------------------------------------------------------------------------------ */
+void stress_propagator(s_t           s,
+                       v_t           v,
+                       coeff_t       coeffs,
+                       real*         rho,
+                       const real    dt,
+                       const real    dzi,
+                       const real    dxi,
+                       const real    dyi,
+                       const integer nz0,
+                       const integer nzf,
+                       const integer nx0,
+                       const integer nxf,
+                       const integer ny0,
+                       const integer nyf,
+                       const integer dimmz,
+                       const integer dimmx,
+                       const phase_t phase );
 
 void stress_update(real* restrict sptr,
                    const real     c1,
@@ -291,24 +540,6 @@ void stress_update(real* restrict sptr,
                    const real     w_z,
                    const integer  dimmz,
                    const integer  dimmx);
-
-void stress_propagator(s_t           s,
-                       v_t           v,
-                       coeff_t       coeffs,
-                       real*         rho,
-                       const real    dt,
-                       const real    dzi,
-                       const real    dxi,
-                       const real    dyi,
-                       const integer nz0,
-                       const integer nzf,
-                       const integer nx0,
-                       const integer nxf,
-                       const integer ny0,
-                       const integer nyf,
-                       const integer dimmz,
-                       const integer dimmx,
-                       const phase_t phase );
 
 real cell_coeff_BR ( const real* restrict ptr,
                      const integer z,
@@ -366,126 +597,239 @@ real cell_coeff_ARTM_TR ( const real* restrict ptr,
                           const integer dimmz,
                           const integer dimmx);
 
-void compute_component_scell_TR (s_t             s,
-                                 point_v_t       vnode_z,
-                                 point_v_t       vnode_x,
-                                 point_v_t       vnode_y,
-                                 coeff_t         coeffs,
-                                 const real      dt,
-                                 const real      dzi,
-                                 const real      dxi,
-                                 const real      dyi,
-                                 const integer   nz0,
-                                 const integer   nzf,
-                                 const integer   nx0,
-                                 const integer   nxf,
-                                 const integer   ny0,
-                                 const integer   nyf,
-                                 const offset_t _SZ,
-                                 const offset_t _SX,
-                                 const offset_t _SY,
+/*
+ * \brief computes stresses TR
+ *
+ * \param v       [in] s_t structure
+ * \param vnode_z [in] pointer from point_v_t
+ * \param vnode_x [in] pointer from point_v_t
+ * \param vnode_y [in] pointer from point_v_t
+ * \param dt      [in] delta time
+ * \param dzi     [in] delta Z dimension
+ * \param dxi     [in] delta X dimension
+ * \param dyi     [in] delta Y dimension
+ * \param nz0     [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf     [in] last  element in Z dimension
+ * \param nx0     [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf     [in] last  element in X dimension
+ * \param ny0     [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf     [in] last  element in Y dimension
+ * \param SZ      [in] offset in Z dimension
+ * \param SX      [in] offset in X dimension
+ * \param SY      [in] offset in Y dimension
+ * \param dimmz   [in] size of Z dimension
+ * \param dimmx   [in] size of X dimension
+ * \param phase   [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
+void compute_component_scell_TR (s_t            s,
+                                 point_v_t      vnode_z,
+                                 point_v_t      vnode_x,
+                                 point_v_t      vnode_y,
+                                 coeff_t        coeffs,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t SZ,
+                                 const offset_t SX,
+                                 const offset_t SY,
                                  const integer  dimmz,
                                  const integer  dimmx,
-                                 const phase_t phase);
+                                 const phase_t  phase);
 
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_scell_TR'
+ *
+ * This function acts as a 'glue' between 'compute_component_scell_TR' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_scell_TR_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
-
-void compute_component_scell_TL ( s_t             s,
-                                  point_v_t       vnode_z,
-                                  point_v_t       vnode_x,
-                                  point_v_t       vnode_y,
-                                  coeff_t         coeffs,
-                                  const real      dt,
-                                  const real      dzi,
-                                  const real      dxi,
-                                  const real      dyi,
-                                  const integer   nz0,
-                                  const integer   nzf,
-                                  const integer   nx0,
-                                  const integer   nxf,
-                                  const integer   ny0,
-                                  const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
+/*
+ * \brief computes stresses TL
+ *
+ * \param v       [in] s_t structure
+ * \param vnode_z [in] pointer from point_v_t
+ * \param vnode_x [in] pointer from point_v_t
+ * \param vnode_y [in] pointer from point_v_t
+ * \param dt      [in] delta time
+ * \param dzi     [in] delta Z dimension
+ * \param dxi     [in] delta X dimension
+ * \param dyi     [in] delta Y dimension
+ * \param nz0     [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf     [in] last  element in Z dimension
+ * \param nx0     [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf     [in] last  element in X dimension
+ * \param ny0     [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf     [in] last  element in Y dimension
+ * \param SZ      [in] offset in Z dimension
+ * \param SX      [in] offset in X dimension
+ * \param SY      [in] offset in Y dimension
+ * \param dimmz   [in] size of Z dimension
+ * \param dimmx   [in] size of X dimension
+ * \param phase   [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
+void compute_component_scell_TL (s_t            s,
+                                 point_v_t      vnode_z,
+                                 point_v_t      vnode_x,
+                                 point_v_t      vnode_y,
+                                 coeff_t        coeffs,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t SZ,
+                                 const offset_t SX,
+                                 const offset_t SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_scell_TL'
+ *
+ * This function acts as a 'glue' between 'compute_component_scell_TL' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_scell_TL_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
-
-void compute_component_scell_BR ( s_t             s,
-                                  point_v_t       vnode_z,
-                                  point_v_t       vnode_x,
-                                  point_v_t       vnode_y,
-                                  coeff_t         coeffs,
-                                  const real      dt,
-                                  const real      dzi,
-                                  const real      dxi,
-                                  const real      dyi,
-                                  const integer   nz0,
-                                  const integer   nzf,
-                                  const integer   nx0,
-                                  const integer   nxf,
-                                  const integer   ny0,
-                                  const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
+/*
+ * \brief computes stresses BR
+ *
+ * \param v       [in] s_t structure
+ * \param vnode_z [in] pointer from point_v_t
+ * \param vnode_x [in] pointer from point_v_t
+ * \param vnode_y [in] pointer from point_v_t
+ * \param dt      [in] delta time
+ * \param dzi     [in] delta Z dimension
+ * \param dxi     [in] delta X dimension
+ * \param dyi     [in] delta Y dimension
+ * \param nz0     [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf     [in] last  element in Z dimension
+ * \param nx0     [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf     [in] last  element in X dimension
+ * \param ny0     [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf     [in] last  element in Y dimension
+ * \param SZ      [in] offset in Z dimension
+ * \param SX      [in] offset in X dimension
+ * \param SY      [in] offset in Y dimension
+ * \param dimmz   [in] size of Z dimension
+ * \param dimmx   [in] size of X dimension
+ * \param phase   [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
+void compute_component_scell_BR (s_t            s,
+                                 point_v_t      vnode_z,
+                                 point_v_t      vnode_x,
+                                 point_v_t      vnode_y,
+                                 coeff_t        coeffs,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t SZ,
+                                 const offset_t SX,
+                                 const offset_t SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_scell_BR'
+ *
+ * This function acts as a 'glue' between 'compute_component_scell_BR' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_scell_BR_cuda ( /* COMPLETE ME */ );
 ////////////////////////////
 #endif /* end USE_CUDA */
 
-
-void compute_component_scell_BL ( s_t             s,
-                                  point_v_t       vnode_z,
-                                  point_v_t       vnode_x,
-                                  point_v_t       vnode_y,
-                                  coeff_t         coeffs,
-                                  const real      dt,
-                                  const real      dzi,
-                                  const real      dxi,
-                                  const real      dyi,
-                                  const integer   nz0,
-                                  const integer   nzf,
-                                  const integer   nx0,
-                                  const integer   nxf,
-                                  const integer   ny0,
-                                  const integer   nyf,
-                                  const offset_t _SZ,
-                                  const offset_t _SX,
-                                  const offset_t _SY,
-                                  const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
+/*
+ * \brief computes stresses BL
+ *
+ * \param v       [in] s_t structure
+ * \param vnode_z [in] pointer from point_v_t
+ * \param vnode_x [in] pointer from point_v_t
+ * \param vnode_y [in] pointer from point_v_t
+ * \param dt      [in] delta time
+ * \param dzi     [in] delta Z dimension
+ * \param dxi     [in] delta X dimension
+ * \param dyi     [in] delta Y dimension
+ * \param nz0     [in] first element in Z dimension (range [nz0:nzf) )
+ * \param nzf     [in] last  element in Z dimension
+ * \param nx0     [in] first element in X dimension (range [nx0:nxf) )
+ * \param nxf     [in] last  element in X dimension
+ * \param ny0     [in] first element in Y dimension (range [ny0:nyf) )
+ * \þaram nyf     [in] last  element in Y dimension
+ * \param SZ      [in] offset in Z dimension
+ * \param SX      [in] offset in X dimension
+ * \param SY      [in] offset in Y dimension
+ * \param dimmz   [in] size of Z dimension
+ * \param dimmx   [in] size of X dimension
+ * \param phase   [in] enum that identifies the phase (useful for asynchronous exection with openacc)
+ */
+void compute_component_scell_BL (s_t            s,
+                                 point_v_t      vnode_z,
+                                 point_v_t      vnode_x,
+                                 point_v_t      vnode_y,
+                                 coeff_t        coeffs,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t SZ,
+                                 const offset_t SX,
+                                 const offset_t SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 #if defined(USE_CUDA)
 //// COMPLETE CUDA STUB ////
 
-/* CUDA STUB declaration, implementation in a .cu file */
+/*
+ * \brief CUDA implementation of 'compute_component_scell_BL'
+ *
+ * This function acts as a 'glue' between 'compute_component_scell_BL' and the CUDA Kernel
+ *
+ */
 extern
 void compute_component_scell_BL_cuda ( /* COMPLETE ME */ );
 ////////////////////////////

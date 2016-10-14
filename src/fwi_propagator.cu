@@ -3,11 +3,23 @@
 
 #include "fwi_propagator.cuh"
 
-//// IMPLEMENT ANYTHING YOU NEED
-// You could either:
-//  - try to modify host functions present in fwi_propagator.c to be __host__ __device__ functions
-//     (you will have to deal with C<-->C++ interoperability (.cu files are treated as C++)
-//  - or implement your own specialization here
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+////////////////////            HACKATHON TODO:                              //
+///////////////////////////////////////////////////////////////////////////////
+//
+// CUDA:
+//    - implement CUDA kernels in this FILE
+//    - implement CUDA <--> C glue functions (configure & launch kernels)
+//
+//    - A) functions like IDX,stencil_X etc.. have to be re-implemented HERE
+//             OR
+//      B) add __host__ __device__ specifiers in C function and modify CMakeList.txt to compile fwi_propagator.c with nvcc and not PGI (problem--> NVCC does not know what OpenACC is..)
+//
+//     Implement anything you need
+//
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 void compute_component_vcell_TL_cuda ( /* COMPLETE ME */)

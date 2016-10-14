@@ -821,7 +821,7 @@ void propagate_shot(time_d        direction,
 #if defined(USE_MPI)
         ////////// IMPLEMENT /////////
         // hint: barrier
-    
+
         /////////////////////////////
 #endif
         POP_RANGE
@@ -841,17 +841,6 @@ void propagate_shot(time_d        direction,
 };
 
 #if defined(USE_MPI)
-/*
-NAME:exchange_boundaries
-PURPOSE: data exchanges between the boundary layers of the analyzed volume
-
-v                   (in) struct containing velocity arrays (4 points / cell x 3 components / point = 12 arrays)
-plane_size          (in) Number of elements per plane to exchange
-nyf                 (in) final plane to be exchanged
-ny0                 (in) intial plane to be exchanged
-
-RETURN none
-*/
 void exchange_velocity_boundaries ( v_t v,
                                     const integer plane_size,
                                     const integer nyf,
@@ -918,19 +907,6 @@ void exchange_velocity_boundaries ( v_t v,
     POP_RANGE
 };
 
-/*
-NAME:exchange_stress_boundaries
-PURPOSE: data exchanges between the boundary layers of the analyzed volume
-
-s                   (in) struct containing stress arrays (4 points / cell x 6 components / point = 24 arrays)
-plane_size          (in) Number of elements per plane to exchange
-rank                (in) rank id (CPU id)
-nranks              (in) number of CPUs
-nyf                 (in) final plane to be exchanged
-ny0                 (in) intial plane to be exchanged
-
-RETURN none
-*/
 void exchange_stress_boundaries ( s_t s,
                                   const integer plane_size,
                                   const integer nyf,

@@ -24,7 +24,7 @@
  * functions can be used.
  */
 void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder, char* shotfolder)
-{   
+{
     /* local variables */
     int stacki;
     double start_t, end_t;
@@ -36,7 +36,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 #if defined(USE_MPI)
     ////////// IMPLEMENT /////////
     // hint: distribute iteration space between procs
-    
+
     // more
     // stuff
     // here
@@ -60,7 +60,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     const integer nx0 = 0;
     const integer nzf = dimmz;
     const integer nxf = dimmx;
-    
+
     real    *rho;
     v_t     v;
     s_t     s;
@@ -85,7 +85,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     /* inspects every array positions for leaks. Enabled when DEBUG flag is defined */
     check_memory_shot  ( numberOfCells, &coeffs, &s, &v, rho);
 
-    
+
     switch( propagator )
     {
     case( RTM_KERNEL ):
@@ -107,7 +107,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
         print_stats("Forward propagation finished in %lf seconds", end_t - start_t );
 
         start_t = dtime();
-        
+
         propagate_shot ( BACKWARD,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
@@ -130,7 +130,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 #if defined(USE_MPI)
         ////////// IMPLEMENT /////////
         // hint: only one thread/proc ...
-    
+
         //////////////////////////////
 #endif
         {
@@ -173,7 +173,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
         end_t = dtime();
 
         print_stats("Forward Modelling finished in %lf seconds", end_t - start_t );
-       
+
         break;
     }
     default:
@@ -201,9 +201,9 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
     double start_t, end_t;
 
     /* buffers to read and accumulate the fields */
-    real* sumbuffer  = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS ); 
+    real* sumbuffer  = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
     real* readbuffer = (real*)  __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
-    
+
     start_t = dtime();
 
     /* set buffer positions to zero */
@@ -212,7 +212,7 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
     for( int shot=0; shot < nshots; shot++)
     {
         char readfilename[300];
-        sprintf( readfilename, "%s/shot.%2.1f.%05d/precond_%05d.dat", 
+        sprintf( readfilename, "%s/shot.%2.1f.%05d/precond_%05d.dat",
                 outputfolder, waveletFreq, shot, shot);
 
         print_info("Reading preconditioner file '%s'", readfilename );
@@ -240,8 +240,8 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
     end_t = dtime();
 
-    print_stats("Gatering process for preconditioner %s (freq %2.1f) " 
-                "completed in: %lf seconds",  
+    print_stats("Gatering process for preconditioner %s (freq %2.1f) "
+                "completed in: %lf seconds",
                 precondfilename, waveletFreq, end_t - start_t  );
 
     /* ---------  GLOBAL GRADIENT ACCUMULATION --------- */
@@ -255,7 +255,7 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
     for( int shot=0; shot < nshots; shot++)
     {
         char readfilename[300];
-        sprintf( readfilename, "%s/shot.%2.1f.%05d/gradient_%05d.dat", 
+        sprintf( readfilename, "%s/shot.%2.1f.%05d/gradient_%05d.dat",
                 outputfolder, waveletFreq, shot, shot);
 
         print_info("Reading gradient file %s", readfilename );
@@ -283,8 +283,8 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
     end_t = dtime();
 
-    print_stats("Gatering process for gradient %s (freq %2.1f) "        
-                "completed in: %lf seconds", 
+    print_stats("Gatering process for gradient %s (freq %2.1f) "
+                "completed in: %lf seconds",
                 precondfilename, waveletFreq, end_t - start_t  );
 
     __free(  sumbuffer);
@@ -297,15 +297,15 @@ int execute_simulation( int argc, char* argv[] )
 #if defined(USE_MPI)
     ////////// IMPLEMENT /////////
     // hint: who am I (mpi)
-    
+
     //////////////////////////////
 #endif
 
 #if defined(_OPENACC)
     ////////// IMPLEMENT /////////
     // hint: who am I (gpu)
-    
-    
+
+
     //////////////////////////////
 #endif /*_OPENACC*/
 
@@ -328,7 +328,7 @@ int execute_simulation( int argc, char* argv[] )
     {
         /* Process one frequency at a time */
         real waveletFreq = frequencies[i];
-        fprintf(stderr, "Freq: %2.1f ------------------------\n", waveletFreq); 
+        fprintf(stderr, "Freq: %2.1f ------------------------\n", waveletFreq);
 
         /* Deltas of space, 16 grid point per Hz */
         real dx = vmin / (16.0 * waveletFreq);
@@ -349,7 +349,7 @@ int execute_simulation( int argc, char* argv[] )
         const integer numberOfCells = dimmz * dimmx * dimmx;
         const size_t VolumeMemory  = numberOfCells * sizeof(real) * 58;
 
-        print_stats("Local domain size for freq %f [%d][%d][%d] is %lu bytes (%lf GB)", 
+        print_stats("Local domain size for freq %f [%d][%d][%d] is %lu bytes (%lf GB)",
                     waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
 
         /* compute time steps */
@@ -365,18 +365,18 @@ int execute_simulation( int argc, char* argv[] )
             {
                 char shotfolder[200];
                 sprintf(shotfolder, "%s/shot.%2.1f.%05d", outputfolder, waveletFreq, shot);
-                
+
 #if defined(USE_MPI)
                 ////////// IMPLEMENT /////////
                 // hint: only one thread/proc creates the folder and stores params
-    
+
                 //////////////////////////////
 #else
                 create_folder( shotfolder );
 
-                store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps,
-                                       &dz, &dx, &dy, 
-                                       &dimmz, &dimmx, &dimmy, 
+                store_shot_parameters( shot, stacki, dt, forw_steps, back_steps,
+                                       dz, dx, dy,
+                                       dimmz, dimmx, dimmy,
                                        outputfolder, waveletFreq );
 #endif
 
@@ -384,14 +384,14 @@ int execute_simulation( int argc, char* argv[] )
 
                 fprintf(stderr, "\tGradient loop processed for the %d-th shot\n", shot);
                 print_info("\tGradient loop processed for %d-th shot", shot);
-                
+
                 //update_shot()
             }
 
 #if defined(USE_MPI)
             ////////// IMPLEMENT /////////
             // hint: only one thread/proc gathers shots
-    
+
             //////////////////////////////
 #else
             gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );
@@ -402,7 +402,7 @@ int execute_simulation( int argc, char* argv[] )
 #ifdef USE_MPI
     ////////// IMPLEMENT /////////
     // hint: clean everything
-    
+
     //////////////////////////////
 #endif
 
