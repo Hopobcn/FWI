@@ -1,6 +1,6 @@
 # BSC/UPC Hackathon
 
-## GPU Part - Parallelization of a Reverse Time Migraton (RTM) program using OpenACC/CUDA
+## GPU Computing - Parallelization of a Reverse Time Migraton (RTM) program using OpenACC/CUDA
 
 Reverse time migration (RTM) modeling is a critical component in the seismic processing workflow of oil and gas exploration.
 
@@ -23,11 +23,11 @@ Example using `rsync`:
 
 Local to Minotauro:
 ```bash
-rsync -azP --delete --exclude 'build' /home/foo/hackathon/FWI/ USER@mt2.bsc:~/hackathon/FWI
+rsync -azP --delete --exclude 'build' /home/foo/hackathon/<repo-name>/ USER@mt2.bsc:~/hackathon/<repo-name>
 ```
 Minotauro to Local:
 ```bash
-rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/FWI /home/foo/hackathon
+rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/<repo-name> /home/foo/hackathon
 ```
 
 ### Build Instructions:
@@ -40,7 +40,7 @@ cmake -DCMAKE_C_COMPILER=<foo-compiler> [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YE
 
 __WARNING:__ *Always* make *out-of-source* builds (don't execute cmake from the project root directory):
 ```bash
-cd ~/hackathon/FWI
+cd ~/<repo-name>/gpu-computing/FWI
 mkdir build && cd build
 cmake <options> ..
 make
@@ -132,7 +132,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
 1. **Profile the sequential program and give a report of the most time consuming parts of this application. Also tell which of those parts should be ported to the GPU and why.**
 
 
-    You have the liberty to choose which profiler/tool to use. Some possible options would be:
+    You have the liberty to choose which profiler/tool to use. Some possible options are:
 
     * GNU profiler (gprof)
     * NVIDIA profiler (nvprof) (it supports CPU sampling)
@@ -164,6 +164,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
 2. **Parallelize with OpenACC with 1 GPU**
 
+    Add the necessary OpenACC pragmas to accelerate the FWI mini-app using GPUs. Remember that the login nodes in Minotauro have older GPUS (NVIDIA Tesla C2090 (Fermi)). Use the compute nodes if you want to use the newest GPUs (NVIDIA Tesla K80 (kepler)).
+
     From now on, use the PGI 16.5 compiler to work with OpenACC since it's the only fully supported compiler with OpenACC 2.5. (`gcc` >= 6.1.0 has OpenACC 2.0 support but has not been tested)
     We recommend reading the document "[The OpenACC Application Programmin Interface V2.5](www.openacc.org/sites/default/files/OpenACC_2pt5.pdf)" information about the OpenACC Spec 2.5.
     Again, remember to document all the code that you add.
@@ -180,11 +182,13 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
 3. **Test your OpenACC implementation**
 
-    The serial implementation comes with a set of tests that checks the correct execution of some parts of the program:
+    This mini-app uses a framework for unit-testing in C programs called 'Unity' (github.com/ThrowTheSwitch/Unity).
+    We have implemented some tests for the sequential implementation.
+    To launch those tests type:
     ```bash
     make utest
     ```
-    In step (2) you have added some OpenACC pragmas, and now you have to modify the tests in order to make them pass.
+    In step (2) you have added some OpenACC pragmas, and now you have to modify the tests in order to pass all tests.
     First check that sequential execution passes all tests and then go ahead with your OpenACC implementation.
 
     In later steps, if you make changes to the code that fall out of the socope of the original tests, you should implement your own tests to be sure that the program runs as expected.
@@ -193,8 +197,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
     After you know your implementation is correct (remember, Speedup of an incorrect code is ZERO), proceed with optimizing the performance of your kernels.
 
-    For reference purposes this is the execution time of our OpenACC implementation with 1 K80 and freq 10.0 Hz:
-    19.7872 s
+    For reference purposes this is the execution time of our OpenACC implementation with 1 K80 and freq 4.0 Hz (284x284x284):
+    84.0532 s
 
 
 5. **Implement a Multi-GPU implementation**
@@ -230,8 +234,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
     Report kernel times.
 
-    For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 10.0 Hz:
-    20.4410 s
+    For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 4.0 Hz (284x284x284):
+    74.6169 s
 
 
 ### References
