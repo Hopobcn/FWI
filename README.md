@@ -11,7 +11,12 @@ In order to get the maximum points, ten questions will be presented in this docu
 Please follow that order. Each step has to be documented using `git`. Every time you consider you have a good answer for question 'N', then proceed to do a`git commit -m "Answer N"` & `git push` in `master` branch.
 
 ### How to get started:
-**Fork** this repository (you will need push rights to be able to upload your results). Then `clone` your repository into your local machine and upload the whole directory to Minotauro using `scp` or `rsync`.
+`clone` your repository into your local machine:
+```bash
+git clone https://hackathon.hca.bsc.es/hackathon/<username>.git
+git submodule update --init --recursive
+```
+Then upload the whole directory to Minotauro using `scp` or `rsync`.
 There is no connectivity inside Minotauro to the outside world so you will have to copy the entire directory from Minotauro to your laptop to be able to push to github.
 
 Example using `rsync`:
