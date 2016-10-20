@@ -24,3 +24,5 @@ FWI has two input files
     2.00
     etc...
     ```
+
+When PERFORM_IO is enabled, data is initialized from files present in `data/inputmodels`. Those files are generated using the `fwi-data-generator`.
