@@ -1,34 +1,23 @@
 # BSC/UPC Hackathon
 
-## GPU Computing - Parallelization of a Reverse Time Migraton (RTM) program using OpenACC/CUDA
+## GPU Computing - Parallelization of a Reverse Time Migration (RTM) program using OpenACC/CUDA
 
-Reverse time migration (RTM) modeling is a critical component in the seismic processing workflow of oil and gas exploration.
+Reverse time migration (RTM) modeling is a critical component in the seismic
+processing workflow of oil and gas exploration as well as for the understanding
+of energy release in subduction-zone earthquakes. With the help of high
+precision seismic sensors deployed on the field, it is possible to use the
+information gathered during seismic aftershocks and reverse-time migrate them.
+This can give scientists a large amount of highly accurate information of the
+seismic conditions of the region of interest.
 
-In this Hackathon you will parallelize a mini-app called FWI using OpenACC and CUDA.
-
-In order to get the maximum points, ten questions will be presented in this document that you will have to answer and perform the steps asked. Each question/step has a dificulty associated, from the easiest one (question 1) to  the hardest (question 10).
-
-Please follow that order. Each step has to be documented using `git`. Every time you consider you have a good answer for question 'N', then proceed to do a`git commit -m "Answer N"` & `git push` in `master` branch.
-
-### How to get started:
-`clone` your repository into your local machine:
-```bash
-git clone https://hackathon.hca.bsc.es/hackathon/<username>.git
-git submodule update --init --recursive
-```
-Then upload the whole directory to Minotauro using `scp` or `rsync`.
-There is no connectivity inside Minotauro to the outside world so you will have to copy the entire directory from Minotauro to your laptop to be able to push to github.
-
-Example using `rsync`:
-
-Local to Minotauro:
-```bash
-rsync -azP --delete --exclude 'build' /home/foo/hackathon/<repo-name>/ USER@mt2.bsc:~/hackathon/<repo-name>
-```
-Minotauro to Local:
-```bash
-rsync -azP --delete --exclude 'build' USER@mt2.bsc:~/hackathon/<repo-name> /home/foo/hackathon
-```
+Such analysis is critical after a large earthquake because it can help
+scientists know the state of a seismic fault and the probability of subsequent
+large aftershocks. As the number of aftershocks sky-rockets after a large
+earthquake, the amount of data to analyse grows really fast.  Thus, it is
+mandatory to speed up the processing of all that information and we need your
+help. Your job is to accelerate the reverse time migration program as much as
+possible using GPUs. Do not worry, we will guide you. You will parallelize a
+mini-app called FWI using OpenACC and CUDA. Let's start!
 
 ### Build Instructions:
 
@@ -121,25 +110,33 @@ cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_O
 make utest
 ```
 
+#### Running Instructions:
+
+To facilitate your work launching jobs, we added a set of 'targets' that launch some SLURM scripts in the queue system.
+
+|  Makefile target  | acction                                          | example       |
+| -----------------|:------------------------------------------------|:--------------|
+| run-seq          | Launches script/jobscript_run.sequential.slurm   | `make run-seq` |
+| run-openmp       | Launches script/jobscript_run.openmp.slurm       | `make run-openmp` |
+| run-openacc      | Launches script/jobscript_run.openacc.slurm      | `make run-openacc` |
+
+All executions **should** be performed in compute nodes. You can create/modify any script in `scripts` folder but **do not** modify the execution wall time.
 
 ### Questions/Steps:
 
 Remember to **document** each step using `git`.
 
-All executions **should** be performed in compute nodes. We provide some scripts under the folder `scripts` that can be copied and modified by you to do whatever you want.
-**Do not** modify the execution wall time.
 
 1. **Profile the sequential program and give a report of the most time consuming parts of this application. Also tell which of those parts should be ported to the GPU and why.**
 
-
     You have the liberty to choose which profiler/tool to use. Some possible options are:
 
-    * GNU profiler (gprof)
-    * NVIDIA profiler (nvprof) (it supports CPU sampling)
-    * BSCTOOLS
-    * Any other
+        * GNU profiler (gprof)
+        * NVIDIA profiler (nvprof) (it supports CPU sampling)
+        * BSCTOOLS
+        * Any other
 
-    CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE=ON` is provided:
+    To help you, CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE=ON` is provided:
     ```bash
     source scripts/environment_gcc.sh
     cd build
@@ -149,22 +146,12 @@ All executions **should** be performed in compute nodes. We provide some scripts
     <--- run gprof                                         --->
     ```
 
-    We also added support for launching SLURM jobs  (`scripts/job_*.slurm`) with cmake/make (if you want to tweak this go to `main/CMakeLists.txt`):
-    ```bash
-    # to launch script/jobscript_<COMPILER>_run.sequential.slurm execute:
-    make run-seq
-    <-- or -->
-    # to launch script/jobscript_<COMPILER>_run.openmp.slurm execute:
-    make run-openmp
-    <-- or -->
-    # to launch script/jobscript_<COMPILER>_run.openacc.slurm execute:
-    make run-openacc
-     ```
-    Otherwise use `mnsubmit` to launch your jobs.
 
 2. **Parallelize with OpenACC with 1 GPU**
 
-    Add the necessary OpenACC pragmas to accelerate the FWI mini-app using GPUs. Remember that the login nodes in Minotauro have older GPUS (NVIDIA Tesla C2090 (Fermi)). Use the compute nodes if you want to use the newest GPUs (NVIDIA Tesla K80 (kepler)).
+    Add the necessary OpenACC pragmas to accelerate the FWI mini-app using GPUs.
+    Remember that the login nodes in Minotauro have older GPUS (NVIDIA Tesla C2090 (Fermi)).
+    NVIDIA Tesla K80 (kepler) are only present in compute nodes.
 
     From now on, use the PGI 16.5 compiler to work with OpenACC since it's the only fully supported compiler with OpenACC 2.5. (`gcc` >= 6.1.0 has OpenACC 2.0 support but has not been tested)
     We recommend reading the document "[The OpenACC Application Programmin Interface V2.5](www.openacc.org/sites/default/files/OpenACC_2pt5.pdf)" information about the OpenACC Spec 2.5.
@@ -178,7 +165,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
     #pragma omp for <--etc-->
     #endif
     ```
-    This way you can recompile your application enabling/disabling this new functionality without breaking the previous implementation (seq/openmp).
+    This way you can recompile your application enabling/disabling this new functionality maintaining compatibility with the previous implementation (seq/openmp).
 
 3. **Test your OpenACC implementation**
 
@@ -188,7 +175,7 @@ All executions **should** be performed in compute nodes. We provide some scripts
     ```bash
     make utest
     ```
-    In step (2) you have added some OpenACC pragmas, and now you have to modify the tests in order to pass all tests.
+    After adding the OpenACC pragmas in step (2), modify the unit tests in order to pass all tests.
     First check that sequential execution passes all tests and then go ahead with your OpenACC implementation.
 
     In later steps, if you make changes to the code that fall out of the socope of the original tests, you should implement your own tests to be sure that the program runs as expected.
@@ -200,6 +187,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
     For reference purposes this is the execution time of our OpenACC implementation with 1 K80 and freq 4.0 Hz (284x284x284):
     84.0532 s
 
+    Report the execution time (add the log files in the commit).
+    Using nvprof, report weights of each OpenACC kernel (the output of nvprof is fine).
 
 5. **Implement a Multi-GPU implementation**
 
@@ -216,17 +205,26 @@ All executions **should** be performed in compute nodes. We provide some scripts
 
     Optimize your implementation and report execution times of your solution.
 
+    Report the execution time (add the log files in the commit).
+    Using nvprof, report weights of each OpenACC kernel (the output of nvprof is fine).
+
 8. **Implement velocity (vcell) kernels with CUDA + Tests**
 
     Instead of writing a new FWI-CUDA application from scratch, we recommend using the OpenACC directive *host_data* that makes the address of a device data available on the host.
     This allows OpenACC/CUDA interoperability, making possible to implement CUDA Kernels while still using OpenACC pragmas in the rest of your code.
     More information in OpenACC 2.5 spec and [openacc-interoperability](github.com/jefflarkin/openacc-interoperability)
 
-    So implement your hand-made kernels and test them for only 1 GPU.
+    Implement your hand-made CUDA kernels and test them for only 1 GPU.
+
+    Write a report with the execution time (add the log files in the commit).
+    Using nvprof, report weights of each OpenACC kernel (the output of nvprof is fine).
 
 9. **Implement stress (scell) kernels with CUDA + Tests**
 
     Implement the 'scell' kernels and thest them for only 1 GPU.
+
+    Report the execution time (add the log files in the commit).
+    Using nvprof, report weights of each OpenACC kernel (the output of nvprof is fine).
 
 10. **Optimize all CUDA kernels**
 
@@ -237,6 +235,8 @@ All executions **should** be performed in compute nodes. We provide some scripts
     For reference purposes this is the execution time of our OpenACC+CUDA implementation with 1 K80 and freq 4.0 Hz (284x284x284):
     74.6169 s
 
+    Report the execution time (add the log files in the commit).
+    Using nvprof, report weights of each OpenACC kernel (the output of nvprof is fine).
 
 ### References
 
