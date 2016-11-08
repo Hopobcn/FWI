@@ -382,7 +382,7 @@ TEST(propagator, compute_component_vcell_TR)
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho_ref, z, x, y, dim);
-
+                
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dim);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dim);
                 const real stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dim);
@@ -435,7 +435,48 @@ TEST(propagator, compute_component_vcell_BR)
         {
             for(integer z=nz0; z < nzf; z++)
             {
+#if defined(VCELL_BR_TEXTURE)
+                // CUDA TEXTURE TRILINEAR-INTERPOLATION has a flaw:
+                // coefficients 'alpha', 'beta' & 'gamma' are stored
+                // in 9-bit fixed point format with 8-bit fractional value
+                //
+                // therefore precission is VERY POOR compared with traditional
+                // IEE754 32bit
+                //
+                // HERE we emulate 9-bit coefficients:
+                float increment = 0.5f;
+                float zb = (float)z - 0.5f + increment;
+                float xb = (float)x - 0.5f + increment;
+                float yb = (float)y - 0.5f + increment;
+ 
+                float a = zb - (float)(int)zb;
+                float b = xb - (float)(int)xb;
+                float c = yb - (float)(int)yb;
+                {
+                    float a256 = (int) (a*256.0f+0.5f);
+                    float b256 = (int) (b*256.0f+0.5f);
+                    float c256 = (int) (c*256.0f+0.5f);
+                
+                    a = a256/256.0f;
+                    b = b256/256.0f;
+                    c = c256/256.0f;
+                }
+                int i = (int) zb;
+                int j = (int) xb;
+                int k = (int) yb;
+
+                const real lrho = 1.0f/
+                   ((1.0f-a)*(1.0f-b)*(1.0f-c)*rho_ref[IDX(i  ,j  ,k  ,dim)] +
+                          a *(1.0f-b)*(1.0f-c)*rho_ref[IDX(i+1,j  ,k  ,dim)] +
+                    (1.0f-a)*      b *(1.0f-c)*rho_ref[IDX(i  ,j+1,k  ,dim)] +
+                          a *      b *(1.0f-c)*rho_ref[IDX(i+1,j+1,k  ,dim)] +
+                    (1.0f-a)*(1.0f-b)*      c *rho_ref[IDX(i  ,j  ,k+1,dim)] +
+                          a *(1.0f-b)*      c *rho_ref[IDX(i+1,j  ,k+1,dim)] +
+                    (1.0f-a)*      b *      c *rho_ref[IDX(i  ,j+1,k+1,dim)] +
+                          a *      b *      c *rho_ref[IDX(i+1,j+1,k+1,dim)]);
+#else
                 const real lrho = rho_BR(rho_ref, z, x, y, dim);
+#endif
 
                 const real stx  = stencil_X( SX, sxptr, dxi, z, x, y, dim);
                 const real sty  = stencil_Y( SY, syptr, dyi, z, x, y, dim);

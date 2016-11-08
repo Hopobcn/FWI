@@ -8,6 +8,63 @@
 #define C2 1.6f
 #define C3 1.8f
 
+cudaTextureObject_t create_texture_obj(const float* d_data,
+                                       cudaArray_t& a_data,
+                                       const dim_t dim,
+                                       cudaTextureFilterMode filterMode = cudaFilterModeLinear,
+                                       cudaTextureAddressMode addressMode = cudaAddressModeClamp);
+
+__host__
+cudaTextureObject_t create_texture_obj(const float* d_data,
+                                       cudaArray_t& a_data,
+                                       const dim_t dim,
+                                       cudaTextureFilterMode filterMode,
+                                       cudaTextureAddressMode addressMode)
+{
+    // create channel descriptor
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
+
+    // create cuda array
+    cudaExtent extent_elems = make_cudaExtent( dim.zsize              , dim.xsize, dim.ysize );
+    CUDA_CHECK( cudaMalloc3DArray(&a_data, &channelDesc, extent_elems) );
+    
+    // 2.b copy data to container
+    cudaMemcpy3DParms params = {0};
+    params.srcPtr   = make_cudaPitchedPtr((void*)d_data, dim.pitch*sizeof(float), dim.xsize, dim.ysize);
+    params.dstArray = a_data;
+    params.extent   = extent_elems;   // dimensions of the transfered area in elements
+    params.kind     = cudaMemcpyDeviceToDevice;
+
+    CUDA_CHECK( cudaMemcpy3D(&params) );
+
+    // specify texture contents
+    struct cudaResourceDesc resDesc;
+    memset(&resDesc, 0, sizeof(resDesc));
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = a_data;
+
+    // texture obj parameters
+    struct cudaTextureDesc texDesc;
+    memset(&texDesc, 0, sizeof(texDesc));
+    texDesc.addressMode[0] = addressMode;
+    texDesc.addressMode[1] = addressMode;
+    texDesc.addressMode[2] = addressMode;
+    texDesc.filterMode     = filterMode;
+    texDesc.readMode       = cudaReadModeElementType;
+    texDesc.normalizedCoords = false;
+
+    // create texture object
+    cudaTextureObject_t texObj = 0;
+    CUDA_CHECK( cudaCreateTextureObject(&texObj, &resDesc, &texDesc, NULL) );
+
+    return texObj;
+}
+
+void destroy_texture_obj(cudaTextureObject_t obj, cudaArray_t a_data)
+{
+    CUDA_CHECK( cudaDestroyTextureObject(obj) );
+    CUDA_CHECK( cudaFreeArray(a_data) );
+}
 
 __device__ inline
 int IDX (const int   z, 
@@ -214,6 +271,15 @@ float rho_BR (const float* __restrict__ rho,
                      rho[IDX(z+1,x+1,y  ,dim)] +
                      rho[IDX(z+1,x  ,y+1,dim)] +
                      rho[IDX(z+1,x+1,y+1,dim)]) );
+};
+
+__device__ inline
+float rho_BR (cudaTextureObject_t tex,
+              const float z,
+              const float x,
+              const float y)
+{
+    return 1.0f/tex3D<float>(tex, z+0.5f, x+0.5f, y+0.5f);
 };
 
 template <const int BDIMX,
@@ -696,6 +762,52 @@ void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
         }
     }
 }
+#elif defined(VCELL_BR_TEXTURE)
+__global__
+void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
+                                   const float* __restrict__ szptr,
+                                   const float* __restrict__ sxptr,
+                                   const float* __restrict__ syptr,
+                                   const float* __restrict__ rho,
+                                   const float           dt,
+                                   const float           dzi,
+                                   const float           dxi,
+                                   const float           dyi,
+                                   const int             nz0,
+                                   const int             nzf,
+                                   const int             nx0,
+                                   const int             nxf,
+                                   const int             ny0,
+                                   const int             nyf,
+                                   const int             SZ,
+                                   const int             SX,
+                                   const int             SY,
+                                   const dim_t           dim,
+                                   cudaTextureObject_t   tex)
+{
+    for(int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
+            z < nzf; 
+            z += gridDim.x * blockDim.x)
+    {
+        for(int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
+                x < nxf; 
+                x += gridDim.y * blockDim.y)
+        {
+            for(int y = ny0; 
+                    y < nyf; 
+                    y++)
+            {
+                const float lrho    = rho_BR(tex, z, x, y);
+
+                const float stx  = stencil_X( SX, sxptr, dxi, z, x, y, dim);
+                const float sty  = stencil_Y( SY, syptr, dyi, z, x, y, dim);
+                const float stz  = stencil_Z( SZ, szptr, dzi, z, x, y, dim);
+                
+                vptr[IDX(z,x,y,dim)] += (stx  + sty  + stz) * dt * lrho;
+            }
+        }
+    }
+}
 #else
 __global__
 void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
@@ -775,16 +887,31 @@ void compute_component_vcell_BR_cuda ( float* vptr,
 
     cudaStream_t s = (cudaStream_t) stream;
 
+#ifdef VCELL_BR_TEXTURE
+    cudaArray_t a_data;
+    cudaTextureObject_t tex = create_texture_obj(rho, a_data, dim);
+#endif
+
 #ifdef VCELL_BR
     compute_component_vcell_BR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dim);
 #else
+#ifdef VCELL_BR_TEXTURE
+    compute_component_vcell_BR_cuda_k<<<grid_dim, block_dim, 0, s>>>
+        (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
+         nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dim, tex);
+#else
     compute_component_vcell_BR_cuda_k<<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dim);
+#endif
 #endif 
     CUDA_CHECK(cudaGetLastError());
+
+#ifdef VCELL_BR_TEXTURE
+    destroy_texture_obj(tex, a_data);
+#endif
 };
 
 #ifdef VCELL_BL

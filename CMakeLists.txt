@@ -133,15 +133,15 @@ if (USE_OPENACC)
             include_directories(${CUDA_INCLUDE_DIR})
 
             # list of optimized kernels
-            add_definitions("-DVCELL_TL")
-            add_definitions("-DVCELL_TR")
-            add_definitions("-DVCELL_BR")
-            add_definitions("-DVCELL_BL")
+           #add_definitions("-DVCELL_TL")
+           #add_definitions("-DVCELL_TR")
+           add_definitions("-DVCELL_BR_TEXTURE")
+           #add_definitions("-DVCELL_BL")
 
-            add_definitions("-DSCELL_TR")
-            add_definitions("-DSCELL_TL")
-            add_definitions("-DSCELL_BR")
-            add_definitions("-DSCELL_BL")
+           #add_definitions("-DSCELL_TR")
+           #add_definitions("-DSCELL_TL")
+           #add_definitions("-DSCELL_BR")
+           #add_definitions("-DSCELL_BL")
 
             message(STATUS "--------------------------------------")
             message(STATUS "----[CUDA ENABLED] :                  ")
