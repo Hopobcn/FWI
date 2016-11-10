@@ -1,7 +1,7 @@
 #include <cuda_runtime.h>
 #include <cstdio>
 
-#include "fwi_propagator.cuh"
+#include "fwi/fwi_propagator.cuh"
 
 #define C0 1.2f
 #define C1 1.4f

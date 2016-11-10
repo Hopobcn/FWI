@@ -114,7 +114,7 @@ endif (USE_MPI)
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo")
+        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda8.0,cc20,cc35,cc50,maxregcount:128,lineinfo")
 
         find_package(CUDA)
 
