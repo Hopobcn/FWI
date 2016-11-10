@@ -122,80 +122,80 @@ void alloc_memory_shot( const extent_t req,
     //print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
 
     /* allocate coefficients */
-    c->c11 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c12 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c13 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c14 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c15 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c16 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c11 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c12 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c13 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c14 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c15 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c16 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    c->c22 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c23 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c24 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c25 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c26 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c22 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c23 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c24 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c25 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c26 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    c->c33 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c34 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c35 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c36 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c33 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c34 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c35 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c36 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    c->c44 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c45 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c46 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c44 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c45 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c46 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    c->c55 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c56 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    c->c66 = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    c->c55 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c56 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    c->c66 = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
     /* allocate velocity components */
-    v->tl.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->tl.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->tl.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tl.u = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->tl.v = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->tl.w = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    v->tr.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->tr.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->tr.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->tr.u = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->tr.v = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->tr.w = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    v->bl.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->bl.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->bl.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->bl.u = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->bl.v = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->bl.w = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    v->br.u = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->br.v = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    v->br.w = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    v->br.u = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->br.v = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    v->br.w = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
     /* allocate stress components   */
-    s->tl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    s->tr.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tr.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tr.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tr.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tr.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->tr.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->tr.zz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tr.xz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tr.yz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tr.xx = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tr.xy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->tr.yy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    s->bl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->bl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->bl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->bl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->bl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->bl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->bl.zz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->bl.xz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->bl.yz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->bl.xx = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->bl.xy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->bl.yy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
-    s->br.zz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->br.xz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->br.yz = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->br.xx = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->br.xy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
-    s->br.yy = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    s->br.zz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->br.xz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->br.yz = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->br.xx = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->br.xy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
+    s->br.yy = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
     /* allocate density array       */
-    *rho = (real*) malloc3d_host(dim, ALIGN_REAL, req);
+    *rho = (real*) malloc3d_host(dim, ALIGN_REAL, HALO, req);
 
 #if defined(_OPENACC)
 
@@ -206,31 +206,31 @@ void alloc_memory_shot( const extent_t req,
     coeff_t c_h = *c;
     coeff_t c_d;
 
-    c_d.c11 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c11);
-    c_d.c12 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c12);
-    c_d.c13 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c13);
-    c_d.c14 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c14);
-    c_d.c15 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c15);
-    c_d.c16 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c16);
+    c_d.c11 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c11);
+    c_d.c12 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c12);
+    c_d.c13 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c13);
+    c_d.c14 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c14);
+    c_d.c15 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c15);
+    c_d.c16 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c16);
 
-    c_d.c22 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c22);
-    c_d.c23 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c23);
-    c_d.c24 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c24);
-    c_d.c25 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c25);
-    c_d.c26 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c26);
+    c_d.c22 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c22);
+    c_d.c23 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c23);
+    c_d.c24 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c24);
+    c_d.c25 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c25);
+    c_d.c26 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c26);
 
-    c_d.c33 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c33);
-    c_d.c34 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c34);
-    c_d.c35 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c35);
-    c_d.c36 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c36);
+    c_d.c33 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c33);
+    c_d.c34 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c34);
+    c_d.c35 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c35);
+    c_d.c36 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c36);
 
-    c_d.c44 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c44);
-    c_d.c45 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c45);
-    c_d.c46 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c46);
+    c_d.c44 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c44);
+    c_d.c45 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c45);
+    c_d.c46 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c46);
 
-    c_d.c55 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c55);
-    c_d.c56 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c56);
-    c_d.c66 = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)c->c66);
+    c_d.c55 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c55);
+    c_d.c56 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c56);
+    c_d.c66 = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)c->c66);
     
    //#pragma acc enter data create(cc)
    //#pragma acc enter data create(cc.c11[:datalen])
@@ -258,21 +258,21 @@ void alloc_memory_shot( const extent_t req,
     v_t v_d;
 
     /* allocate velocity components */
-    v_d.tl.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.u);
-    v_d.tl.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.v);
-    v_d.tl.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tl.w);
+    v_d.tl.u = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tl.u);
+    v_d.tl.v = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tl.v);
+    v_d.tl.w = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tl.w);
            
-    v_d.tr.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.u);
-    v_d.tr.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.v);
-    v_d.tr.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->tr.w);
+    v_d.tr.u = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tr.u);
+    v_d.tr.v = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tr.v);
+    v_d.tr.w = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->tr.w);
            
-    v_d.bl.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.u);
-    v_d.bl.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.v);
-    v_d.bl.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->bl.w);
+    v_d.bl.u = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->bl.u);
+    v_d.bl.v = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->bl.v);
+    v_d.bl.w = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->bl.w);
            
-    v_d.br.u = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.u);
-    v_d.br.v = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.v);
-    v_d.br.w = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*)v->br.w);
+    v_d.br.u = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->br.u);
+    v_d.br.v = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->br.v);
+    v_d.br.w = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*)v->br.w);
 
 
    //v_t vv = *v;
@@ -292,33 +292,33 @@ void alloc_memory_shot( const extent_t req,
 
     s_t s_d;
     /* allocate stress components   */
-    s_d.tl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.zz);
-    s_d.tl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xz);
-    s_d.tl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.yz);
-    s_d.tl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xx);
-    s_d.tl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.xy);
-    s_d.tl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tl.yy);
+    s_d.tl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.zz);
+    s_d.tl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.xz);
+    s_d.tl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.yz);
+    s_d.tl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.xx);
+    s_d.tl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.xy);
+    s_d.tl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tl.yy);
     
-    s_d.tr.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.zz);
-    s_d.tr.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xz);
-    s_d.tr.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.yz);
-    s_d.tr.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xx);
-    s_d.tr.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.xy);
-    s_d.tr.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->tr.yy);
+    s_d.tr.zz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.zz);
+    s_d.tr.xz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.xz);
+    s_d.tr.yz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.yz);
+    s_d.tr.xx = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.xx);
+    s_d.tr.xy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.xy);
+    s_d.tr.yy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->tr.yy);
     
-    s_d.bl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.zz);
-    s_d.bl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xz);
-    s_d.bl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.yz);
-    s_d.bl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xx);
-    s_d.bl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.xy);
-    s_d.bl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->bl.yy);
+    s_d.bl.zz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.zz);
+    s_d.bl.xz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.xz);
+    s_d.bl.yz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.yz);
+    s_d.bl.xx = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.xx);
+    s_d.bl.xy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.xy);
+    s_d.bl.yy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->bl.yy);
     
-    s_d.br.zz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.zz);
-    s_d.br.xz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xz);
-    s_d.br.yz = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.yz);
-    s_d.br.xx = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xx);
-    s_d.br.xy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.xy);
-    s_d.br.yy = (real*) malloc3d_device(dim, ALIGN_REAL, req, (void*) s->br.yy);
+    s_d.br.zz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.zz);
+    s_d.br.xz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.xz);
+    s_d.br.yz = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.yz);
+    s_d.br.xx = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.xx);
+    s_d.br.xy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.xy);
+    s_d.br.yy = (real*) malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) s->br.yy);
 
 
    //s_t ss = *s;
@@ -348,7 +348,7 @@ void alloc_memory_shot( const extent_t req,
    //#pragma acc enter data create(ss.br.xy[:datalen])
    //#pragma acc enter data create(ss.br.yy[:datalen])
 
-    malloc3d_device(dim, ALIGN_REAL, req, (void*) *rho);
+    malloc3d_device(dim, ALIGN_REAL, HALO, req, (void*) *rho);
 
    //#pragma acc enter data create(rrho[:datalen])
 

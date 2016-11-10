@@ -441,31 +441,22 @@ void __free ( void* ptr)
  * \param[in]  req        required 3D dimensions in number of elements
  * \return     aligned allocation
  */
-void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req)
+void* malloc3d_host(dim_t* dim, const size_t aligment, const size_t offset, extent_t req)
 {
-    const size_t ALIGN = alignment;
-
-    int padding = ( abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
-    assert( padding%sizeof(real) == 0 );
+    int remainder = (req.width + offset) % aligment;
+    int padding = (remainder == 0) ? 0 : aligment - remainder;
    
-    dim->pitch = req.width + (padding / sizeof(real));
+    dim->pitch = req.width + padding + offset;
     dim->zsize = req.width;
     dim->xsize = req.height;
     dim->ysize = req.depth;
 
-    const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
-    const size_t offset = (ALIGN-1)+(ALIGN-(HALO*sizeof(real)));
-    
-    void* h_base_ptr = (void*) malloc( size+offset );
+    const size_t size = (dim->pitch * dim->xsize * dim->ysize + 2*aligment) * sizeof(real);
+    void* h_base_ptr = (void*) malloc( size );
 
-    size_t mask = ~(size_t)(ALIGN-1);
+    size_t mask = ~(size_t)(aligment-1);
 
-    void* h_ptr = (char*)((uintptr_t)((char*)h_base_ptr+offset) & mask) - (HALO*sizeof(real));
-
-#if defined(DEBUG)
-    fprintf(stdout, "--malloc3d[H]: h_base_ptr %p h_alig_ptr %p | &ptr[halo] %p | dim[pitch %d z %d, x %d, y %d] \n", 
-            h_base_ptr, h_ptr, &((real*)h_ptr)[HALO], dim->pitch, dim->zsize, dim->xsize, dim->ysize);
-#endif
+    void* h_ptr = (float*)((uintptr_t)((char*)h_base_ptr+(2*aligment-1-offset)) & mask) - offset;
 
     /* 
      * since we have to call 'free' and 'acc_free' with base pointers 
@@ -486,30 +477,22 @@ void free3d_host(void* h_align_ptr)
 }
 
 #if defined(_OPENACC)
-void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void* h_align_ptr)
+void* malloc3d_device(dim_t* dim, const size_t aligment, const size_t offset, extent_t req, void* h_align_ptr)
 {
-    const size_t ALIGN = alignment;
-
-    int padding = ( abs((int)ALIGN - (int)(req.width*sizeof(real))) )%ALIGN;
-    assert( padding%sizeof(real) == 0 );
+    int remainder = (req.width + offset) % aligment;
+    int padding = ( remainder == 0 ) ? 0 : aligment - remainder;
     
-    dim->pitch = req.width + (padding / sizeof(real));
+    dim->pitch = req.width + padding + offset;
     dim->zsize = req.width;
     dim->xsize = req.height;
     dim->ysize = req.depth;
 
-    const size_t size = (dim->pitch * dim->xsize * dim->ysize + HALO) * sizeof(real);
-    const size_t offset = (ALIGN-1)+(ALIGN-(HALO*sizeof(real)));
+    const size_t size = (dim->pitch * dim->xsize * dim->ysize + 2*aligment) * sizeof(real);
+    void* d_base_ptr = acc_malloc( size );
 
-    void* d_base_ptr = acc_malloc( size+offset );
+    size_t mask = ~(size_t)(aligment-1);
 
-    size_t mask = ~(size_t)(ALIGN-1);
-
-    void* d_ptr = (char*)((uintptr_t)((char*)d_base_ptr+offset) & mask) - (HALO*sizeof(real));
-
-#if defined(DEBUG)
-    fprintf(stdout, "--malloc3d[D]: d_base_ptr %p d_alig_ptr %p | &d_ptr[halo] %p\n", d_base_ptr, d_ptr, (real*)d_ptr+HALO );
-#endif
+    void* d_ptr = (float*)((uintptr_t)((char*)d_base_ptr+(2*aligment-1-offset)) & mask) - offset;
 
     /* 
      * since we have to call 'free' and 'acc_free' with base pointers 

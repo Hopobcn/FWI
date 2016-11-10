@@ -114,7 +114,7 @@ endif (USE_MPI)
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=tesla,cc20,cc35,cc50,maxregcount:128,lineinfo")
+        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda8.0,cc20,cc35,cc50,maxregcount:128,lineinfo")
 
         find_package(CUDA)
 
@@ -133,15 +133,16 @@ if (USE_OPENACC)
             include_directories(${CUDA_INCLUDE_DIR})
 
             # list of optimized kernels
-           #add_definitions("-DVCELL_TL")
-           #add_definitions("-DVCELL_TR")
-           add_definitions("-DVCELL_BR_TEXTURE")
-           #add_definitions("-DVCELL_BL")
+            add_definitions("-DVCELL_TL")
+            add_definitions("-DVCELL_TR")
+            add_definitions("-DVCELL_BR")
+            #add_definitions("-DVCELL_BR_TEXTURE")
+            add_definitions("-DVCELL_BL")
 
-           #add_definitions("-DSCELL_TR")
-           #add_definitions("-DSCELL_TL")
-           #add_definitions("-DSCELL_BR")
-           #add_definitions("-DSCELL_BL")
+            add_definitions("-DSCELL_TR")
+            add_definitions("-DSCELL_TL")
+            add_definitions("-DSCELL_BR")
+            add_definitions("-DSCELL_BL")
 
             message(STATUS "--------------------------------------")
             message(STATUS "----[CUDA ENABLED] :                  ")

@@ -181,11 +181,12 @@ void  __free   ( void *ptr );
  * params:
  * [out] dim     : padded dimensions
  * [in] aligment : aligment restrictions (usually 64-bytes (intel) or 128-bytes(cuda) )
+ * [in] offset   : offset requirement (align &ptr+offset to 'algiment')
  * [in] req      : dimensions requested
  *
  * returns: aligned pointer
  */
-void* malloc3d_host(dim_t* dim, const size_t alignment, extent_t req);
+void* malloc3d_host(dim_t* dim, const size_t aligment, const size_t offset, extent_t req);
 
 /*
  * params:
@@ -198,12 +199,13 @@ void free3d_host(void* h_align_ptr);
  * params:
  * [out] dim     : padded dimensions
  * [in] aligment : aligment restrictions (usually 64-bytes (intel) or 128-bytes(cuda) )
+ * [in] offset   : offset requirement (align &ptr+offset to 'algiment')
  * [in] req      : dimensions requested
  * [in/out] h_align_ptr : HOST aligned pointer that will be used to store the device base pointer
  *                        
  * returns: aligned pointer
  */
-void* malloc3d_device(dim_t* dim, const size_t alignment, extent_t req, void** h_align_ptr);
+void* malloc3d_device(dim_t* dim, const size_t aligment, const size_t offset, extent_t req, void** h_align_ptr);
 
 /*
  * params:
