@@ -26,13 +26,13 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
-set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}") 
+set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
 #TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-    
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,inline,mp")
 
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
@@ -56,22 +56,22 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # set RELEASE FLAGS (unfortunately it's compiler dependent...)
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-       
+
         set(CMAKE_C_FLAGS_RELEASE "-O3 -fast -Minline")
-    
+
     elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
-    
+
         set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 
     elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 
         set(CMAKE_C_FLAGS_RELEASE "-O3 -xHost -restrict")
-        
+
     else()
         message(WARNING "Compiler not supported!")
     endif ()
-    
+
     add_definitions("-DNDEBUG")
 
 endif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -114,7 +114,7 @@ endif (USE_MPI)
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda8.0,cc20,cc35,cc50,maxregcount:128,lineinfo")
+        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda7.5,cc20,cc35,cc50,maxregcount:128,lineinfo")
 
         find_package(CUDA)
 
@@ -154,7 +154,7 @@ if (USE_OPENACC)
             message(STATUS "--------------------------------------")
 
         endif (USE_CUDA_KERNELS AND CUDA_FOUND)
-        
+
         if (TRACE_CUDA)
             add_definitions("-DTRACE_CUDA")
             set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
@@ -165,7 +165,7 @@ if (USE_OPENACC)
 
         set(OpenACC_C_FLAGS "-fopenacc")
 
-        
+
         message(WARNING "GCC has very EXPERIMENTAL support for OpenACC 2.0a. We recommend using PGI 16.5 for OpenACC!")
     else ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
         message(FATAL_ERROR "Compiler (${CMAKE_C_COMPILER_ID}, ${CMAKE_C_COMPILER_VERSION}) not supported for OpenACC compilation. Check your compiler!")
@@ -198,15 +198,15 @@ endif (USE_OPENMP AND NOT USE_OPENACC)
 
 
 if (PROFILE)
-        
+
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Mprof")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Mprof")
-    
+
     elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
-    
+
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pg")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -pg")
 
@@ -218,7 +218,7 @@ if (PROFILE)
     else()
         message(WARNING "Compiler not supported!")
     endif ()
-    
+
     message(STATUS "Profile flags added!")
 
 endif (PROFILE)
