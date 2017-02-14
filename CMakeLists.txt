@@ -114,18 +114,19 @@ endif (USE_MPI)
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda7.5,cc20,cc35,cc50,maxregcount:128,lineinfo")
+        set(OpenACC_C_FLAGS "-acc -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,maxregcount:128,lineinfo")
 
         find_package(CUDA)
 
         if (USE_CUDA_KERNELS AND CUDA_FOUND)
+            # gcc version should be > 4.8 and < 5.0 (CUDA 8)
             set(CUDA_HOST_COMPILER "gcc")
            # set(CUDA_HOST_COMPILATION_CPP OFF)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
             set(CUDA_SEPARABLE_COMPILATION OFF)
 
            # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_30,code=\"sm_60,sm_61\" -lineinfo")
             set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
             set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
 
