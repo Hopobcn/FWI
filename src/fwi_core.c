@@ -312,11 +312,15 @@ int execute_simulation( int argc, char* argv[] )
 #endif
 
 #if defined(_OPENACC)
+#if defined(USE_OPENACC_HOST)
+    acc_init(acc_device_default);
+#else
     //// Call acc_init after acc_set_device_num to avoid multiple contexts on device 0 in multi GPU systems
     int gpuid = mpi_rank % acc_get_num_devices( acc_device_nvidia );
     acc_set_device_num( gpuid, acc_device_nvidia );
     acc_init(acc_device_nvidia);
     fprintf(stdout, "MPI rank %d with GPU %d (%d)\n", mpi_rank, acc_get_device_num(acc_device_nvidia), acc_get_num_devices(acc_device_nvidia));
+#endif /* USE_OPENACC_HOST */
 #endif /*_OPENACC*/
 
 
