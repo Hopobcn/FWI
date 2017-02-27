@@ -1,6 +1,0 @@
-#!/bin/bash
-module purge
-module load intel
-module load gcc
-module load parastation
-module load ompss/offload
