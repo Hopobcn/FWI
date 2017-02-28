@@ -154,9 +154,6 @@ static inline integer exchange_buffer (const real*   sendbuf,
     MPI_Status  statuses[2];
     MPI_Request requests[2];
 
-#if defined(_OPENACC)
-    #pragma acc host_data use_device(recvbuf, sendbuf)
-#endif
     {
         MPI_Irecv( recvbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[0] );
         MPI_Isend( sendbuf, message_size, MPI_FLOAT, dst, tag, MPI_COMM_WORLD, &requests[1] );

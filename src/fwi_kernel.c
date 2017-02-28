@@ -38,9 +38,6 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f", randvalue);
 
-#if defined(_OPENACC)
-    #pragma acc kernels
-#endif
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
 }
@@ -50,9 +47,6 @@ void set_array_to_random_real( real* restrict array, const integer length)
  */
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
-#if defined(_OPENACC)
-    #pragma acc kernels
-#endif
     for( integer i = 0; i < length; i++ )
         array[i] = value;
 }
@@ -690,11 +684,6 @@ void propagate_shot(time_d        direction,
 
         tglobal_start = dtime();
 
-        /* wait read_snapshot H2D copies */
-#if defined(_OPENACC)
-        #pragma acc wait if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
-#endif
-
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
         /* ------------------------------------------------------------------------------ */
@@ -737,9 +726,6 @@ void propagate_shot(time_d        direction,
         const integer plane_size = dimmz * dimmx;
         /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
-#endif
-#if defined(_OPENACC)
-        #pragma acc wait
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -787,9 +773,6 @@ void propagate_shot(time_d        direction,
         exchange_stress_boundaries( s, plane_size, nyf, ny0);
 #endif
 
-#if defined(_OPENACC)
-        #pragma acc wait
-#endif
         tstress_total += (dtime() - tstress_start);
 
         tglobal_total += (dtime() - tglobal_start);

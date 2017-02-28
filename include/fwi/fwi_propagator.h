@@ -77,18 +77,12 @@ typedef struct {
 typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
-#if defined(_OPENACC) 
-#pragma acc routine seq
-#endif
 integer IDX (const integer z, 
              const integer x, 
              const integer y, 
              const integer dimmz, 
              const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real stencil_Z(const integer off,
                const real* restrict ptr,
                const real    dzi,
@@ -98,9 +92,6 @@ real stencil_Z(const integer off,
                const integer dimmz,
                const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real stencil_X(const integer off,
                const real* restrict ptr,
                const real dxi,
@@ -110,9 +101,6 @@ real stencil_X(const integer off,
                const integer dimmz,
                const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real stencil_Y(const integer off,
                const real* restrict ptr,
                const real dyi,
@@ -129,9 +117,6 @@ real stencil_Y(const integer off,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real rho_BL ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -139,9 +124,6 @@ real rho_BL ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real rho_TR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -149,9 +131,6 @@ real rho_TR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real rho_BR ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -159,9 +138,6 @@ real rho_BR ( const real* restrict rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real rho_TL ( const real* restrict rho,
               const integer z,
               const integer x,
@@ -384,9 +360,6 @@ void velocity_propagator(v_t           v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 void stress_update(real* restrict sptr,
                    const real     c1,
                    const real     c2,
@@ -428,36 +401,24 @@ void stress_propagator(s_t           s,
                        const integer dimmx,
                        const phase_t phase );
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_BR ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_TL ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_BL ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
                      const integer y, 
                      const integer dimmz, 
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_TR ( const real* restrict ptr, 
                      const integer z, 
                      const integer x, 
@@ -465,36 +426,24 @@ real cell_coeff_TR ( const real* restrict ptr,
                      const integer dimmz, 
                      const integer dimmx );
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_ARTM_BR ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_ARTM_TL ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_ARTM_BL ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
                           const integer y, 
                           const integer dimmz, 
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
 real cell_coeff_ARTM_TR ( const real* restrict ptr, 
                           const integer z, 
                           const integer x, 
