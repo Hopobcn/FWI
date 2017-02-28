@@ -1,6 +1,20 @@
 # FWI mini-app
 
-Reverse time migration (RTM) modeling is a critical component in the seismic processing workflow of oil and gas exploration.
+## Parallelization of a Reverse Time Migration (RTM) program using OpenACC/CUDA
+
+Reverse time migration (RTM) modeling is a critical component in the seismic
+processing workflow of oil and gas exploration as well as for the understanding
+of energy release in subduction-zone earthquakes. With the help of high
+precision seismic sensors deployed on the field, it is possible to use the
+information gathered during seismic aftershocks and reverse-time migrate them.
+This can give scientists a large amount of highly accurate information of the
+seismic conditions of the region of interest.
+
+Such analysis is critical after a large earthquake because it can help
+scientists know the state of a seismic fault and the probability of subsequent
+large aftershocks. As the number of aftershocks sky-rockets after a large
+earthquake, the amount of data to analyse grows really fast.  Thus, it is
+mandatory to speed up the processing of all that information.
 
 ### Build Instructions:
 
@@ -59,7 +73,7 @@ make
 
 #### Examples:
 
-Building FWI sequential with ICC 16.0.2:
+Building FWI sequential with ICC:
 
 ```bash
 source scripts/environment_icc.sh
@@ -68,7 +82,7 @@ cmake -DCMAKE_C_COMPILER=icc ..
 make
 ```
 
-Building FWI sequential with GCC 6.1.0 with profiling support:
+Building FWI sequential with GCC with profiling support:
 
 ```bash
 source scripts/environment_gcc.sh
@@ -77,7 +91,7 @@ cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release -DPROFILE=ON ..
 make
 ```
 
-Building FWI with OpenMP support with PGI 16.5 and execute tests:
+Building FWI with OpenMP support with PGI and execute tests:
 ```bash
 source scripts/environment_pgi.sh
 cd build
@@ -85,7 +99,7 @@ cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=YES ..
 make utest
 ```
 
-Building FWI with OpenACC+CUDA kernels with PGI 16.5 and execute tests:
+Building FWI with OpenACC+CUDA kernels with PGI and execute tests:
 ```bash
 source scripts/environment_pgi.sh
 cd build
@@ -96,7 +110,7 @@ make utest
 #### Running Instructions:
 
 To facilitate your work launching jobs, we added a set of 'targets' that launch some SLURM scripts in the queue system.
-    
+
 |  Makefile target  | acction                                          | example       |
 | -----------------|:------------------------------------------------|:--------------|
 | run-seq          | Launches script/jobscript_run.sequential.slurm   | `make run-seq` |
