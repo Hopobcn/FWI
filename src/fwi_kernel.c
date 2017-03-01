@@ -639,7 +639,8 @@ void load_initial_model ( const real    waveletFreq,
     #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
                        device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
                        device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
-                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells])
+                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells]) \
+                       async(H2D)
 #endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
@@ -823,7 +824,8 @@ void read_snapshot(char *folder,
     #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
                        device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
                        device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
+                       async(H2D)
 #endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
@@ -874,7 +876,7 @@ void propagate_shot(time_d        direction,
 
         /* wait read_snapshot H2D copies */
 #if defined(_OPENACC)
-        #pragma acc wait if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
 #endif
 
         /* ------------------------------------------------------------------------------ */
@@ -921,7 +923,7 @@ void propagate_shot(time_d        direction,
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
 #endif
 #if defined(_OPENACC)
-        #pragma acc wait
+        #pragma acc wait(ONE_L, ONE_R, TWO)
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -970,7 +972,7 @@ void propagate_shot(time_d        direction,
 #endif
 
 #if defined(_OPENACC)
-        #pragma acc wait
+        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
 #endif
         tstress_total += (dtime() - tstress_start);
 
