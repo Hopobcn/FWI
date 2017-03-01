@@ -39,7 +39,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
     print_debug("Array is being initialized to %f", randvalue);
 
 #if defined(_OPENACC)
-    #pragma acc kernels
+    #pragma acc kernels copyin(array[0:length])
 #endif
     for( integer i = 0; i < length; i++ )
         array[i] = randvalue;
@@ -51,7 +51,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels
+    #pragma acc kernels copyin(array[0:length])
 #endif
     for( integer i = 0; i < length; i++ )
         array[i] = value;
@@ -472,6 +472,28 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 
+#if defined(_OPENACC)
+    const real* vtlu = v->tl.u;
+    const real* vtlv = v->tl.v;
+    const real* vtlw = v->tl.w;
+
+    const real* vtru = v->tr.u;
+    const real* vtrv = v->tr.v;
+    const real* vtrw = v->tr.w;
+
+    const real* vblu = v->bl.u;
+    const real* vblv = v->bl.v;
+    const real* vblw = v->bl.w;
+
+    const real* vbru = v->br.u;
+    const real* vbrv = v->br.v;
+    const real* vbrw = v->br.w;
+
+    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
+                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
+                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
+                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells])
+#endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
@@ -506,6 +528,13 @@ void write_snapshot(char *folder,
     const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
+
+#if defined(_OPENACC)
+    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
+                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
+                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
+                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+#endif /* end pragma _OPENACC*/
 
     /* local variables */
     char fname[300];
@@ -643,6 +672,12 @@ void read_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
+#if defined(_OPENACC)
+    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
+                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
+                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
+                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+#endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
