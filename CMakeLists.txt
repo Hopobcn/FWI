@@ -8,6 +8,7 @@ option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
 option(USE_OPENACC      "Use OpenACC 2.5"   OFF)
 option(USE_OPENMP       "Use OpenMP"        OFF)
+option(USE_OMPSS        "Use OmpSs"         OFF)
 option(USE_CUDA_KERNELS "Use CUDA kernels"  OFF)
 option(PROFILE          "Add profiling info" OFF)
 
@@ -27,9 +28,10 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
 set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
-#TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
+
+message(STATUS "CMAKE_C_COMPILER_ID: ${CMAKE_C_COMPILER_ID}")
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
@@ -196,6 +198,20 @@ else (USE_OPENMP AND NOT USE_OPENACC)
         set(USE_OPENMP FALSE)
     endif (USE_OPENMP)
 endif (USE_OPENMP AND NOT USE_OPENACC)
+
+
+if (USE_OMPSS AND NOT USE_OPENMP)
+    set(OmpSs_C_FLAGS "--ompss")
+
+    message(STATUS "--------------------------------------")
+    message(STATUS "----[OmpSs ENABLED] setting:         ")
+    message(STATUS "---- OmpSs_C_FLAGS:  ${OmpSs_C_FLAGS}")
+    message(STATUS "--------------------------------------")
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OmpSs_C_FLAGS}")
+    add_definitions("-DUSE_OMPSS")
+
+endif (USE_OMPSS AND NOT USE_OPENMP)
 
 
 if (PROFILE)

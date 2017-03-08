@@ -96,7 +96,7 @@ double TOGB(size_t bytes);
 
 /*  Compiler macro to suppress unused variable warnings */
 #if defined(UNUSED)
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(USE_OMPSS)
     #define UNUSED(x) (x) __attribute__((unused))
 #else
     #define UNUSED(x) x
@@ -105,7 +105,7 @@ double TOGB(size_t bytes);
 #define IO_CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 static inline void checkErrors(const integer error, const char *filename, int line)
 {
-    if ( error < 0 ) {                     
+    if ( error < 0 ) {
         fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
         exit(-1);
     }
@@ -185,7 +185,7 @@ void create_folder(const char *folder);
   #define print_debug(M, ...)
 #endif
 
-void fwi_writelog(const char *SourceFileName, 
+void fwi_writelog(const char *SourceFileName,
                   const int LineNumber,
                   const char *FunctionName,
                   const char* MessageHeader,
@@ -202,7 +202,7 @@ void fwi_writelog(const char *SourceFileName,
 
 int parse_env(const char* name);
 
-// 
+//
 // GPU-Affinity related functions:
 //
 #if defined(USE_MPI)
