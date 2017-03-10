@@ -201,7 +201,7 @@ endif (USE_OPENMP AND NOT USE_OPENACC)
 
 
 if (USE_OMPSS AND NOT USE_OPENMP)
-    set(OmpSs_C_FLAGS "--ompss")
+    set(OmpSs_C_FLAGS "--ompss --instrument")
 
     message(STATUS "--------------------------------------")
     message(STATUS "----[OmpSs ENABLED] setting:         ")

@@ -27,6 +27,18 @@ if (USE_OPENMP)
     )
 endif (USE_OPENMP)
 
+if (USE_OMPSS)
+    add_custom_target(run-ompss
+        COMMAND sbatch --export=PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR},PROJECT_BINARY_DIR=${CMAKE_RUNTIME_OUTPUT_DIRECTORY},COMPILER_ID=${CMAKE_C_COMPILER_ID} ${PROJECT_SOURCE_DIR}/scripts/jobscript_run.ompss.slurm
+        DEPENDS fwi
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/scripts/output
+        COMMENT "outputs will be in ${PROJECT_SOURCE_DIR}/scripts/output/"
+        VERBATIM
+        USES_TERMINAL
+    )
+endif (USE_OMPSS)
+
+
 if (USE_OPENACC)
     add_custom_target(run-openacc
         COMMAND sbatch --export=PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR},PROJECT_BINARY_DIR=${CMAKE_RUNTIME_OUTPUT_DIRECTORY},COMPILER_ID=${CMAKE_C_COMPILER_ID} ${PROJECT_SOURCE_DIR}/scripts/jobscript_run.openacc.slurm
