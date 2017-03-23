@@ -1,20 +1,32 @@
 /*
- * =====================================================================================
+ * =============================================================================
+ * Copyright (c) 2016, Barcelona Supercomputing Center (BSC)
+ * All rights reserved.
  *
- *       Filename:  fwi_core.c
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
  *
- *    Description:  Main file of the FWI mockup
- *
- *        Version:  1.0
- *        Created:  10/12/15 10:33:40
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (),
- *   Organization:
- *
- * =====================================================================================
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * =============================================================================
  */
+
 #include "fwi/fwi_core.h"
 
 
@@ -310,11 +322,11 @@ int execute_simulation( int argc, char* argv[] )
 #endif
 
 #if defined(_OPENACC)
-    //// Call acc_init after acc_set_device_num to avoid multiple contexts on device 0 in multi GPU systems
-    int gpuid = mpi_rank % acc_get_num_devices( acc_device_nvidia );
-    acc_set_device_num( gpuid, acc_device_nvidia );
-    acc_init(acc_device_nvidia);
-    fprintf(stdout, "MPI rank %d with GPU %d (%d)\n", mpi_rank, acc_get_device_num(acc_device_nvidia), acc_get_num_devices(acc_device_nvidia));
+    acc_init(acc_device_default);
+    int gpuid = mpi_rank % acc_get_num_devices( acc_device_default );
+    acc_set_device_num( gpuid, acc_device_default );
+    fprintf(stdout, "MPI rank %d with GPU %d (%d)\n", 
+            mpi_rank, acc_get_device_num(acc_device_default), acc_get_num_devices(acc_device_default));
 #endif /*_OPENACC*/
 
 
