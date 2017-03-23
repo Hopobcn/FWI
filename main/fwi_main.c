@@ -1,6 +1,6 @@
 //TODO put copyright
 
-#include "fwi_core.h"
+#include "fwi/fwi_core.h"
 
 int main(int argc, char* argv[])
 {

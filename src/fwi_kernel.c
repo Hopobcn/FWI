@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "fwi_kernel.h"
+#include "fwi/fwi_kernel.h"
 
 /*
  * Initializes an array of length "length" to a random number.

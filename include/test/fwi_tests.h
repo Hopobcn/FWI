@@ -1,8 +1,8 @@
 #ifndef _FWI_TESTS_H_
 #define _FWI_TESTS_H_
 
-#include "fwi_propagator.h"
-#include "unity_config.h"
+#include "fwi/fwi_propagator.h"
+#include "test/unity_config.h"
 
 #include <unity.h>
 #include <unity_fixture.h>

@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "fwi_kernel.h"
+#include "fwi/fwi_kernel.h"
 
 
 int main(int argc, const char *argv[])

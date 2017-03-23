@@ -13,7 +13,7 @@ if (USE_MPI)
 endif (USE_MPI)
 
 target_include_directories(fwi-core PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/fwi
+    ${PROJECT_SOURCE_DIR}/include
 )
 
 if (USE_MPI)
@@ -23,7 +23,7 @@ if (USE_MPI)
 endif (USE_MPI)
 
 if (USE_CUDA_KERNELS)
-    cuda_include_directories( ${PROJECT_SOURCE_DIR}/include/fwi )
+    cuda_include_directories( ${PROJECT_SOURCE_DIR}/include )
 
     cuda_add_library(fwi-core-cuda SHARED
         fwi_common.cu
