@@ -33,15 +33,15 @@
 // When included before <stdlib.h>, solves implicit declaration of posix_memalign()
 // http://stackoverflow.com/questions/32438554/warning-implicit-declaration-of-posix-memalign
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <assert.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdint>
+#include <cassert>
+#include <cmath>
 #include <sys/time.h>
-#include <string.h>
-#include <errno.h>
+#include <cstring>
+#include <cerrno>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
@@ -105,7 +105,7 @@ double TOGB(size_t bytes);
 #define IO_CHECK(error) { checkErrors((error), __FILE__, __LINE__); }
 static inline void checkErrors(const integer error, const char *filename, int line)
 {
-    if ( error < 0 ) {                     
+    if ( error < 0 ) {
         fprintf(stderr, "ERROR: %d in %s:%d\n", error, filename, line);
         exit(-1);
     }
@@ -185,7 +185,7 @@ void create_folder(const char *folder);
   #define print_debug(M, ...)
 #endif
 
-void fwi_writelog(const char *SourceFileName, 
+void fwi_writelog(const char *SourceFileName,
                   const int LineNumber,
                   const char *FunctionName,
                   const char* MessageHeader,
@@ -202,7 +202,7 @@ void fwi_writelog(const char *SourceFileName,
 
 int parse_env(const char* name);
 
-// 
+//
 // GPU-Affinity related functions:
 //
 #if defined(USE_MPI)

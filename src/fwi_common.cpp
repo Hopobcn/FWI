@@ -27,11 +27,11 @@
  * =============================================================================
  */
 
-#include "fwi/fwi_common.h"
+#include "fwi/fwi_common.hpp"
 
 /* extern variables declared in the header file */
 const integer  WRITTEN_FIELDS =   12; /* >= 12.  */
-const integer  HALO           =    4; /* >= 4    */ 
+const integer  HALO           =    4; /* >= 4    */
 const integer  SIMD_LENGTH    =    8; /* # of real elements fitting into regs */
 const real     IT_FACTOR      = 0.02;
 const real     IO_CHUNK_SIZE  = 1024.f * 1024.f;
@@ -40,10 +40,10 @@ const size_t ALIGN_INT     = 16;
 const size_t ALIGN_INTEGER = 16;
 const size_t ALIGN_REAL    = 64;
 
-//extern 
+//extern
 FILE* logfile = NULL;
 
-void log_info (const char *fmt, ...) 
+void log_info (const char *fmt, ...)
 {
 #ifdef DEBUG
 
@@ -66,24 +66,24 @@ void log_info (const char *fmt, ...)
     va_start(args, fmt);
     vsprintf(str, fmt, args);
     va_end(args);
-    
+
     /* create time string */
     char timestr[20];
     struct tm *sTm;
     time_t now = time (0);
     sTm = gmtime (&now);
     strftime ( timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", sTm);
-    
+
     /* print actual line to log file  */
     fprintf( flog, "%s: %s\n", timestr, str);
-   
+
     /*  close file  */
     safe_fclose( logname, flog, __FILE__, __LINE__ );
 #endif
 };
 
-void log_error (const char *fmt, ...) 
-{ 
+void log_error (const char *fmt, ...)
+{
 #if defined(USE_MPI)
     /* locate myself into the MPI world */
     int id;
@@ -91,12 +91,12 @@ void log_error (const char *fmt, ...)
 #else
     int id = 0;
 #endif
-    
+
     /* build log file name */
     char logname[50];
     sprintf( logname, "%02d.log", id);
     FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-    
+
     /* create the string from variadic input arguments */
     char str[1000];
     va_list args;
@@ -126,7 +126,7 @@ int max_int( int a, int b)
     return ((a >= b) ? a : b);
 };
 
-inline double dtime(void)
+double dtime(void)
 {
     double tseconds = 0.0;
     struct timeval mytime;
@@ -135,7 +135,7 @@ inline double dtime(void)
     return (tseconds);
 };
 
-inline double TOGB(size_t bytes)
+double TOGB(size_t bytes)
 {
     return (bytes / (1024.f * 1024.f * 1024.f));
 };
@@ -157,7 +157,7 @@ void read_fwi_parameters (const char *fname,
     IO_CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
     IO_CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
     IO_CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
-    
+
     /* these three values are not needed for the shared memory implementation */
     int NotNeededValue;
     IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
@@ -165,7 +165,7 @@ void read_fwi_parameters (const char *fname,
     IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
     IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
     IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
- 
+
     /* Recover the value of the output directory path */
     IO_CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
 
@@ -305,12 +305,12 @@ void store_shot_parameters(int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder, 
+                           char    *outputfolder,
                            real    waveletFreq)
 {
     char name[200];
 
-    sprintf(name, "%s/shotparams_%2.1f.%05d.dat", 
+    sprintf(name, "%s/shotparams_%2.1f.%05d.dat",
             outputfolder, waveletFreq, shotid);
 
     print_debug("Storing parameters for shot %d into %s", shotid, name);
@@ -434,13 +434,13 @@ void* __malloc( size_t alignment, const integer size)
 {
     void *buffer;
     int error;
-    
+
     if( (error=posix_memalign( &buffer, alignment, size)) != 0)
     {
         print_error("Cant allocate buffer correctly");
         abort();
     }
-    
+
     return (buffer);
 };
 
@@ -452,9 +452,9 @@ void __free ( void* ptr)
 FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)
 {
     FILE* temp = fopen( filename, mode);
-    
+
     if( temp == NULL){
-        print_error("Cant open filename %s, openmode '%s' (called from %s - %d)", 
+        print_error("Cant open filename %s, openmode '%s' (called from %s - %d)",
                     filename, mode, srcfilename, linenumber);
         exit(-1);
     }
@@ -477,7 +477,6 @@ void safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, 
 };
 
 
-inline 
 void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
@@ -488,17 +487,17 @@ void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, cons
         abort();
     }
     size_t res;
-    
+
 #if defined(LOG_IO_STATS)
     double start = dtime();
 #endif
-    res = fwrite( ptr, size, nmemb, stream);   
+    res = fwrite( ptr, size, nmemb, stream);
 #if defined(LOG_IO_STATS)
     double end = dtime() - start;
 
     double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
 
-    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", 
+    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf",
                  end, nmemb, size*nmemb, mbytes, mbytes / end);
 #endif
 
@@ -510,7 +509,7 @@ void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, cons
 #endif
 };
 
-inline 
+inline
 void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
@@ -534,7 +533,7 @@ void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char*
 
 
 
-void fwi_writelog(const char *SourceFileName, 
+void fwi_writelog(const char *SourceFileName,
                   const int LineNumber,
                   const char *FunctionName,
                   const char* MessageHeader,
@@ -548,19 +547,19 @@ void fwi_writelog(const char *SourceFileName,
 #else
     int id = 0;
 #endif
-    
+
     char LogFileName[50];
     sprintf(LogFileName, "fwi.%02d.log", id);
-    
+
     FILE *fp = safe_fopen ( LogFileName, "a", __FILE__, __LINE__ );
-    
+
     va_list args;
     va_start(args, fmt);
     fprintf(fp, "%s:%s:%d:%s: ", MessageHeader, SourceFileName, LineNumber, FunctionName );
     vfprintf(fp, fmt, args);
     fprintf(fp, "\n");
     va_end(args);
-    
+
     safe_fclose ( LogFileName, fp, __FILE__, __LINE__);
 };
 

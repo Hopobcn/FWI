@@ -27,12 +27,12 @@
  * =============================================================================
  */
 
-#include "fwi/fwi_kernel.h"
+#include "fwi/fwi_kernel.hpp"
 
 /*
  * Initializes an array of length "length" to a random number.
  */
-void set_array_to_random_real( real* restrict array, const integer length)
+void set_array_to_random_real( real* array, const integer length)
 {
     const real randvalue = rand() / (1.0 * RAND_MAX);
 
@@ -48,7 +48,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 /*
  * Initializes an array of length "length" to a constant floating point value.
  */
-void set_array_to_constant( real* restrict array, const real value, const integer length)
+void set_array_to_constant( real* array, const real value, const integer length)
 {
 #if defined(_OPENACC)
     #pragma acc kernels copyin(array[0:length])
@@ -127,7 +127,7 @@ void alloc_memory_shot( const integer numberOfCells,
 
     const integer size = numberOfCells * sizeof(real);
 
-    print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
+    print_debug("ptr size = " I " bytes (" I " elements)", size, numberOfCells);
 
     /* allocate coefficients */
     c->c11 = (real*) __malloc( ALIGN_REAL, size);
@@ -209,7 +209,7 @@ void alloc_memory_shot( const integer numberOfCells,
     const integer datalen = numberOfCells;
 
     const real* rrho  = *rho;
-    
+
     coeff_t cc = *c;
     // TODO: Test that works with this shit
     #pragma acc enter data create(cc)
@@ -356,7 +356,7 @@ void free_memory_shot( coeff_t *c,
     #pragma acc exit data delete(s->br.xy)
     #pragma acc exit data delete(s->br.yy)
     #pragma acc exit data delete(s)
-    
+
     const real* rrho  = *rho;
     #pragma acc exit data delete(rrho)
 

@@ -1,14 +1,14 @@
 add_library(fwi-core STATIC
-    fwi_core.c
-    fwi_common.c
-    fwi_kernel.c
-    fwi_propagator.c
+    fwi_core.cpp
+    fwi_common.cpp
+    fwi_kernel.cpp
+    fwi_propagator.cpp
 )
 
 if (USE_MPI)
     set_target_properties(fwi-core PROPERTIES
-        COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}"
-        LINK_FLAGS    "${MPI_C_LINK_FLAGS}"
+        COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS}"
+        LINK_FLAGS    "${MPI_CXX_LINK_FLAGS}"
     )
 endif (USE_MPI)
 
@@ -18,31 +18,31 @@ target_include_directories(fwi-core PUBLIC
 
 if (USE_MPI)
     target_link_libraries(fwi-core
-        ${MPI_C_LIBRARIES}
+        ${MPI_CXX_LIBRARIES}
     )
 endif (USE_MPI)
 
-if (USE_CUDA_KERNELS)
-    cuda_include_directories( ${PROJECT_SOURCE_DIR}/include )
-
-    cuda_add_library(fwi-core-cuda SHARED
-        fwi_common.cu
-        fwi_propagator.cu
-    )
-
-    target_link_libraries(fwi-core-cuda
-        ${CUDA_LIBRARIES}
-    )
-
-    target_link_libraries(fwi-core
-        fwi-core-cuda
-    )
-endif (USE_CUDA_KERNELS)
-
-if (TRACE_CUDA)
-    target_link_libraries(fwi-core
-        ${CUDA_TRACE_LIBRARY}
-    )
-endif (TRACE_CUDA)
+#f (USE_CUDA_KERNELS)
+#   cuda_include_directories( ${PROJECT_SOURCE_DIR}/include )
+#
+#   cuda_add_library(fwi-core-cuda SHARED
+#       fwi_common.cu
+#       fwi_propagator.cu
+#   )
+#
+#   target_link_libraries(fwi-core-cuda
+#       ${CUDA_LIBRARIES}
+#   )
+#
+#   target_link_libraries(fwi-core
+#       fwi-core-cuda
+#   )
+#ndif (USE_CUDA_KERNELS)
+#
+#f (TRACE_CUDA)
+#   target_link_libraries(fwi-core
+#       ${CUDA_TRACE_LIBRARY}
+#   )
+#ndif (TRACE_CUDA)
 
 add_subdirectory(datagen)

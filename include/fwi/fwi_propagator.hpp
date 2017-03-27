@@ -30,12 +30,7 @@
 #ifndef _FWI_PROPAGATOR_H_
 #define _FWI_PROPAGATOR_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include "fwi_common.h"
+#include "fwi_common.hpp"
 
 /* stress point structure */
 typedef struct {
@@ -77,20 +72,20 @@ typedef struct {
 typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
-#if defined(_OPENACC) 
+#if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-integer IDX (const integer z, 
-             const integer x, 
-             const integer y, 
-             const integer dimmz, 
+integer IDX (const integer z,
+             const integer x,
+             const integer y,
+             const integer dimmz,
              const integer dimmx);
 
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
 real stencil_Z(const integer off,
-               const real* restrict ptr,
+               const real*   ptr,
                const real    dzi,
                const integer z,
                const integer x,
@@ -102,8 +97,8 @@ real stencil_Z(const integer off,
 #pragma acc routine seq
 #endif
 real stencil_X(const integer off,
-               const real* restrict ptr,
-               const real dxi,
+               const real*   ptr,
+               const real    dxi,
                const integer z,
                const integer x,
                const integer y,
@@ -114,8 +109,8 @@ real stencil_X(const integer off,
 #pragma acc routine seq
 #endif
 real stencil_Y(const integer off,
-               const real* restrict ptr,
-               const real dyi,
+               const real*   ptr,
+               const real    dyi,
                const integer z,
                const integer x,
                const integer y,
@@ -132,7 +127,7 @@ real stencil_Y(const integer off,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real rho_BL ( const real* restrict rho,
+real rho_BL ( const real*   rho,
               const integer z,
               const integer x,
               const integer y,
@@ -142,7 +137,7 @@ real rho_BL ( const real* restrict rho,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real rho_TR ( const real* restrict rho,
+real rho_TR ( const real*   rho,
               const integer z,
               const integer x,
               const integer y,
@@ -152,7 +147,7 @@ real rho_TR ( const real* restrict rho,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real rho_BR ( const real* restrict rho,
+real rho_BR ( const real*   rho,
               const integer z,
               const integer x,
               const integer y,
@@ -162,34 +157,34 @@ real rho_BR ( const real* restrict rho,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real rho_TL ( const real* restrict rho,
+real rho_TL ( const real*   rho,
               const integer z,
               const integer x,
               const integer y,
               const integer dimmz,
               const integer dimmx);
 
-void compute_component_vcell_TL (      real* restrict vptr,
-                                 const real* restrict szptr,
-                                 const real* restrict sxptr,
-                                 const real* restrict syptr,
-                                 const real* restrict rho,
-                                 const real           dt,
-                                 const real           dzi,
-                                 const real           dxi,
-                                 const real           dyi,
-                                 const integer        nz0,
-                                 const integer        nzf,
-                                 const integer        nx0,
-                                 const integer        nxf,
-                                 const integer        ny0,
-                                 const integer        nyf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
-                                 const phase_t        phase);
+void compute_component_vcell_TL (      real*    vptr,
+                                 const real*    szptr,
+                                 const real*    sxptr,
+                                 const real*    syptr,
+                                 const real*    rho,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t _SZ,
+                                 const offset_t _SX,
+                                 const offset_t _SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 
 /* CUDA STUB */
 extern
@@ -216,27 +211,27 @@ void compute_component_vcell_TL_cuda ( float* vptr,
                                  void*        stream);
 
 
-void compute_component_vcell_TR (      real* restrict vptr,
-                                 const real* restrict szptr,
-                                 const real* restrict sxptr,
-                                 const real* restrict syptr,
-                                 const real* restrict rho,
-                                 const real           dt,
-                                 const real           dzi,
-                                 const real           dxi,
-                                 const real           dyi,
-                                 const integer        nz0,
-                                 const integer        nzf,
-                                 const integer        nx0,
-                                 const integer        nxf,
-                                 const integer        ny0,
-                                 const integer        nyf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
-                                 const phase_t        phase);
+void compute_component_vcell_TR (      real*    vptr,
+                                 const real*    szptr,
+                                 const real*    sxptr,
+                                 const real*    syptr,
+                                 const real*    rho,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const offset_t _SZ,
+                                 const offset_t _SX,
+                                 const offset_t _SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 /* CUDA STUB */
 extern
 void compute_component_vcell_TR_cuda ( float* vptr,
@@ -262,27 +257,27 @@ void compute_component_vcell_TR_cuda ( float* vptr,
                                  void*        stream);
 
 
-void compute_component_vcell_BR (      real* restrict vptr,
-                                 const real* restrict szptr,
-                                 const real* restrict sxptr,
-                                 const real* restrict syptr,
-                                 const real* restrict rho,
-                                 const real           dt,
-                                 const real           dzi,
-                                 const real           dxi,
-                                 const real           dyi,
-                                 const integer        ny0,
-                                 const integer        nyf,
-                                 const integer        nx0,
-                                 const integer        nxf,
-                                 const integer        nz0,
-                                 const integer        nzf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
-                                 const phase_t        phase);
+void compute_component_vcell_BR (      real*    vptr,
+                                 const real*    szptr,
+                                 const real*    sxptr,
+                                 const real*    syptr,
+                                 const real*    rho,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const offset_t _SZ,
+                                 const offset_t _SX,
+                                 const offset_t _SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 
 /* CUDA STUB */
 extern
@@ -309,27 +304,27 @@ void compute_component_vcell_BR_cuda ( float* vptr,
                                  void*        stream);
 
 
-void compute_component_vcell_BL (      real* restrict vptr,
-                                 const real* restrict szptr,
-                                 const real* restrict sxptr,
-                                 const real* restrict syptr,
-                                 const real* restrict rho,
-                                 const real           dt,
-                                 const real           dzi,
-                                 const real           dxi,
-                                 const real           dyi,
-                                 const integer        ny0,
-                                 const integer        nyf,
-                                 const integer        nx0,
-                                 const integer        nxf,
-                                 const integer        nz0,
-                                 const integer        nzf,
-                                 const offset_t       _SZ,
-                                 const offset_t       _SX,
-                                 const offset_t       _SY,
-                                 const integer        dimmz,
-                                 const integer        dimmx,
-                                 const phase_t        phase);
+void compute_component_vcell_BL (      real*    vptr,
+                                 const real*    szptr,
+                                 const real*    sxptr,
+                                 const real*    syptr,
+                                 const real*    rho,
+                                 const real     dt,
+                                 const real     dzi,
+                                 const real     dxi,
+                                 const real     dyi,
+                                 const integer  ny0,
+                                 const integer  nyf,
+                                 const integer  nx0,
+                                 const integer  nxf,
+                                 const integer  nz0,
+                                 const integer  nzf,
+                                 const offset_t _SZ,
+                                 const offset_t _SX,
+                                 const offset_t _SY,
+                                 const integer  dimmz,
+                                 const integer  dimmx,
+                                 const phase_t  phase);
 
 /* CUDA STUB */
 extern
@@ -387,28 +382,28 @@ void velocity_propagator(v_t           v,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-void stress_update(real* restrict sptr,
-                   const real     c1,
-                   const real     c2,
-                   const real     c3,
-                   const real     c4,
-                   const real     c5,
-                   const real     c6,
-                   const integer  z,
-                   const integer  x,
-                   const integer  y,
-                   const real     dt,
-                   const real     u_x,
-                   const real     u_y,
-                   const real     u_z,
-                   const real     v_x,
-                   const real     v_y,
-                   const real     v_z,
-                   const real     w_x,
-                   const real     w_y,
-                   const real     w_z,
-                   const integer  dimmz,
-                   const integer  dimmx);
+void stress_update(real*         sptr,
+                   const real    c1,
+                   const real    c2,
+                   const real    c3,
+                   const real    c4,
+                   const real    c5,
+                   const real    c6,
+                   const integer z,
+                   const integer x,
+                   const integer y,
+                   const real    dt,
+                   const real    u_x,
+                   const real    u_y,
+                   const real    u_z,
+                   const real    v_x,
+                   const real    v_y,
+                   const real    v_z,
+                   const real    w_x,
+                   const real    w_y,
+                   const real    w_z,
+                   const integer dimmz,
+                   const integer dimmx);
 
 void stress_propagator(s_t           s,
                        v_t           v,
@@ -431,75 +426,75 @@ void stress_propagator(s_t           s,
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_BR ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_BR ( const real*   ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_TL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TL ( const real*   ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_BL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_BL ( const real*   ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_TR ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TR ( const real*   ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx );
 
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_ARTM_BR ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_BR ( const real*   ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_ARTM_TL ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_TL ( const real*   ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_ARTM_BL ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_BL ( const real*   ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 #if defined(_OPENACC)
 #pragma acc routine seq
 #endif
-real cell_coeff_ARTM_TR ( const real* restrict ptr, 
-                          const integer z, 
-                          const integer x, 
-                          const integer y, 
-                          const integer dimmz, 
+real cell_coeff_ARTM_TR ( const real*   ptr,
+                          const integer z,
+                          const integer x,
+                          const integer y,
+                          const integer dimmz,
                           const integer dimmx);
 
 void compute_component_scell_TR (s_t             s,
@@ -679,7 +674,7 @@ void compute_component_scell_BR ( s_t             s,
                                   const phase_t   phase);
 
 /* CUDA STUB */
-extern 
+extern
 void compute_component_scell_BR_cuda ( float* sxxptr,
                                        float* syyptr,
                                        float* szzptr,
@@ -810,9 +805,5 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
                                  const int    dimmx,
                                  void*        stream);
 
-
-#ifdef __cplusplus
-}
-#endif /* extern "C" */
 
 #endif /* end of _FWI_PROPAGATOR_H_ definition */

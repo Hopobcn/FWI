@@ -27,7 +27,7 @@
  * =============================================================================
  */
 
-#include "fwi/fwi_core.h"
+#include "fwi/fwi_core.hpp"
 
 int main(int argc, char* argv[])
 {

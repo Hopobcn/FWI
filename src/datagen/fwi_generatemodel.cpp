@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "fwi/fwi_kernel.h"
+#include "fwi/fwi_kernel.hpp"
 
 
 int main(int argc, const char *argv[])
@@ -58,14 +58,14 @@ int main(int argc, const char *argv[])
 
         const integer numberOfCells = dimmz * dimmy * dimmx;
 
-        fprintf(stderr, "Elements/array = "I"\n", numberOfCells);
+        fprintf(stderr, "Elements/array = " I "\n", numberOfCells);
 
         char modelname[300];
         sprintf( modelname, "../data/inputmodels/velocitymodel_%.2f.bin", waveletFreq );
 
         FILE* model = safe_fopen( modelname, "wb", __FILE__, __LINE__);
 
-        real *buffer = __malloc( ALIGN_REAL, sizeof(real) * numberOfCells);
+        real *buffer = (real*) __malloc( ALIGN_REAL, sizeof(real) * numberOfCells);
 
         /* safe dummy buffer */
         for(int i = 0; i < WRITTEN_FIELDS; i++)

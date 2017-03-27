@@ -30,7 +30,7 @@
 #ifndef _FWI_KERNEL_H_
 #define _FWI_KERNEL_H_
 
-#include "fwi_propagator.h"
+#include "fwi_propagator.hpp"
 
 /*
  * Ensures that the domain contains a minimum number of planes.
@@ -40,11 +40,11 @@ void check_domain_dimensions ( const integer dimmz,
                                const integer dimmx,
                                const integer dimmy);
 
-void set_array_to_random_real(real* restrict array,
+void set_array_to_random_real(real*         array,
                               const integer length);
 
-void set_array_to_constant(real* restrict array,
-                           const real value,
+void set_array_to_constant(real*         array,
+                           const real    value,
                            const integer length);
 
 void alloc_memory_shot( const integer numberOfCells,
@@ -137,18 +137,18 @@ RETURN none
 #if defined(USE_MPI)
 #define EXCHANGE(sendbuf, recvbuf, dst, src, count) {                             \
     exchange_buffer((sendbuf),(recvbuf),(dst),(src),(count), __FILE__, __LINE__); \
-}                                                                                 
-static inline integer exchange_buffer (const real*   sendbuf, 
-                                             real*   recvbuf, 
-                                       const integer dst, 
-                                       const integer src, 
+}
+static inline integer exchange_buffer (const real*   sendbuf,
+                                             real*   recvbuf,
+                                       const integer dst,
+                                       const integer src,
                                        const integer message_size,
                                        const char*   file,
                                        const integer line)
 {
     int err;
     int tag = 100;
-    
+
     print_debug( "         [BEFORE]MPI sendrecv [count:%d][dst:%d][src:%d] %s : %d", message_size,  dst, src, file, line);
 
     MPI_Status  statuses[2];
@@ -165,18 +165,18 @@ static inline integer exchange_buffer (const real*   sendbuf,
     err = MPI_Waitall(2, requests, statuses);
 
     print_debug( "         [AFTER ]MPI sendrecv                          %s : %d", file, line);
-    
+
     return err;
 };
 
-void exchange_velocity_boundaries ( v_t v, 
-                                    const integer plane_size, 
-                                    const integer nyf, 
+void exchange_velocity_boundaries ( v_t v,
+                                    const integer plane_size,
+                                    const integer nyf,
                                     const integer ny0 );
 
-void exchange_stress_boundaries ( s_t s, 
-                                  const integer plane_size, 
-                                  const integer nyf, 
+void exchange_stress_boundaries ( s_t s,
+                                  const integer plane_size,
+                                  const integer nyf,
                                   const integer ny0 );
 #else
 #define EXCHANGE(sendbuf, recvbuf, dst, src, count)

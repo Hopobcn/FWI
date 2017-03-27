@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
-project(FWI C CXX)
+project(FWI CXX)
 
 ###### PROJECT OPTIONS #######
-option(ENABLE_TESTS     "Enable Unit Tests" ON)
+option(ENABLE_TESTS     "Enable Unit Tests" OFF)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
@@ -31,18 +31,18 @@ set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strin
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,inline,mp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c99 -Minfo=accel,inline,mp")
 
-elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
-        ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
+elseif (("${}" STREQUAL "GNU") OR
+        ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_C_GNU_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 ${COMMON_CXX_GNU_FLAGS}")
 
-elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64 ${COMMON_GNU_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64 ${COMMON_GNU_FLAGS}")
 else()
     message(WARNING "Compiler not supported!")
 endif ()
@@ -55,16 +55,16 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions("-DDEBUG")
 else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # set RELEASE FLAGS (unfortunately it's compiler dependent...)
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
         set(CMAKE_C_FLAGS_RELEASE "-O3 -fast -Minline")
 
-    elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
-            ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
+    elseif (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") OR
+            ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
         set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 
-    elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
         set(CMAKE_C_FLAGS_RELEASE "-O3 -xHost -restrict")
 
@@ -113,7 +113,7 @@ endif (USE_MPI)
 
 if (USE_OPENACC)
 
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
         set(OpenACC_C_FLAGS "-acc -ta=multicore -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,maxregcount:128,lineinfo")
 
         find_package(CUDA)
@@ -161,16 +161,16 @@ if (USE_OPENACC)
             set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
         endif (TRACE_CUDA)
 
-    elseif( ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") AND
+    elseif( ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") AND
             ( ${CMAKE_C_COMPILER_VERSION} VERSION_GREATER 6.1))
 
         set(OpenACC_C_FLAGS "-fopenacc")
 
 
         message(WARNING "GCC has very EXPERIMENTAL support for OpenACC 2.0a. We recommend using PGI 16.5 for OpenACC!")
-    else ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        message(FATAL_ERROR "Compiler (${CMAKE_C_COMPILER_ID}, ${CMAKE_C_COMPILER_VERSION}) not supported for OpenACC compilation. Check your compiler!")
-    endif ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+    else ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+        message(FATAL_ERROR "Compiler (${CMAKE_CXX_COMPILER_ID}, ${CMAKE_C_COMPILER_VERSION}) not supported for OpenACC compilation. Check your compiler!")
+    endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
     message(STATUS "--------------------------------------")
     message(STATUS "----[OpenACC ENABLED] setting:        ")
@@ -200,18 +200,18 @@ endif (USE_OPENMP AND NOT USE_OPENACC)
 
 if (PROFILE)
 
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Mprof")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Mprof")
 
-    elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
-            ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
+    elseif (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") OR
+            ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pg")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -pg")
 
-    elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
         set(CMAKE_C_FLAGS_RELEASE "-g -p")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -p")

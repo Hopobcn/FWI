@@ -30,7 +30,7 @@
 #ifndef _FWI_CORE_H_
 #define _FWI_CORE_H_
 
-#include "fwi_kernel.h"
+#include "fwi_kernel.hpp"
 
 void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder, char* shotfolder);
 
