@@ -433,6 +433,10 @@ void load_freqlist( const char* filename, int *nfreqs, real **freqlist )
 void* __malloc( size_t alignment, const integer size)
 {
     void *buffer;
+
+#if defined(USE_CUDA)
+    CUDA_CHECK( cudaMallocManaged(&buffer, size) );
+#else
     int error;
 
     if( (error=posix_memalign( &buffer, alignment, size)) != 0)
@@ -440,13 +444,18 @@ void* __malloc( size_t alignment, const integer size)
         print_error("Cant allocate buffer correctly");
         abort();
     }
+#endif
 
     return (buffer);
 };
 
 void __free ( void* ptr)
 {
+#if defined(USE_CUDA)
+    CUDA_CHECK( cudaFree(ptr) );
+#else
     free( ptr );
+#endif
 };
 
 FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)

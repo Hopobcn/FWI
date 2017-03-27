@@ -58,10 +58,26 @@
 #include <openacc.h>
 #endif
 
+#if defined(USE_CUDA)
+#include <cuda.h>
+#endif
+
 #if defined(TRACE_CUDA)
 #include <nvToolsExt.h>
 #endif
 
+/* CUDA shortand defs */
+#if defined(USE_CUDA)
+#define HOST __host__
+#define DEVICE __device__
+#define HOST_DEVICE HOST DEVICE
+#define HOST_DEVICE_INLINE HOST_DEVICE inline
+#else /* USE_CUDA */
+#define HOST
+#define DEVICE
+#define HOST_DEVICE
+#define HOST_DEVICE_INLINE inline
+#endif /* USE_CUDA */
 
 /* data types definition */
 typedef float  real;
@@ -110,6 +126,21 @@ static inline void checkErrors(const integer error, const char *filename, int li
         exit(-1);
     }
 };
+
+#if defined(USE_CUDA)
+#define CUDA_CHECK(call) { gpu_assert((call), __FILE__, __LINE__); }
+inline void gpu_assert(cudaError_t code, const char* file, int line)
+{
+    if (code != cudaSuccess)
+    {
+        fprintf(stderr, "CUDA ERROR: %s:%d, ", file, line);
+        fprintf(stderr, "code: %d, reason: %s\n", code, cudaGetErrorString(code));
+        exit(code);
+    }
+}
+#else
+#define CUDA_CHECK(call)
+#endif
 
 FILE* safe_fopen  ( const char *filename, const char *mode, const char* srcfilename, const int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber);

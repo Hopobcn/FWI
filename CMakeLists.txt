@@ -6,7 +6,7 @@ option(ENABLE_TESTS     "Enable Unit Tests" OFF)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
-option(USE_OPENACC      "Use OpenACC 2.5"   OFF)
+option(USE_CUDA         "Use CUDA"          ON)
 option(USE_OPENMP       "Use OpenMP"        OFF)
 option(USE_CUDA_KERNELS "Use CUDA kernels"  OFF)
 option(PROFILE          "Add profiling info" OFF)
@@ -25,24 +25,25 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
 
 ###### GENERAL COMPILE FLAGS ##############
-set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
-set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
-#TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
-set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
+set(DISABLE_CXX_GNU_WARNINGS "-Wno-unused-parameter")
+set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_CXX_GNU_WARNINGS}")
 
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c99 -Minfo=accel,inline,mp")
 
-elseif (("${}" STREQUAL "GNU") OR
-        ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+elseif ("${}" STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${COMMON_CXX_GNU_FLAGS}")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 ${COMMON_CXX_GNU_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${COMMON_CXX_GNU_FLAGS}")
+
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
-    set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64 ${COMMON_GNU_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99 -prec-div -fp-model precise -ftz -qopt-prefetch-distance=64 ${COMMON_GNU_FLAGS}")
 else()
     message(WARNING "Compiler not supported!")
 endif ()
@@ -51,22 +52,22 @@ endif ()
 ###### BUILD-SPECIFIC COMPILE FLAGS #######
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # set DEBUG FLAGS (seems that ICC/GCC/PGC understant '-g' and '-O0' great!)
-    set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
     add_definitions("-DDEBUG")
 else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # set RELEASE FLAGS (unfortunately it's compiler dependent...)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -fast -Minline")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fast -Minline")
 
     elseif (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native")
 
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -xHost -restrict")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -xHost -restrict")
 
     else()
         message(WARNING "Compiler not supported!")
@@ -111,38 +112,17 @@ if (USE_MPI)
 endif (USE_MPI)
 
 
-if (USE_OPENACC)
+if (USE_CUDA)
 
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=multicore -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,maxregcount:128,lineinfo")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
         find_package(CUDA)
 
-        if (USE_CUDA_KERNELS AND CUDA_FOUND)
-            # gcc version should be > 4.8 and < 5.0 (CUDA 8)
-            set(CUDA_HOST_COMPILER "gcc-5")
-           # set(CUDA_HOST_COMPILATION_CPP OFF)
-            set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-            set(CUDA_SEPARABLE_COMPILATION OFF)
+        if (CUDA_FOUND)
+            set(CUDA_CXX_FLAGS "-x cuda --cuda-gpu-arch=sm_61 --Xcuda-ptxas='-v' ")
+            set(CUDA_EXE_LINKER_FLAGS "--cuda-path=${CUDA_TOOLKIT_ROOT_DIR}")
 
-           # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_30,code=\"sm_60,sm_61\" -lineinfo")
-            set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
-            set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
-
-            add_definitions("-DUSE_CUDA")
             include_directories(${CUDA_INCLUDE_DIR})
-
-            # list of optimized kernels
-            add_definitions("-DVCELL_TL")
-            add_definitions("-DVCELL_TR")
-            add_definitions("-DVCELL_BR")
-            add_definitions("-DVCELL_BL")
-
-            add_definitions("-DSCELL_TR")
-            add_definitions("-DSCELL_TL")
-            add_definitions("-DSCELL_BR")
-            add_definitions("-DSCELL_BL")
 
             message(STATUS "--------------------------------------")
             message(STATUS "----[CUDA ENABLED] :                  ")
@@ -151,69 +131,64 @@ if (USE_OPENACC)
             message(STATUS "---- CUDA_INCLUDE_DIRS: ${CUDA_INCLUDE_DIRS}")
             message(STATUS "---- CUDA_LIBRARIES:    ${CUDA_LIBRARIES}")
             message(STATUS "--------                      --------")
-            message(STATUS "---- CUDA_HOST_COMPILER: ${CUDA_HOST_COMPILER}")
+            message(STATUS "---- CUDA_COMPILER: ${CMAKE_CXX_COMPILER_ID}")
+            message(STATUS "---- CUDA_CXX_FLAGS: ${CUDA_CXX_FLAGS}")
+            message(STATUS "---- CUDA_EXE_LINKER_FLAGS: ${CUDA_EXE_LINKER_FLAGS}")
             message(STATUS "--------------------------------------")
 
-        endif (USE_CUDA_KERNELS AND CUDA_FOUND)
+            add_compile_options(-x cuda --cuda-gpu-arch=sm_61)
 
-        if (TRACE_CUDA)
-            add_definitions("-DTRACE_CUDA")
-            set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
-        endif (TRACE_CUDA)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CUDA_EXE_LINKER_FLAGS}")
 
-    elseif( ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") AND
-            ( ${CMAKE_C_COMPILER_VERSION} VERSION_GREATER 6.1))
+            add_definitions("-DUSE_CUDA")
 
-        set(OpenACC_C_FLAGS "-fopenacc")
+            if (TRACE_CUDA)
+               add_definitions("-DTRACE_CUDA")
+               set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
 
+               message(STATUS "---- TRACE_CUDA: ON")
+               message(STATUS "---- CUDA_TRACE_LIBRARY ${CUDA_TRACE_LIBRARY}")
+               message(STATUS "--------------------------------------")
+           endif (TRACE_CUDA)
 
-        message(WARNING "GCC has very EXPERIMENTAL support for OpenACC 2.0a. We recommend using PGI 16.5 for OpenACC!")
-    else ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-        message(FATAL_ERROR "Compiler (${CMAKE_CXX_COMPILER_ID}, ${CMAKE_C_COMPILER_VERSION}) not supported for OpenACC compilation. Check your compiler!")
-    endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-
-    message(STATUS "--------------------------------------")
-    message(STATUS "----[OpenACC ENABLED] setting:        ")
-    message(STATUS "---- OpenACC_C_FLAGS:   ${OpenACC_C_FLAGS}")
-    message(STATUS "--------------------------------------")
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenACC_C_FLAGS}")
-endif (USE_OPENACC)
+        endif (CUDA_FOUND)
 
 
-if (USE_OPENMP AND NOT USE_OPENACC)
+    else ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        message(FATAL_ERROR "Compiler (${CMAKE_CXX_COMPILER_ID}) not supported for CUDA compilation in cpp files. Check your compiler!")
+    endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+endif (USE_CUDA)
+
+
+if (USE_OPENMP)
     find_package(OpenMP REQUIRED QUIET)
 
     message(STATUS "--------------------------------------")
     message(STATUS "----[OpenMP ENABLED] setting:         ")
-    message(STATUS "---- OpemMP_C_FLAGS:    ${OpenMP_C_FLAGS}")
+    message(STATUS "---- OpemMP_CXX_FLAGS:    ${OpenMP_CXX_FLAGS}")
     message(STATUS "--------------------------------------")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-else (USE_OPENMP AND NOT USE_OPENACC)
-    if (USE_OPENMP)
-        message(WARNING "OpenMP disabled since OpenACC is enabled!. Disable OpenACC if you want to compile with OpenMP support.")
-        set(USE_OPENMP FALSE)
-    endif (USE_OPENMP)
-endif (USE_OPENMP AND NOT USE_OPENACC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif (USE_OPENMP)
 
 
 if (PROFILE)
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
 
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Mprof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Mprof")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Mprof")
 
     elseif (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pg")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pg")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -pg")
 
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
-        set(CMAKE_C_FLAGS_RELEASE "-g -p")
+        set(CMAKE_CXX_FLAGS_RELEASE "-g -p")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -p")
 
     else()
@@ -227,15 +202,12 @@ endif (PROFILE)
 
 message(STATUS "----------------------------------------")
 message(STATUS "BUILD TYPE: ${CMAKE_BUILD_TYPE}")
-message(STATUS "CMAKE_C_FLAGS:                  ${CMAKE_C_FLAGS}")
-message(STATUS "CMAKE_C_FLAGS_DEBUG:            ${CMAKE_C_FLAGS_DEBUG}")
-message(STATUS "CMAKE_C_FLAGS_RELEASE:          ${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS "CMAKE_CXX_FLAGS:                  ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_CXX_FLAGS_DEBUG:            ${CMAKE_CXX_FLAGS_DEBUG}")
+message(STATUS "CMAKE_CXX_FLAGS_RELEASE:          ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS:         ${CMAKE_EXE_LINKER_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS_DEBUG:   ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS_RELEASE: ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
-message(STATUS "CUDA_NVCC_FLAGS:                ${CUDA_NVCC_FLAGS}")
-message(STATUS "CUDA_NVCC_FLAGS_DEBUG:          ${CUDA_NVCC_FLAGS_DEBUG}")
-message(STATUS "CUDA_NVCC_FLAGS_RELEASE:        ${CUDA_NVCC_FLAGS_RELEASE}")
 message(STATUS "----------------------------------------")
 
 add_subdirectory(src)

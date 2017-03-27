@@ -72,18 +72,14 @@ typedef struct {
 typedef enum {back_offset, forw_offset} offset_t;
 typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 integer IDX (const integer z,
              const integer x,
              const integer y,
              const integer dimmz,
              const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real stencil_Z(const integer off,
                const real*   ptr,
                const real    dzi,
@@ -93,9 +89,7 @@ real stencil_Z(const integer off,
                const integer dimmz,
                const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real stencil_X(const integer off,
                const real*   ptr,
                const real    dxi,
@@ -105,9 +99,7 @@ real stencil_X(const integer off,
                const integer dimmz,
                const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real stencil_Y(const integer off,
                const real*   ptr,
                const real    dyi,
@@ -124,9 +116,7 @@ real stencil_Y(const integer off,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real rho_BL ( const real*   rho,
               const integer z,
               const integer x,
@@ -134,9 +124,7 @@ real rho_BL ( const real*   rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real rho_TR ( const real*   rho,
               const integer z,
               const integer x,
@@ -144,9 +132,7 @@ real rho_TR ( const real*   rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real rho_BR ( const real*   rho,
               const integer z,
               const integer x,
@@ -154,9 +140,7 @@ real rho_BR ( const real*   rho,
               const integer dimmz,
               const integer dimmx);
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real rho_TL ( const real*   rho,
               const integer z,
               const integer x,
@@ -183,33 +167,7 @@ void compute_component_vcell_TL (      real*    vptr,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t  phase);
-
-/* CUDA STUB */
-extern
-void compute_component_vcell_TL_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                 const integer  dimmx);
 
 void compute_component_vcell_TR (      real*    vptr,
                                  const real*    szptr,
@@ -230,32 +188,7 @@ void compute_component_vcell_TR (      real*    vptr,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t  phase);
-/* CUDA STUB */
-extern
-void compute_component_vcell_TR_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                 const integer  dimmx);
 
 void compute_component_vcell_BR (      real*    vptr,
                                  const real*    szptr,
@@ -276,33 +209,7 @@ void compute_component_vcell_BR (      real*    vptr,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t  phase);
-
-/* CUDA STUB */
-extern
-void compute_component_vcell_BR_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                 const integer  dimmx);
 
 void compute_component_vcell_BL (      real*    vptr,
                                  const real*    szptr,
@@ -323,33 +230,7 @@ void compute_component_vcell_BL (      real*    vptr,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t  phase);
-
-/* CUDA STUB */
-extern
-void compute_component_vcell_BL_cuda ( float* vptr,
-                                 const float* szptr,
-                                 const float* sxptr,
-                                 const float* syptr,
-                                 const float* rho,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                 const integer  dimmx);
 
 void velocity_propagator(v_t           v,
                          s_t           s,
@@ -367,10 +248,10 @@ void velocity_propagator(v_t           v,
                          const integer nyf,
                          const integer dimmz,
                          const integer dimmx,
-                         const phase_t phase);
-
-
-
+                         const cudaStream_t BR,
+                         const cudaStream_t BL,
+                         const cudaStream_t TR,
+                         const cudaStream_t TL);
 
 
 /* ------------------------------------------------------------------------------ */
@@ -379,9 +260,28 @@ void velocity_propagator(v_t           v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+void stress_propagator(s_t           s,
+                       v_t           v,
+                       coeff_t       coeffs,
+                       real*         rho,
+                       const real    dt,
+                       const real    dzi,
+                       const real    dxi,
+                       const real    dyi,
+                       const integer nz0,
+                       const integer nzf,
+                       const integer nx0,
+                       const integer nxf,
+                       const integer ny0,
+                       const integer nyf,
+                       const integer dimmz,
+                       const integer dimmx,
+                       const cudaStream_t BR,
+                       const cudaStream_t BL,
+                       const cudaStream_t TR,
+                       const cudaStream_t TL);
+
+HOST_DEVICE_INLINE
 void stress_update(real*         sptr,
                    const real    c1,
                    const real    c2,
@@ -405,54 +305,32 @@ void stress_update(real*         sptr,
                    const integer dimmz,
                    const integer dimmx);
 
-void stress_propagator(s_t           s,
-                       v_t           v,
-                       coeff_t       coeffs,
-                       real*         rho,
-                       const real    dt,
-                       const real    dzi,
-                       const real    dxi,
-                       const real    dyi,
-                       const integer nz0,
-                       const integer nzf,
-                       const integer nx0,
-                       const integer nxf,
-                       const integer ny0,
-                       const integer nyf,
-                       const integer dimmz,
-                       const integer dimmx,
-                       const phase_t phase );
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real cell_coeff_BR ( const real*   ptr,
                      const integer z,
                      const integer x,
                      const integer y,
                      const integer dimmz,
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_TL ( const real*   ptr,
                      const integer z,
                      const integer x,
                      const integer y,
                      const integer dimmz,
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_BL ( const real*   ptr,
                      const integer z,
                      const integer x,
                      const integer y,
                      const integer dimmz,
                      const integer dimmx );
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_TR ( const real*   ptr,
                      const integer z,
                      const integer x,
@@ -460,36 +338,31 @@ real cell_coeff_TR ( const real*   ptr,
                      const integer dimmz,
                      const integer dimmx );
 
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+HOST_DEVICE_INLINE
 real cell_coeff_ARTM_BR ( const real*   ptr,
                           const integer z,
                           const integer x,
                           const integer y,
                           const integer dimmz,
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_ARTM_TL ( const real*   ptr,
                           const integer z,
                           const integer x,
                           const integer y,
                           const integer dimmz,
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_ARTM_BL ( const real*   ptr,
                           const integer z,
                           const integer x,
                           const integer y,
                           const integer dimmz,
                           const integer dimmx);
-#if defined(_OPENACC)
-#pragma acc routine seq
-#endif
+
+HOST_DEVICE_INLINE
 real cell_coeff_ARTM_TR ( const real*   ptr,
                           const integer z,
                           const integer x,
@@ -516,63 +389,7 @@ void compute_component_scell_TR (s_t             s,
                                  const offset_t _SX,
                                  const offset_t _SY,
                                  const integer  dimmz,
-                                 const integer  dimmx,
-                                 const phase_t phase);
-/* STUB CUDA */
-extern
-void compute_component_scell_TR_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                 const integer  dimmx);
 
 void compute_component_scell_TL ( s_t             s,
                                   point_v_t       vnode_z,
@@ -593,63 +410,7 @@ void compute_component_scell_TL ( s_t             s,
                                   const offset_t _SX,
                                   const offset_t _SY,
                                   const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
-/* CUDA STUB */
-extern
-void compute_component_scell_TL_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                  const integer   dimmx);
 
 void compute_component_scell_BR ( s_t             s,
                                   point_v_t       vnode_z,
@@ -670,64 +431,7 @@ void compute_component_scell_BR ( s_t             s,
                                   const offset_t _SX,
                                   const offset_t _SY,
                                   const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
-
-/* CUDA STUB */
-extern
-void compute_component_scell_BR_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                  const integer   dimmx);
 
 void compute_component_scell_BL ( s_t             s,
                                   point_v_t       vnode_z,
@@ -748,62 +452,6 @@ void compute_component_scell_BL ( s_t             s,
                                   const offset_t _SX,
                                   const offset_t _SY,
                                   const integer   dimmz,
-                                  const integer   dimmx,
-                                  const phase_t   phase);
-/* CUDA STUB */
-extern
-void compute_component_scell_BL_cuda ( float* sxxptr,
-                                       float* syyptr,
-                                       float* szzptr,
-                                       float* syzptr,
-                                       float* sxzptr,
-                                       float* sxyptr,
-                                 const float* vxu,
-                                 const float* vxv,
-                                 const float* vxw,
-                                 const float* vyu,
-                                 const float* vyv,
-                                 const float* vyw,
-                                 const float* vzu,
-                                 const float* vzv,
-                                 const float* vzw,
-                                 const float* cc11,
-                                 const float* cc12,
-                                 const float* cc13,
-                                 const float* cc14,
-                                 const float* cc15,
-                                 const float* cc16,
-                                 const float* cc22,
-                                 const float* cc23,
-                                 const float* cc24,
-                                 const float* cc25,
-                                 const float* cc26,
-                                 const float* cc33,
-                                 const float* cc34,
-                                 const float* cc35,
-                                 const float* cc36,
-                                 const float* cc44,
-                                 const float* cc45,
-                                 const float* cc46,
-                                 const float* cc55,
-                                 const float* cc56,
-                                 const float* cc66,
-                                 const float  dt,
-                                 const float  dzi,
-                                 const float  dxi,
-                                 const float  dyi,
-                                 const int    nz0,
-                                 const int    nzf,
-                                 const int    nx0,
-                                 const int    nxf,
-                                 const int    ny0,
-                                 const int    nyf,
-                                 const int    SZ,
-                                 const int    SX,
-                                 const int    SY,
-                                 const int    dimmz,
-                                 const int    dimmx,
-                                 void*        stream);
-
+                                  const integer   dimmx);
 
 #endif /* end of _FWI_PROPAGATOR_H_ definition */

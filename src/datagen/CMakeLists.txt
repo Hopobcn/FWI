@@ -3,6 +3,7 @@ add_executable(fwi-data-generator
 )
 
 target_link_libraries(fwi-data-generator
+    ${CUDA_LIBRARIES}
     fwi-core
     m
 )

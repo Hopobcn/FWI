@@ -29,20 +29,15 @@
 
 #include "fwi/fwi_kernel.hpp"
 
-/*
- * Initializes an array of length "length" to a random number.
- */
-void set_array_to_random_real( real* array, const integer length)
+__global__
+void set_array_to_constant_cuda( real* array, const integer length, const real constant )
 {
-    const real randvalue = rand() / (1.0 * RAND_MAX);
-
-    print_debug("Array is being initialized to %f", randvalue);
-
-#if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
-#endif
-    for( integer i = 0; i < length; i++ )
-        array[i] = randvalue;
+   for (integer i = blockIdx.x * blockDim.x + threadIdx.x;
+                i < length;
+                i += gridDim.x * blockDim.x)
+   {
+      array[i] = constant;
+   }
 }
 
 /*
@@ -50,11 +45,27 @@ void set_array_to_random_real( real* array, const integer length)
  */
 void set_array_to_constant( real* array, const real value, const integer length)
 {
-#if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
-#endif
+#if defined(USE_CUDA)
+    const int block_size = 128;
+    const int grid_size  = (length + block_size - 1) / block_size;
+    set_array_to_constant_cuda <<<grid_size, block_size>>>(array, length, value);
+#else
     for( integer i = 0; i < length; i++ )
         array[i] = value;
+#endif
+}
+
+/*
+ * Initializes an array of length "length" to a random number.
+ */
+
+void set_array_to_random_real( real* array, const integer length)
+{
+    const real randvalue = rand() / (1.0 * RAND_MAX);
+
+    print_debug("Array is being initialized to %f", randvalue);
+
+    set_array_to_constant( array, randvalue, length );
 }
 
 void check_memory_shot( const integer numberOfCells,
@@ -205,82 +216,6 @@ void alloc_memory_shot( const integer numberOfCells,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
-#if defined(_OPENACC)
-    const integer datalen = numberOfCells;
-
-    const real* rrho  = *rho;
-
-    coeff_t cc = *c;
-    // TODO: Test that works with this shit
-    #pragma acc enter data create(cc)
-    #pragma acc enter data create(cc.c11[:datalen])
-    #pragma acc enter data create(cc.c12[:datalen])
-    #pragma acc enter data create(cc.c13[:datalen])
-    #pragma acc enter data create(cc.c14[:datalen])
-    #pragma acc enter data create(cc.c15[:datalen])
-    #pragma acc enter data create(cc.c16[:datalen])
-    #pragma acc enter data create(cc.c22[:datalen])
-    #pragma acc enter data create(cc.c23[:datalen])
-    #pragma acc enter data create(cc.c24[:datalen])
-    #pragma acc enter data create(cc.c25[:datalen])
-    #pragma acc enter data create(cc.c26[:datalen])
-    #pragma acc enter data create(cc.c33[:datalen])
-    #pragma acc enter data create(cc.c34[:datalen])
-    #pragma acc enter data create(cc.c35[:datalen])
-    #pragma acc enter data create(cc.c36[:datalen])
-    #pragma acc enter data create(cc.c44[:datalen])
-    #pragma acc enter data create(cc.c45[:datalen])
-    #pragma acc enter data create(cc.c46[:datalen])
-    #pragma acc enter data create(cc.c55[:datalen])
-    #pragma acc enter data create(cc.c56[:datalen])
-    #pragma acc enter data create(cc.c66[:datalen])
-
-    v_t vv = *v;
-
-    #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:datalen])
-    #pragma acc enter data create(vv.tl.v[:datalen])
-    #pragma acc enter data create(vv.tl.w[:datalen])
-    #pragma acc enter data create(vv.tr.u[:datalen])
-    #pragma acc enter data create(vv.tr.v[:datalen])
-    #pragma acc enter data create(vv.tr.w[:datalen])
-    #pragma acc enter data create(vv.bl.u[:datalen])
-    #pragma acc enter data create(vv.bl.v[:datalen])
-    #pragma acc enter data create(vv.bl.w[:datalen])
-    #pragma acc enter data create(vv.br.u[:datalen])
-    #pragma acc enter data create(vv.br.v[:datalen])
-    #pragma acc enter data create(vv.br.w[:datalen])
-
-    s_t ss = *s;
-    #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:datalen])
-    #pragma acc enter data create(ss.tl.xz[:datalen])
-    #pragma acc enter data create(ss.tl.yz[:datalen])
-    #pragma acc enter data create(ss.tl.xx[:datalen])
-    #pragma acc enter data create(ss.tl.xy[:datalen])
-    #pragma acc enter data create(ss.tl.yy[:datalen])
-    #pragma acc enter data create(ss.tr.zz[:datalen])
-    #pragma acc enter data create(ss.tr.xz[:datalen])
-    #pragma acc enter data create(ss.tr.yz[:datalen])
-    #pragma acc enter data create(ss.tr.xx[:datalen])
-    #pragma acc enter data create(ss.tr.xy[:datalen])
-    #pragma acc enter data create(ss.tr.yy[:datalen])
-    #pragma acc enter data create(ss.bl.zz[:datalen])
-    #pragma acc enter data create(ss.bl.xz[:datalen])
-    #pragma acc enter data create(ss.bl.yz[:datalen])
-    #pragma acc enter data create(ss.bl.xx[:datalen])
-    #pragma acc enter data create(ss.bl.xy[:datalen])
-    #pragma acc enter data create(ss.bl.yy[:datalen])
-    #pragma acc enter data create(ss.br.zz[:datalen])
-    #pragma acc enter data create(ss.br.xz[:datalen])
-    #pragma acc enter data create(ss.br.yz[:datalen])
-    #pragma acc enter data create(ss.br.xx[:datalen])
-    #pragma acc enter data create(ss.br.xy[:datalen])
-    #pragma acc enter data create(ss.br.yy[:datalen])
-
-    #pragma acc enter data create(rrho[:datalen])
-
-#endif /* end of pragma _OPENACC */
     POP_RANGE
 };
 
@@ -290,77 +225,6 @@ void free_memory_shot( coeff_t *c,
                        real    **rho)
 {
     PUSH_RANGE
-
-#if defined(_OPENACC)
-    #pragma acc wait
-
-    #pragma acc exit data delete(c->c11)
-    #pragma acc exit data delete(c->c12)
-    #pragma acc exit data delete(c->c13)
-    #pragma acc exit data delete(c->c14)
-    #pragma acc exit data delete(c->c15)
-    #pragma acc exit data delete(c->c16)
-    #pragma acc exit data delete(c->c22)
-    #pragma acc exit data delete(c->c23)
-    #pragma acc exit data delete(c->c24)
-    #pragma acc exit data delete(c->c25)
-    #pragma acc exit data delete(c->c26)
-    #pragma acc exit data delete(c->c33)
-    #pragma acc exit data delete(c->c34)
-    #pragma acc exit data delete(c->c35)
-    #pragma acc exit data delete(c->c36)
-    #pragma acc exit data delete(c->c44)
-    #pragma acc exit data delete(c->c45)
-    #pragma acc exit data delete(c->c46)
-    #pragma acc exit data delete(c->c55)
-    #pragma acc exit data delete(c->c56)
-    #pragma acc exit data delete(c->c66)
-    #pragma acc exit data delete(c)
-
-    #pragma acc exit data delete(v->tl.u)
-    #pragma acc exit data delete(v->tl.v)
-    #pragma acc exit data delete(v->tl.w)
-    #pragma acc exit data delete(v->tr.u)
-    #pragma acc exit data delete(v->tr.v)
-    #pragma acc exit data delete(v->tr.w)
-    #pragma acc exit data delete(v->bl.u)
-    #pragma acc exit data delete(v->bl.v)
-    #pragma acc exit data delete(v->bl.w)
-    #pragma acc exit data delete(v->br.u)
-    #pragma acc exit data delete(v->br.v)
-    #pragma acc exit data delete(v->br.w)
-
-
-    #pragma acc exit data delete(s->tl.zz)
-    #pragma acc exit data delete(s->tl.xz)
-    #pragma acc exit data delete(s->tl.yz)
-    #pragma acc exit data delete(s->tl.xx)
-    #pragma acc exit data delete(s->tl.xy)
-    #pragma acc exit data delete(s->tl.yy)
-    #pragma acc exit data delete(s->tr.zz)
-    #pragma acc exit data delete(s->tr.xz)
-    #pragma acc exit data delete(s->tr.yz)
-    #pragma acc exit data delete(s->tr.xx)
-    #pragma acc exit data delete(s->tr.xy)
-    #pragma acc exit data delete(s->tr.yy)
-    #pragma acc exit data delete(s->bl.zz)
-    #pragma acc exit data delete(s->bl.xz)
-    #pragma acc exit data delete(s->bl.yz)
-    #pragma acc exit data delete(s->bl.xx)
-    #pragma acc exit data delete(s->bl.xy)
-    #pragma acc exit data delete(s->bl.yy)
-    #pragma acc exit data delete(s->br.zz)
-    #pragma acc exit data delete(s->br.xz)
-    #pragma acc exit data delete(s->br.yz)
-    #pragma acc exit data delete(s->br.xx)
-    #pragma acc exit data delete(s->br.xy)
-    #pragma acc exit data delete(s->br.yy)
-    #pragma acc exit data delete(s)
-
-    const real* rrho  = *rho;
-    #pragma acc exit data delete(rrho)
-
-#endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
     __free( (void*) c->c11 );
@@ -619,29 +483,6 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 
-#if defined(_OPENACC)
-    const real* vtlu = v->tl.u;
-    const real* vtlv = v->tl.v;
-    const real* vtlw = v->tl.w;
-
-    const real* vtru = v->tr.u;
-    const real* vtrv = v->tr.v;
-    const real* vtrw = v->tr.w;
-
-    const real* vblu = v->bl.u;
-    const real* vblv = v->bl.v;
-    const real* vblw = v->bl.w;
-
-    const real* vbru = v->br.u;
-    const real* vbrv = v->br.v;
-    const real* vbrw = v->br.w;
-
-    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
-                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
-                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
-                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells]) \
-                       async(H2D)
-#endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
@@ -676,13 +517,6 @@ void write_snapshot(char *folder,
     const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
-
-#if defined(_OPENACC)
-    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
-#endif /* end pragma _OPENACC*/
 
     /* local variables */
     char fname[300];
@@ -820,13 +654,6 @@ void read_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
-#if defined(_OPENACC)
-    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
-                       async(H2D)
-#endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
@@ -863,6 +690,34 @@ void propagate_shot(time_d        direction,
     double tvel_start, tvel_total = 0.0;
     double megacells = 0.0;
 
+    cudaStream_t ONE_L_BR, ONE_L_BL, ONE_L_TR, ONE_L_TL;
+    cudaStream_t ONE_R_BR, ONE_R_BL, ONE_R_TR, ONE_R_TL;
+    cudaStream_t TWO_BR, TWO_BL, TWO_TR, TWO_TL;
+
+    cudaEvent_t wait_ONE_L;
+    cudaEvent_t wait_ONE_R;
+
+    CUDA_CHECK( cudaEventCreate( &wait_ONE_L ) );
+    CUDA_CHECK( cudaEventCreate( &wait_ONE_R ) );
+
+    int high_priority, low_priority;
+    CUDA_CHECK( cudaDeviceGetStreamPriorityRange(&low_priority, &high_priority) );
+
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_L_BR, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_L_BL, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_L_TR, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_L_TL, cudaStreamDefault, high_priority) );
+
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_R_BR, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_R_BL, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_R_TR, cudaStreamDefault, high_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&ONE_R_TL, cudaStreamDefault, high_priority) );
+
+    CUDA_CHECK( cudaStreamCreateWithPriority(&TWO_BR, cudaStreamDefault, low_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&TWO_BL, cudaStreamDefault, low_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&TWO_TR, cudaStreamDefault, low_priority) );
+    CUDA_CHECK( cudaStreamCreateWithPriority(&TWO_TL, cudaStreamDefault, low_priority) );
+
     for(int t=0; t < timesteps; t++)
     {
         PUSH_RANGE
@@ -875,9 +730,6 @@ void propagate_shot(time_d        direction,
         tglobal_start = dtime();
 
         /* wait read_snapshot H2D copies */
-#if defined(_OPENACC)
-        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
-#endif
 
         /* ------------------------------------------------------------------------------ */
         /*                      VELOCITY COMPUTATION                                      */
@@ -892,7 +744,7 @@ void propagate_shot(time_d        direction,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
                             dimmz, dimmx,
-                            ONE_L);
+                            ONE_L_BR, ONE_L_BL, ONE_L_TR, ONE_L_TL);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
@@ -903,7 +755,7 @@ void propagate_shot(time_d        direction,
                             nyf - 2*HALO,
                             nyf -   HALO,
                             dimmz, dimmx,
-                            ONE_R);
+                            ONE_R_BR, ONE_R_BL, ONE_R_TR, ONE_R_TL);
 
         /* Phase 2. Computation of the central planes. */
         tvel_start = dtime();
@@ -916,15 +768,17 @@ void propagate_shot(time_d        direction,
                             ny0 +   HALO,
                             nyf -   HALO,
                             dimmz, dimmx,
-                            TWO);
+                            TWO_BR, TWO_BL, TWO_TR, TWO_TL);
 #if defined(USE_MPI)
         const integer plane_size = dimmz * dimmx;
         /* Boundary exchange for velocity values */
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
 #endif
-#if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO)
-#endif
+        CUDA_CHECK( cudaStreamSynchronize( TWO_BR ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_BL ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_TR ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_TL ) );
+
         tvel_total += (dtime() - tvel_start);
 
         /* ------------------------------------------------------------------------------ */
@@ -940,7 +794,7 @@ void propagate_shot(time_d        direction,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
                           dimmz, dimmx,
-                          ONE_L);
+                          ONE_L_BR, ONE_L_BL, ONE_L_TR, ONE_L_TL);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
@@ -951,7 +805,7 @@ void propagate_shot(time_d        direction,
                           nyf - 2*HALO,
                           nyf -   HALO,
                           dimmz, dimmx,
-                          ONE_R);
+                          ONE_R_BR, ONE_R_BL, ONE_R_TR, ONE_R_TL);
 
         /* Phase 2 computation. Central planes of the domain */
         tstress_start = dtime();
@@ -964,16 +818,17 @@ void propagate_shot(time_d        direction,
                           ny0 +   HALO,
                           nyf -   HALO,
                           dimmz, dimmx,
-                          TWO);
+                          TWO_BR, TWO_BL, TWO_TR, TWO_TL);
 
 #if defined(USE_MPI)
         /* Boundary exchange for stress values */
         exchange_stress_boundaries( s, plane_size, nyf, ny0);
 #endif
+        CUDA_CHECK( cudaStreamSynchronize( TWO_BR ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_BL ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_TR ) );
+        CUDA_CHECK( cudaStreamSynchronize( TWO_TL ) );
 
-#if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
-#endif
         tstress_total += (dtime() - tstress_start);
 
         tglobal_total += (dtime() - tglobal_start);
@@ -986,6 +841,24 @@ void propagate_shot(time_d        direction,
 #endif
         POP_RANGE
     }
+
+    CUDA_CHECK( cudaEventDestroy( wait_ONE_L ) );
+    CUDA_CHECK( cudaEventDestroy( wait_ONE_R ) );
+
+    CUDA_CHECK( cudaStreamDestroy( ONE_L_BR ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_L_BL ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_L_TR ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_L_TL ) );
+
+    CUDA_CHECK( cudaStreamDestroy( ONE_R_BR ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_R_BL ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_R_TR ) );
+    CUDA_CHECK( cudaStreamDestroy( ONE_R_TL ) );
+
+    CUDA_CHECK( cudaStreamDestroy( TWO_BR ) );
+    CUDA_CHECK( cudaStreamDestroy( TWO_BL ) );
+    CUDA_CHECK( cudaStreamDestroy( TWO_TR ) );
+    CUDA_CHECK( cudaStreamDestroy( TWO_TL ) );
 
     /* compute some statistics */
     megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;

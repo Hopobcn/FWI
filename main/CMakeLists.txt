@@ -3,6 +3,7 @@ add_executable(fwi
 )
 
 target_link_libraries(fwi
+    ${CUDA_LIBRARIES}
     fwi-core
     m
 )
