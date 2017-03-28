@@ -694,12 +694,6 @@ void propagate_shot(time_d        direction,
     cudaStream_t ONE_R_BR, ONE_R_BL, ONE_R_TR, ONE_R_TL;
     cudaStream_t TWO_BR, TWO_BL, TWO_TR, TWO_TL;
 
-    cudaEvent_t wait_ONE_L;
-    cudaEvent_t wait_ONE_R;
-
-    CUDA_CHECK( cudaEventCreate( &wait_ONE_L ) );
-    CUDA_CHECK( cudaEventCreate( &wait_ONE_R ) );
-
     int high_priority, low_priority;
     CUDA_CHECK( cudaDeviceGetStreamPriorityRange(&low_priority, &high_priority) );
 
@@ -841,9 +835,6 @@ void propagate_shot(time_d        direction,
 #endif
         POP_RANGE
     }
-
-    CUDA_CHECK( cudaEventDestroy( wait_ONE_L ) );
-    CUDA_CHECK( cudaEventDestroy( wait_ONE_R ) );
 
     CUDA_CHECK( cudaStreamDestroy( ONE_L_BR ) );
     CUDA_CHECK( cudaStreamDestroy( ONE_L_BL ) );
