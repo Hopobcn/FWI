@@ -29,17 +29,28 @@
 
 #include "fwi/fwi_propagator.h"
 
+#define IDX(z,x,y,dimmz,dimmx) (((y*dimmx)+x)*dimmz+z)
+
+//inline
+//integer IDX (const integer z,
+//             const integer x,
+//             const integer y,
+//             const integer dimmz,
+//             const integer dimmx)
+//{
+//    return ((y*dimmx)+x)*dimmz + z;
+//};
+
+
+#define STENCILZ(ptr,off,dzi,z,x,y,dimmz,dimmx) { \
+   ((C0 * ( ptr[IDX(z  +off,x,y,dimmz,dimmx)] - ptr[IDX(z-1+off,x,y,dimmz,dimmx)]) +         \
+     C1 * ( ptr[IDX(z+1+off,x,y,dimmz,dimmx)] - ptr[IDX(z-2+off,x,y,dimmz,dimmx)]) +         \
+     C2 * ( ptr[IDX(z+2+off,x,y,dimmz,dimmx)] - ptr[IDX(z-3+off,x,y,dimmz,dimmx)]) +         \
+     C3 * ( ptr[IDX(z+3+off,x,y,dimmz,dimmx)] - ptr[IDX(z-4+off,x,y,dimmz,dimmx)])) * dzi )  \
+}
+
+
 inline
-integer IDX (const integer z,
-             const integer x,
-             const integer y,
-             const integer dimmz,
-             const integer dimmx)
-{
-    return ((y*dimmx)+x)*dimmz + z;
-};
-
-
 real stencil_Z ( const integer off,
                  const real* restrict ptr,
                  const real    dzi,
@@ -55,6 +66,14 @@ real stencil_Z ( const integer off,
               C3 * ( ptr[IDX(z+3+off,x,y,dimmz,dimmx)] - ptr[IDX(z-4+off,x,y,dimmz,dimmx)])) * dzi );
 };
 
+#define STENCILX(ptr,off,dxi,z,x,y,dimmz,dimmx) { \
+   ((C0 * ( ptr[IDX(z,x  +off,y,dimmz,dimmx)] - ptr[IDX(z,x-1+off,y,dimmz,dimmx)]) +         \
+     C1 * ( ptr[IDX(z,x+1+off,y,dimmz,dimmx)] - ptr[IDX(z,x-2+off,y,dimmz,dimmx)]) +         \
+     C2 * ( ptr[IDX(z,x+2+off,y,dimmz,dimmx)] - ptr[IDX(z,x-3+off,y,dimmz,dimmx)]) +         \
+     C3 * ( ptr[IDX(z,x+3+off,y,dimmz,dimmx)] - ptr[IDX(z,x-4+off,y,dimmz,dimmx)])) * dxi )  \
+}
+
+inline
 real stencil_X( const integer off,
                 const real* restrict ptr,
                 const real dxi,
@@ -70,6 +89,14 @@ real stencil_X( const integer off,
              C3 * ( ptr[IDX(z,x+3+off,y,dimmz,dimmx)] - ptr[IDX(z,x-4+off,y,dimmz,dimmx)])) * dxi );
 };
 
+#define STENCILY(ptr,off,dyi,z,x,y,dimmz,dimmx) { \
+   ((C0 * ( ptr[IDX(z,x,y  +off,dimmz,dimmx)] - ptr[IDX(z,x,y-1+off,dimmz,dimmx)]) +         \
+     C1 * ( ptr[IDX(z,x,y+1+off,dimmz,dimmx)] - ptr[IDX(z,x,y-2+off,dimmz,dimmx)]) +         \
+     C2 * ( ptr[IDX(z,x,y+2+off,dimmz,dimmx)] - ptr[IDX(z,x,y-3+off,dimmz,dimmx)]) +         \
+     C3 * ( ptr[IDX(z,x,y+3+off,dimmz,dimmx)] - ptr[IDX(z,x,y-4+off,dimmz,dimmx)])) * dyi )  \
+}
+
+inline
 real stencil_Y( const integer off,
                 const real* restrict ptr,
                 const real dyi,
@@ -89,6 +116,10 @@ real stencil_Y( const integer off,
 /*                     KERNELS FOR VELOCITY                             */
 /* -------------------------------------------------------------------- */
 
+#define RHO_BL(ptr,z,x,y,dimmz,dimmx) { \
+   (2.0f / (ptr[IDX(z,x,y,dimmz,dimmx)] + ptr[IDX(z+1,x,y,dimmz,dimmx)])) \
+}
+
 inline
 real rho_BL ( const real* restrict rho,
               const integer z,
@@ -100,6 +131,10 @@ real rho_BL ( const real* restrict rho,
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z+1,x,y,dimmz,dimmx)]));
 };
 
+#define RHO_TR(ptr,z,x,y,dimmz,dimmx) { \
+   (2.0f / (ptr[IDX(z,x,y,dimmz,dimmx)] + ptr[IDX(z,x+1,y,dimmz,dimmx)])) \
+}
+
 inline
 real rho_TR ( const real* restrict rho,
               const integer z,
@@ -110,6 +145,17 @@ real rho_TR ( const real* restrict rho,
 {
     return (2.0f / (rho[IDX(z,x,y,dimmz,dimmx)] + rho[IDX(z,x+1,y,dimmz,dimmx)]));
 };
+
+#define RHO_BR(ptr,z,x,y,dimmz,dimmx) { \
+   ( 8.0f/ ( ptr[IDX(z  ,x  ,y  ,dimmz,dimmx)] + \
+             ptr[IDX(z+1,x  ,y  ,dimmz,dimmx)] + \
+             ptr[IDX(z  ,x+1,y  ,dimmz,dimmx)] + \
+             ptr[IDX(z  ,x  ,y+1,dimmz,dimmx)] + \
+             ptr[IDX(z  ,x+1,y+1,dimmz,dimmx)] + \
+             ptr[IDX(z+1,x+1,y  ,dimmz,dimmx)] + \
+             ptr[IDX(z+1,x  ,y+1,dimmz,dimmx)] + \
+             ptr[IDX(z+1,x+1,y+1,dimmz,dimmx)])) \
+}
 
 inline
 real rho_BR ( const real* restrict rho,
@@ -128,6 +174,10 @@ real rho_BR ( const real* restrict rho,
                      rho[IDX(z+1,x  ,y+1,dimmz,dimmx)] +
                      rho[IDX(z+1,x+1,y+1,dimmz,dimmx)]) );
 };
+
+#define RHO_TL(ptr,z,x,y,dimmz,dimmx) { \
+   (2.0f / (ptr[IDX(z,x,y,dimmz,dimmx)] + ptr[IDX(z,x,y+1,dimmz,dimmx)])) \
+}
 
 inline
 real rho_TL ( const real* restrict rho,
@@ -160,62 +210,44 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const offset_t       _SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
+                                 const integer        dimmy,
                                  const phase_t        phase)
 {
-#if !defined(USE_CUDA)
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(vcell_TL)
-#endif /* end _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+
+    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
+                                       copy_inout(vptr[0:size])
+    #pragma omp task in(rho, sxptr, syptr, szptr) \
+                     inout(vptr)\
+                     label(vcell_TL)
+    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for(integer x=nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for(integer z=nz0; z < nzf; z++)
             {
-                const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
+                const real lrho = RHO_BL( rho,z,x,y,dimmz,dimmx );
 
-                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
-                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
-                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+                const real stx = STENCILX( sxptr,SX,dxi,z,x,y,dimmz,dimmx );
+                const real sty = STENCILY( syptr,SY,dyi,z,x,y,dimmz,dimmx );
+                const real stz = STENCILZ( szptr,SZ,dzi,z,x,y,dimmz,dimmx );
 
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else /* CUDA KERNELS ENABLED */
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
-    {
-        compute_component_vcell_TL_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
-                _SZ, _SX, _SY, dimmz, dimmx, stream);
-    }
-#endif /* end USE_CUDA */
 };
 
 void compute_component_vcell_TR (      real* restrict vptr,
@@ -238,62 +270,44 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const offset_t       _SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
+                                 const integer        dimmy,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+  //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+  //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+  //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(vcell_TR)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+
+    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
+                                       copy_inout(vptr[0:size])
+    #pragma omp task in(rho, sxptr, syptr, szptr) \
+                     inout(vptr)\
+                     label(vcell_TR)
+    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for(integer x=nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for(integer z=nz0; z < nzf; z++)
             {
-                const real lrho = rho_TR(rho, z, x, y, dimmz, dimmx);
+                const real lrho = RHO_TR( rho,z,x,y,dimmz,dimmx );
 
-                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
-                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
-                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+                const real stx = STENCILX( sxptr,SX,dxi,z,x,y,dimmz,dimmx );
+                const real sty = STENCILY( syptr,SY,dyi,z,x,y,dimmz,dimmx );
+                const real stz = STENCILZ( szptr,SZ,dzi,z,x,y,dimmz,dimmx );
 
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
-    {
-        compute_component_vcell_TR_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
-                _SZ, _SX, _SY, dimmz, dimmx, stream);
-    }
-#endif
 };
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -316,62 +330,44 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const offset_t       _SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
+                                 const integer        dimmy,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+   //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+   //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+   //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(vcell_BR)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+
+    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
+                                       copy_inout(vptr[0:size])
+    #pragma omp task in(rho, sxptr, syptr, szptr) \
+                     inout(vptr)\
+                     label(vcell_BR)
+    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for(integer x=nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for(integer z=nz0; z < nzf; z++)
             {
-                const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
+                const real lrho = RHO_BR( rho,z,x,y,dimmz,dimmx );
 
-                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx );
-                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx );
-                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx );
+                const real stx = STENCILX( sxptr,SX,dxi,z,x,y,dimmz,dimmx );
+                const real sty = STENCILY( syptr,SY,dyi,z,x,y,dimmz,dimmx );
+                const real stz = STENCILZ( szptr,SZ,dzi,z,x,y,dimmz,dimmx );
 
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
-    {
-        compute_component_vcell_BR_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
-                _SZ, _SX, _SY, dimmz, dimmx, stream);
-    }
-#endif
 };
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -394,62 +390,43 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const offset_t       _SY,
                                  const integer        dimmz,
                                  const integer        dimmx,
+                                 const integer        dimmy,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    // const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    // const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    // const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(vcell_BL)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
+                                       copy_inout(vptr[0:size])
+    #pragma omp task in(rho, sxptr, syptr, szptr) \
+                     inout(vptr)\
+                     label(vcell_BR)
+    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for(integer x=nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for(integer z=nz0; z < nzf; z++)
             {
-                const real lrho = rho_BL(rho, z, x, y, dimmz, dimmx);
+                const real lrho = RHO_BL( rho,z,x,y,dimmz,dimmx );
 
-                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
-                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
-                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
+                const real stx = STENCILX( sxptr,SX,dxi,z,x,y,dimmz,dimmx );
+                const real sty = STENCILY( syptr,SY,dyi,z,x,y,dimmz,dimmx );
+                const real stz = STENCILZ( szptr,SZ,dzi,z,x,y,dimmz,dimmx );
 
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
-    {
-        compute_component_vcell_BL_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
-                _SZ, _SX, _SY, dimmz, dimmx, stream);
-    }
-#endif
 };
 
 void velocity_propagator(v_t           v,
@@ -468,6 +445,7 @@ void velocity_propagator(v_t           v,
                          const integer nyf,
                          const integer dimmz,
                          const integer dimmx,
+                         const integer dimmy,
                          const phase_t phase)
 {
 #if defined(DEBUG)
@@ -478,19 +456,20 @@ void velocity_propagator(v_t           v,
     #pragma forceinline recursive
 #endif
     {
-        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
     }
+    #pragma omp taskwait
 };
 
 
@@ -503,6 +482,19 @@ void velocity_propagator(v_t           v,
 /*                                                                                */
 /* ------------------------------------------------------------------------------ */
 
+#define STRESS_UPDATE(sptr,c1,c2,c3,c4,c5,c6,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx) { \
+   {                                           \
+      real accum  = dt * c1 * u_x;             \
+           accum += dt * c2 * v_y;             \
+           accum += dt * c3 * w_z;             \
+           accum += dt * c4 * (w_y + v_z);     \
+           accum += dt * c5 * (w_x + u_z);     \
+           accum += dt * c6 * (v_x + u_y);     \
+      sptr[IDX(z,x,y,dimmz,dimmx)] += accum;   \
+   }                                           \
+}
+
+inline
 void stress_update(real* restrict sptr,
                    const real     c1,
                    const real     c2,
@@ -535,35 +527,14 @@ void stress_update(real* restrict sptr,
     sptr[IDX(z,x,y,dimmz,dimmx)] += accum;
 };
 
-void stress_propagator(s_t           s,
-                       v_t           v,
-                       coeff_t       coeffs,
-                       real*         rho,
-                       const real    dt,
-                       const real    dzi,
-                       const real    dxi,
-                       const real    dyi,
-                       const integer nz0,
-                       const integer nzf,
-                       const integer nx0,
-                       const integer nxf,
-                       const integer ny0,
-                       const integer nyf,
-                       const integer dimmz,
-                       const integer dimmx,
-                       const phase_t phase )
-{
-#if defined(__INTEL_COMPILER)
-    #pragma forceinline recursive
-#endif
-    {
-        compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, phase);
-    }
-};
+#define CELL_COEFF_BR(ptr,z,x,y,dimmz,dimmx) {            \
+   ( 1.0f / ( 2.5f  *(ptr[IDX(z  ,x  ,y,dimmz,dimmx)] +  \
+                      ptr[IDX(z  ,x+1,y,dimmz,dimmx)] +  \
+                      ptr[IDX(z+1,x  ,y,dimmz,dimmx)] +  \
+                      ptr[IDX(z+1,x+1,y,dimmz,dimmx)])) )\
+}
 
+inline
 real cell_coeff_BR ( const real* restrict ptr,
                      const integer z,
                      const integer x,
@@ -577,6 +548,11 @@ real cell_coeff_BR ( const real* restrict ptr,
                               ptr[IDX(z+1, x+1,y,dimmz,dimmx)])) );
 };
 
+#define CELL_COEFF_TL(ptr,z,x,y,dimmz,dimmx) { \
+    ( 1.0f / (ptr[IDX(z,x,y,dimmz,dimmx)]) )   \
+}
+
+inline
 real cell_coeff_TL ( const real* restrict ptr,
                      const integer z,
                      const integer x,
@@ -587,6 +563,14 @@ real cell_coeff_TL ( const real* restrict ptr,
     return ( 1.0f / (ptr[IDX(z,x,y,dimmz,dimmx)]));
 };
 
+#define CELL_COEFF_BL(ptr,z,x,y,dimmz,dimmx) {            \
+   ( 1.0f / ( 2.5f  *(ptr[IDX(z  ,x,y  ,dimmz,dimmx)] +  \
+                      ptr[IDX(z  ,x,y+1,dimmz,dimmx)] +  \
+                      ptr[IDX(z+1,x,y  ,dimmz,dimmx)] +  \
+                      ptr[IDX(z+1,x,y+1,dimmz,dimmx)])) )\
+}
+
+inline
 real cell_coeff_BL ( const real* restrict ptr,
                      const integer z,
                      const integer x,
@@ -600,6 +584,14 @@ real cell_coeff_BL ( const real* restrict ptr,
                              ptr[IDX(z+1,x,y+1,dimmz,dimmx)])) );
 };
 
+#define CELL_COEFF_TR(ptr,z,x,y,dimmz,dimmx) {            \
+   ( 1.0f / ( 2.5f  *(ptr[IDX(z,x  ,y  ,dimmz,dimmx)] +  \
+                      ptr[IDX(z,x+1,y  ,dimmz,dimmx)] +  \
+                      ptr[IDX(z,x  ,y+1,dimmz,dimmx)] +  \
+                      ptr[IDX(z,x+1,y+1,dimmz,dimmx)])) )\
+}
+
+inline
 real cell_coeff_TR ( const real* restrict ptr,
                      const integer z,
                      const integer x,
@@ -607,12 +599,20 @@ real cell_coeff_TR ( const real* restrict ptr,
                      const integer dimmz,
                      const integer dimmx)
 {
-    return ( 1.0f / ( 2.5f *(ptr[IDX(z  , x  , y  ,dimmz,dimmx)] +
-                             ptr[IDX(z  , x+1, y  ,dimmz,dimmx)] +
-                             ptr[IDX(z  , x  , y+1,dimmz,dimmx)] +
-                             ptr[IDX(z  , x+1, y+1,dimmz,dimmx)])));
+    return ( 1.0f / ( 2.5f *(ptr[IDX(z,x  , y  ,dimmz,dimmx)] +
+                             ptr[IDX(z,x+1, y  ,dimmz,dimmx)] +
+                             ptr[IDX(z,x  , y+1,dimmz,dimmx)] +
+                             ptr[IDX(z,x+1, y+1,dimmz,dimmx)])));
 };
 
+#define CELL_COEFF_ARTM_BR(ptr,z,x,y,dimmz,dimmx) {     \
+    ((1.0f / ptr[IDX(z  ,x  ,y,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z  ,x+1,y,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z+1,x  ,y,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z+1,x+1,y,dimmz,dimmx )]) * 0.25f) \
+}
+
+inline
 real cell_coeff_ARTM_BR( const real* restrict ptr,
                          const integer z,
                          const integer x,
@@ -626,6 +626,11 @@ real cell_coeff_ARTM_BR( const real* restrict ptr,
              1.0f / ptr[IDX(z+1,x+1,y,dimmz,dimmx )]) * 0.25f);
 };
 
+#define CELL_COEFF_ARTM_TL(ptr,z,x,y,dimmz,dimmx) { \
+    ( 1.0f / (ptr[IDX(z,x,y,dimmz,dimmx)]) )   \
+}
+
+inline
 real cell_coeff_ARTM_TL( const real* restrict ptr,
                          const integer z,
                          const integer x,
@@ -636,6 +641,14 @@ real cell_coeff_ARTM_TL( const real* restrict ptr,
     return (1.0f / ptr[IDX(z,x,y,dimmz,dimmx)]);
 };
 
+#define CELL_COEFF_ARTM_BL(ptr,z,x,y,dimmz,dimmx) {     \
+    ((1.0f / ptr[IDX(z  ,x,y  ,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z  ,x,y+1,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z+1,x,y  ,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z+1,x,y+1,dimmz,dimmx )]) * 0.25f) \
+}
+
+inline
 real cell_coeff_ARTM_BL( const real* restrict ptr,
                          const integer z,
                          const integer x,
@@ -649,6 +662,14 @@ real cell_coeff_ARTM_BL( const real* restrict ptr,
              1.0f / ptr[IDX(z+1,x,y+1,dimmz,dimmx)]) * 0.25f);
 };
 
+#define CELL_COEFF_ARTM_TR(ptr,z,x,y,dimmz,dimmx) {     \
+    ((1.0f / ptr[IDX(z,x  ,y  ,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z,x+1,y  ,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z,x  ,y+1,dimmz,dimmx )]  +        \
+      1.0f / ptr[IDX(z,x+1,y+1,dimmz,dimmx )]) * 0.25f) \
+}
+
+inline
 real cell_coeff_ARTM_TR( const real* restrict ptr,
                          const integer z,
                          const integer x,
@@ -682,6 +703,7 @@ void compute_component_scell_TR (s_t             s,
                                  const offset_t _SY,
                                  const integer  dimmz,
                                  const integer  dimmx,
+                                 const integer  dimmy,
                                  const phase_t phase)
 {
     real* restrict sxxptr __attribute__ ((aligned (64))) = s.tr.xx;
@@ -723,109 +745,97 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+   //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+   //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+   //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(scell_TR)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+    #pragma omp target device(openacc) \
+                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
+                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
+                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
+                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
+                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
+                       copy_in(                                                                      cc66[0:size]) \
+                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
+                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
+                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
+                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
+    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
+                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
+                     depend(in:             cc33, cc34, cc35, cc35) \
+                     depend(in:                   cc44, cc45, cc45) \
+                     depend(in:                         cc55, cc56) \
+                     depend(in:                               cc66) \
+                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
+                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                     label(scell_TR)
+    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                              deviceptr(            cc33, cc34, cc35, cc36) \
+                              deviceptr(                  cc44, cc45, cc46) \
+                              deviceptr(                        cc55, cc56) \
+                              deviceptr(                              cc66) \
+                              deviceptr(vxu, vxv, vxw) \
+                              deviceptr(vyu, vyv, vyw) \
+                              deviceptr(vzu, vzv, vzw) \
+                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for (integer x = nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for (integer z = nz0; z < nzf; z++ )
             {
-                const real c11 = cell_coeff_TR      (cc11, z, x, y, dimmz, dimmx);
-                const real c12 = cell_coeff_TR      (cc12, z, x, y, dimmz, dimmx);
-                const real c13 = cell_coeff_TR      (cc13, z, x, y, dimmz, dimmx);
-                const real c14 = cell_coeff_ARTM_TR (cc14, z, x, y, dimmz, dimmx);
-                const real c15 = cell_coeff_ARTM_TR (cc15, z, x, y, dimmz, dimmx);
-                const real c16 = cell_coeff_ARTM_TR (cc16, z, x, y, dimmz, dimmx);
-                const real c22 = cell_coeff_TR      (cc22, z, x, y, dimmz, dimmx);
-                const real c23 = cell_coeff_TR      (cc23, z, x, y, dimmz, dimmx);
-                const real c24 = cell_coeff_ARTM_TR (cc24, z, x, y, dimmz, dimmx);
-                const real c25 = cell_coeff_ARTM_TR (cc25, z, x, y, dimmz, dimmx);
-                const real c26 = cell_coeff_ARTM_TR (cc26, z, x, y, dimmz, dimmx);
-                const real c33 = cell_coeff_TR      (cc33, z, x, y, dimmz, dimmx);
-                const real c34 = cell_coeff_ARTM_TR (cc34, z, x, y, dimmz, dimmx);
-                const real c35 = cell_coeff_ARTM_TR (cc35, z, x, y, dimmz, dimmx);
-                const real c36 = cell_coeff_ARTM_TR (cc36, z, x, y, dimmz, dimmx);
-                const real c44 = cell_coeff_TR      (cc44, z, x, y, dimmz, dimmx);
-                const real c45 = cell_coeff_ARTM_TR (cc45, z, x, y, dimmz, dimmx);
-                const real c46 = cell_coeff_ARTM_TR (cc46, z, x, y, dimmz, dimmx);
-                const real c55 = cell_coeff_TR      (cc55, z, x, y, dimmz, dimmx);
-                const real c56 = cell_coeff_ARTM_TR (cc56, z, x, y, dimmz, dimmx);
-                const real c66 = cell_coeff_TR      (cc66, z, x, y, dimmz, dimmx);
+                const real c11 = CELL_COEFF_TR      (cc11, z, x, y, dimmz, dimmx);
+                const real c12 = CELL_COEFF_TR      (cc12, z, x, y, dimmz, dimmx);
+                const real c13 = CELL_COEFF_TR      (cc13, z, x, y, dimmz, dimmx);
+                const real c14 = CELL_COEFF_ARTM_TR (cc14, z, x, y, dimmz, dimmx);
+                const real c15 = CELL_COEFF_ARTM_TR (cc15, z, x, y, dimmz, dimmx);
+                const real c16 = CELL_COEFF_ARTM_TR (cc16, z, x, y, dimmz, dimmx);
+                const real c22 = CELL_COEFF_TR      (cc22, z, x, y, dimmz, dimmx);
+                const real c23 = CELL_COEFF_TR      (cc23, z, x, y, dimmz, dimmx);
+                const real c24 = CELL_COEFF_ARTM_TR (cc24, z, x, y, dimmz, dimmx);
+                const real c25 = CELL_COEFF_ARTM_TR (cc25, z, x, y, dimmz, dimmx);
+                const real c26 = CELL_COEFF_ARTM_TR (cc26, z, x, y, dimmz, dimmx);
+                const real c33 = CELL_COEFF_TR      (cc33, z, x, y, dimmz, dimmx);
+                const real c34 = CELL_COEFF_ARTM_TR (cc34, z, x, y, dimmz, dimmx);
+                const real c35 = CELL_COEFF_ARTM_TR (cc35, z, x, y, dimmz, dimmx);
+                const real c36 = CELL_COEFF_ARTM_TR (cc36, z, x, y, dimmz, dimmx);
+                const real c44 = CELL_COEFF_TR      (cc44, z, x, y, dimmz, dimmx);
+                const real c45 = CELL_COEFF_ARTM_TR (cc45, z, x, y, dimmz, dimmx);
+                const real c46 = CELL_COEFF_ARTM_TR (cc46, z, x, y, dimmz, dimmx);
+                const real c55 = CELL_COEFF_TR      (cc55, z, x, y, dimmz, dimmx);
+                const real c56 = CELL_COEFF_ARTM_TR (cc56, z, x, y, dimmz, dimmx);
+                const real c66 = CELL_COEFF_TR      (cc66, z, x, y, dimmz, dimmx);
 
-                const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
-                const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
-                const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
+                const real u_x = STENCILX (vxu, SX, dxi, z, x, y, dimmz, dimmx);
+                const real v_x = STENCILX (vxv, SX, dxi, z, x, y, dimmz, dimmx);
+                const real w_x = STENCILX (vxw, SX, dxi, z, x, y, dimmz, dimmx);
 
-                const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
-                const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
-                const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
+                const real u_y = STENCILY (vyu, SY, dyi, z, x, y, dimmz, dimmx);
+                const real v_y = STENCILY (vyv, SY, dyi, z, x, y, dimmz, dimmx);
+                const real w_y = STENCILY (vyw, SY, dyi, z, x, y, dimmz, dimmx);
 
-                const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
-                const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
-                const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
+                const real u_z = STENCILZ (vzu, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real v_z = STENCILZ (vzv, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real w_z = STENCILZ (vzw, SZ, dzi, z, x, y, dimmz, dimmx);
 
-                stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
-    {
-        compute_component_scell_TR_cuda(
-            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
-            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
-            cc11, cc12, cc13, cc14, cc15, cc16,
-            cc22, cc23, cc24, cc25, cc26,
-            cc33, cc34, cc35, cc36,
-            cc44, cc45, cc46,
-            cc55, cc56,
-            cc66,
-            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
-            stream);
-    }
-#endif
 };
 
 void compute_component_scell_TL (s_t             s,
@@ -848,6 +858,7 @@ void compute_component_scell_TL (s_t             s,
                                  const offset_t _SY,
                                  const integer  dimmz,
                                  const integer  dimmx,
+                                 const integer  dimmy,
                                  const phase_t phase)
 {
     real* restrict sxxptr __attribute__ ((aligned (64))) = s.tl.xx;
@@ -889,109 +900,97 @@ void compute_component_scell_TL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(scell_TL)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+    #pragma omp target device(openacc) \
+                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
+                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
+                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
+                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
+                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
+                       copy_in(                                                                      cc66[0:size]) \
+                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
+                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
+                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
+                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
+    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
+                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
+                     depend(in:             cc33, cc34, cc35, cc35) \
+                     depend(in:                   cc44, cc45, cc45) \
+                     depend(in:                         cc55, cc56) \
+                     depend(in:                               cc66) \
+                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
+                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                     label(scell_TL)
+    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                              deviceptr(            cc33, cc34, cc35, cc36) \
+                              deviceptr(                  cc44, cc45, cc46) \
+                              deviceptr(                        cc55, cc56) \
+                              deviceptr(                              cc66) \
+                              deviceptr(vxu, vxv, vxw) \
+                              deviceptr(vyu, vyv, vyw) \
+                              deviceptr(vzu, vzv, vzw) \
+                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for (integer x = nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for (integer z = nz0; z < nzf; z++ )
             {
-                const real c11 = cell_coeff_TL      (cc11, z, x, y, dimmz, dimmx);
-                const real c12 = cell_coeff_TL      (cc12, z, x, y, dimmz, dimmx);
-                const real c13 = cell_coeff_TL      (cc13, z, x, y, dimmz, dimmx);
-                const real c14 = cell_coeff_ARTM_TL (cc14, z, x, y, dimmz, dimmx);
-                const real c15 = cell_coeff_ARTM_TL (cc15, z, x, y, dimmz, dimmx);
-                const real c16 = cell_coeff_ARTM_TL (cc16, z, x, y, dimmz, dimmx);
-                const real c22 = cell_coeff_TL      (cc22, z, x, y, dimmz, dimmx);
-                const real c23 = cell_coeff_TL      (cc23, z, x, y, dimmz, dimmx);
-                const real c24 = cell_coeff_ARTM_TL (cc24, z, x, y, dimmz, dimmx);
-                const real c25 = cell_coeff_ARTM_TL (cc25, z, x, y, dimmz, dimmx);
-                const real c26 = cell_coeff_ARTM_TL (cc26, z, x, y, dimmz, dimmx);
-                const real c33 = cell_coeff_TL      (cc33, z, x, y, dimmz, dimmx);
-                const real c34 = cell_coeff_ARTM_TL (cc34, z, x, y, dimmz, dimmx);
-                const real c35 = cell_coeff_ARTM_TL (cc35, z, x, y, dimmz, dimmx);
-                const real c36 = cell_coeff_ARTM_TL (cc36, z, x, y, dimmz, dimmx);
-                const real c44 = cell_coeff_TL      (cc44, z, x, y, dimmz, dimmx);
-                const real c45 = cell_coeff_ARTM_TL (cc45, z, x, y, dimmz, dimmx);
-                const real c46 = cell_coeff_ARTM_TL (cc46, z, x, y, dimmz, dimmx);
-                const real c55 = cell_coeff_TL      (cc55, z, x, y, dimmz, dimmx);
-                const real c56 = cell_coeff_ARTM_TL (cc56, z, x, y, dimmz, dimmx);
-                const real c66 = cell_coeff_TL      (cc66, z, x, y, dimmz, dimmx);
+                const real c11 = CELL_COEFF_TL      (cc11, z, x, y, dimmz, dimmx);
+                const real c12 = CELL_COEFF_TL      (cc12, z, x, y, dimmz, dimmx);
+                const real c13 = CELL_COEFF_TL      (cc13, z, x, y, dimmz, dimmx);
+                const real c14 = CELL_COEFF_ARTM_TL (cc14, z, x, y, dimmz, dimmx);
+                const real c15 = CELL_COEFF_ARTM_TL (cc15, z, x, y, dimmz, dimmx);
+                const real c16 = CELL_COEFF_ARTM_TL (cc16, z, x, y, dimmz, dimmx);
+                const real c22 = CELL_COEFF_TL      (cc22, z, x, y, dimmz, dimmx);
+                const real c23 = CELL_COEFF_TL      (cc23, z, x, y, dimmz, dimmx);
+                const real c24 = CELL_COEFF_ARTM_TL (cc24, z, x, y, dimmz, dimmx);
+                const real c25 = CELL_COEFF_ARTM_TL (cc25, z, x, y, dimmz, dimmx);
+                const real c26 = CELL_COEFF_ARTM_TL (cc26, z, x, y, dimmz, dimmx);
+                const real c33 = CELL_COEFF_TL      (cc33, z, x, y, dimmz, dimmx);
+                const real c34 = CELL_COEFF_ARTM_TL (cc34, z, x, y, dimmz, dimmx);
+                const real c35 = CELL_COEFF_ARTM_TL (cc35, z, x, y, dimmz, dimmx);
+                const real c36 = CELL_COEFF_ARTM_TL (cc36, z, x, y, dimmz, dimmx);
+                const real c44 = CELL_COEFF_TL      (cc44, z, x, y, dimmz, dimmx);
+                const real c45 = CELL_COEFF_ARTM_TL (cc45, z, x, y, dimmz, dimmx);
+                const real c46 = CELL_COEFF_ARTM_TL (cc46, z, x, y, dimmz, dimmx);
+                const real c55 = CELL_COEFF_TL      (cc55, z, x, y, dimmz, dimmx);
+                const real c56 = CELL_COEFF_ARTM_TL (cc56, z, x, y, dimmz, dimmx);
+                const real c66 = CELL_COEFF_TL      (cc66, z, x, y, dimmz, dimmx);
 
-                const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
-                const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
-                const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
+                const real u_x = STENCILX (vxu, SX, dxi, z, x, y, dimmz, dimmx);
+                const real v_x = STENCILX (vxv, SX, dxi, z, x, y, dimmz, dimmx);
+                const real w_x = STENCILX (vxw, SX, dxi, z, x, y, dimmz, dimmx);
 
-                const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
-                const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
-                const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
+                const real u_y = STENCILY (vyu, SY, dyi, z, x, y, dimmz, dimmx);
+                const real v_y = STENCILY (vyv, SY, dyi, z, x, y, dimmz, dimmx);
+                const real w_y = STENCILY (vyw, SY, dyi, z, x, y, dimmz, dimmx);
 
-                const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
-                const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
-                const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
+                const real u_z = STENCILZ (vzu, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real v_z = STENCILZ (vzv, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real w_z = STENCILZ (vzw, SZ, dzi, z, x, y, dimmz, dimmx);
 
-                stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
-    {
-        compute_component_scell_TL_cuda(
-            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
-            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
-            cc11, cc12, cc13, cc14, cc15, cc16,
-            cc22, cc23, cc24, cc25, cc26,
-            cc33, cc34, cc35, cc36,
-            cc44, cc45, cc46,
-            cc55, cc56,
-            cc66,
-            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
-            stream);
-    }
-#endif
 };
 
 
@@ -1015,6 +1014,7 @@ void compute_component_scell_BR (s_t             s,
                                  const offset_t _SY,
                                  const integer  dimmz,
                                  const integer  dimmx,
+                                 const integer  dimmy,
                                  const phase_t phase)
 {
     real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
@@ -1056,110 +1056,98 @@ void compute_component_scell_BR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(scell_BR)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+    #pragma omp target device(openacc) \
+                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
+                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
+                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
+                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
+                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
+                       copy_in(                                                                      cc66[0:size]) \
+                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
+                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
+                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
+                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
+    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
+                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
+                     depend(in:             cc33, cc34, cc35, cc35) \
+                     depend(in:                   cc44, cc45, cc45) \
+                     depend(in:                         cc55, cc56) \
+                     depend(in:                               cc66) \
+                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
+                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                     label(scell_TL)
+    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                              deviceptr(            cc33, cc34, cc35, cc36) \
+                              deviceptr(                  cc44, cc45, cc46) \
+                              deviceptr(                        cc55, cc56) \
+                              deviceptr(                              cc66) \
+                              deviceptr(vxu, vxv, vxw) \
+                              deviceptr(vyu, vyv, vyw) \
+                              deviceptr(vzu, vzv, vzw) \
+                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for (integer x = nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for (integer z = nz0; z < nzf; z++ )
             {
-                const real c11 = cell_coeff_BR      (cc11, z, x, y, dimmz, dimmx);
-                const real c12 = cell_coeff_BR      (cc12, z, x, y, dimmz, dimmx);
-                const real c13 = cell_coeff_BR      (cc13, z, x, y, dimmz, dimmx);
-                const real c22 = cell_coeff_BR      (cc22, z, x, y, dimmz, dimmx);
-                const real c23 = cell_coeff_BR      (cc23, z, x, y, dimmz, dimmx);
-                const real c33 = cell_coeff_BR      (cc33, z, x, y, dimmz, dimmx);
-                const real c44 = cell_coeff_BR      (cc44, z, x, y, dimmz, dimmx);
-                const real c55 = cell_coeff_BR      (cc55, z, x, y, dimmz, dimmx);
-                const real c66 = cell_coeff_BR      (cc66, z, x, y, dimmz, dimmx);
+                const real c11 = CELL_COEFF_BR      (cc11, z, x, y, dimmz, dimmx);
+                const real c12 = CELL_COEFF_BR      (cc12, z, x, y, dimmz, dimmx);
+                const real c13 = CELL_COEFF_BR      (cc13, z, x, y, dimmz, dimmx);
+                const real c22 = CELL_COEFF_BR      (cc22, z, x, y, dimmz, dimmx);
+                const real c23 = CELL_COEFF_BR      (cc23, z, x, y, dimmz, dimmx);
+                const real c33 = CELL_COEFF_BR      (cc33, z, x, y, dimmz, dimmx);
+                const real c44 = CELL_COEFF_BR      (cc44, z, x, y, dimmz, dimmx);
+                const real c55 = CELL_COEFF_BR      (cc55, z, x, y, dimmz, dimmx);
+                const real c66 = CELL_COEFF_BR      (cc66, z, x, y, dimmz, dimmx);
 
-                const real c14 = cell_coeff_ARTM_BR (cc14, z, x, y, dimmz, dimmx);
-                const real c15 = cell_coeff_ARTM_BR (cc15, z, x, y, dimmz, dimmx);
-                const real c16 = cell_coeff_ARTM_BR (cc16, z, x, y, dimmz, dimmx);
-                const real c24 = cell_coeff_ARTM_BR (cc24, z, x, y, dimmz, dimmx);
-                const real c25 = cell_coeff_ARTM_BR (cc25, z, x, y, dimmz, dimmx);
-                const real c26 = cell_coeff_ARTM_BR (cc26, z, x, y, dimmz, dimmx);
-                const real c34 = cell_coeff_ARTM_BR (cc34, z, x, y, dimmz, dimmx);
-                const real c35 = cell_coeff_ARTM_BR (cc35, z, x, y, dimmz, dimmx);
-                const real c36 = cell_coeff_ARTM_BR (cc36, z, x, y, dimmz, dimmx);
-                const real c45 = cell_coeff_ARTM_BR (cc45, z, x, y, dimmz, dimmx);
-                const real c46 = cell_coeff_ARTM_BR (cc46, z, x, y, dimmz, dimmx);
-                const real c56 = cell_coeff_ARTM_BR (cc56, z, x, y, dimmz, dimmx);
+                const real c14 = CELL_COEFF_ARTM_BR (cc14, z, x, y, dimmz, dimmx);
+                const real c15 = CELL_COEFF_ARTM_BR (cc15, z, x, y, dimmz, dimmx);
+                const real c16 = CELL_COEFF_ARTM_BR (cc16, z, x, y, dimmz, dimmx);
+                const real c24 = CELL_COEFF_ARTM_BR (cc24, z, x, y, dimmz, dimmx);
+                const real c25 = CELL_COEFF_ARTM_BR (cc25, z, x, y, dimmz, dimmx);
+                const real c26 = CELL_COEFF_ARTM_BR (cc26, z, x, y, dimmz, dimmx);
+                const real c34 = CELL_COEFF_ARTM_BR (cc34, z, x, y, dimmz, dimmx);
+                const real c35 = CELL_COEFF_ARTM_BR (cc35, z, x, y, dimmz, dimmx);
+                const real c36 = CELL_COEFF_ARTM_BR (cc36, z, x, y, dimmz, dimmx);
+                const real c45 = CELL_COEFF_ARTM_BR (cc45, z, x, y, dimmz, dimmx);
+                const real c46 = CELL_COEFF_ARTM_BR (cc46, z, x, y, dimmz, dimmx);
+                const real c56 = CELL_COEFF_ARTM_BR (cc56, z, x, y, dimmz, dimmx);
 
-                const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
-                const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
-                const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
+                const real u_x = STENCILX (vxu, SX, dxi, z, x, y, dimmz, dimmx);
+                const real v_x = STENCILX (vxv, SX, dxi, z, x, y, dimmz, dimmx);
+                const real w_x = STENCILX (vxw, SX, dxi, z, x, y, dimmz, dimmx);
 
-                const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
-                const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
-                const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
+                const real u_y = STENCILY (vyu, SY, dyi, z, x, y, dimmz, dimmx);
+                const real v_y = STENCILY (vyv, SY, dyi, z, x, y, dimmz, dimmx);
+                const real w_y = STENCILY (vyw, SY, dyi, z, x, y, dimmz, dimmx);
 
-                const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
-                const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
-                const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
+                const real u_z = STENCILZ (vzu, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real v_z = STENCILZ (vzv, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real w_z = STENCILZ (vzw, SZ, dzi, z, x, y, dimmz, dimmx);
 
-                stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
-                stress_update (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
+                STRESS_UPDATE (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
-    {
-        compute_component_scell_BR_cuda(
-            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
-            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
-            cc11, cc12, cc13, cc14, cc15, cc16,
-            cc22, cc23, cc24, cc25, cc26,
-            cc33, cc34, cc35, cc36,
-            cc44, cc45, cc46,
-            cc55, cc56,
-            cc66,
-            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
-            stream);
-    }
-#endif
 };
 
 void compute_component_scell_BL (s_t             s,
@@ -1182,6 +1170,7 @@ void compute_component_scell_BL (s_t             s,
                                  const offset_t _SY,
                                  const integer  dimmz,
                                  const integer  dimmx,
+                                 const integer   dimmy,
                                  const phase_t phase)
 {
     real* restrict sxxptr __attribute__ ((aligned (64))) = s.br.xx;
@@ -1223,107 +1212,127 @@ void compute_component_scell_BL (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
+    const int SX = _SX;
+    const int SY = _SY;
+    const int SZ = _SZ;
 
-#if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
+    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
+    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
+    //const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase)
-    #pragma acc loop independent
-#elif defined(_OPENMP) && !defined(USE_OMPSS)
-    #pragma omp parallel for
-#elif defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp for nowait label(scell_BL)
-#endif /* end pragma _OPENACC */
+    const integer size = dimmz * dimmx * dimmy;
+
+    #pragma omp target device(openacc) \
+                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
+                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
+                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
+                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
+                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
+                       copy_in(                                                                      cc66[0:size]) \
+                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
+                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
+                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
+                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
+    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
+                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
+                     depend(in:             cc33, cc34, cc35, cc35) \
+                     depend(in:                   cc44, cc45, cc45) \
+                     depend(in:                         cc55, cc56) \
+                     depend(in:                               cc66) \
+                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
+                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                     label(scell_TL)
+    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                              deviceptr(            cc33, cc34, cc35, cc36) \
+                              deviceptr(                  cc44, cc45, cc46) \
+                              deviceptr(                        cc55, cc56) \
+                              deviceptr(                              cc66) \
+                              deviceptr(vxu, vxv, vxw) \
+                              deviceptr(vyu, vyv, vyw) \
+                              deviceptr(vzu, vzv, vzw) \
+                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
-#if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
-#endif
+        #pragma acc loop independent
         for (integer x = nx0; x < nxf; x++)
         {
-#if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
-#endif
+            #pragma acc loop independent
             for (integer z = nz0; z < nzf; z++ )
             {
-                const real c11 = cell_coeff_BL      (cc11, z, x, y, dimmz, dimmx);
-                const real c12 = cell_coeff_BL      (cc12, z, x, y, dimmz, dimmx);
-                const real c13 = cell_coeff_BL      (cc13, z, x, y, dimmz, dimmx);
-                const real c14 = cell_coeff_ARTM_BL (cc14, z, x, y, dimmz, dimmx);
-                const real c15 = cell_coeff_ARTM_BL (cc15, z, x, y, dimmz, dimmx);
-                const real c16 = cell_coeff_ARTM_BL (cc16, z, x, y, dimmz, dimmx);
-                const real c22 = cell_coeff_BL      (cc22, z, x, y, dimmz, dimmx);
-                const real c23 = cell_coeff_BL      (cc23, z, x, y, dimmz, dimmx);
-                const real c24 = cell_coeff_ARTM_BL (cc24, z, x, y, dimmz, dimmx);
-                const real c25 = cell_coeff_ARTM_BL (cc25, z, x, y, dimmz, dimmx);
-                const real c26 = cell_coeff_ARTM_BL (cc26, z, x, y, dimmz, dimmx);
-                const real c33 = cell_coeff_BL      (cc33, z, x, y, dimmz, dimmx);
-                const real c34 = cell_coeff_ARTM_BL (cc34, z, x, y, dimmz, dimmx);
-                const real c35 = cell_coeff_ARTM_BL (cc35, z, x, y, dimmz, dimmx);
-                const real c36 = cell_coeff_ARTM_BL (cc36, z, x, y, dimmz, dimmx);
-                const real c44 = cell_coeff_BL      (cc44, z, x, y, dimmz, dimmx);
-                const real c45 = cell_coeff_ARTM_BL (cc45, z, x, y, dimmz, dimmx);
-                const real c46 = cell_coeff_ARTM_BL (cc46, z, x, y, dimmz, dimmx);
-                const real c55 = cell_coeff_BL      (cc55, z, x, y, dimmz, dimmx);
-                const real c56 = cell_coeff_ARTM_BL (cc56, z, x, y, dimmz, dimmx);
-                const real c66 = cell_coeff_BL      (cc66, z, x, y, dimmz, dimmx);
+                const real c11 = CELL_COEFF_BL      (cc11, z, x, y, dimmz, dimmx);
+                const real c12 = CELL_COEFF_BL      (cc12, z, x, y, dimmz, dimmx);
+                const real c13 = CELL_COEFF_BL      (cc13, z, x, y, dimmz, dimmx);
+                const real c14 = CELL_COEFF_ARTM_BL (cc14, z, x, y, dimmz, dimmx);
+                const real c15 = CELL_COEFF_ARTM_BL (cc15, z, x, y, dimmz, dimmx);
+                const real c16 = CELL_COEFF_ARTM_BL (cc16, z, x, y, dimmz, dimmx);
+                const real c22 = CELL_COEFF_BL      (cc22, z, x, y, dimmz, dimmx);
+                const real c23 = CELL_COEFF_BL      (cc23, z, x, y, dimmz, dimmx);
+                const real c24 = CELL_COEFF_ARTM_BL (cc24, z, x, y, dimmz, dimmx);
+                const real c25 = CELL_COEFF_ARTM_BL (cc25, z, x, y, dimmz, dimmx);
+                const real c26 = CELL_COEFF_ARTM_BL (cc26, z, x, y, dimmz, dimmx);
+                const real c33 = CELL_COEFF_BL      (cc33, z, x, y, dimmz, dimmx);
+                const real c34 = CELL_COEFF_ARTM_BL (cc34, z, x, y, dimmz, dimmx);
+                const real c35 = CELL_COEFF_ARTM_BL (cc35, z, x, y, dimmz, dimmx);
+                const real c36 = CELL_COEFF_ARTM_BL (cc36, z, x, y, dimmz, dimmx);
+                const real c44 = CELL_COEFF_BL      (cc44, z, x, y, dimmz, dimmx);
+                const real c45 = CELL_COEFF_ARTM_BL (cc45, z, x, y, dimmz, dimmx);
+                const real c46 = CELL_COEFF_ARTM_BL (cc46, z, x, y, dimmz, dimmx);
+                const real c55 = CELL_COEFF_BL      (cc55, z, x, y, dimmz, dimmx);
+                const real c56 = CELL_COEFF_ARTM_BL (cc56, z, x, y, dimmz, dimmx);
+                const real c66 = CELL_COEFF_BL      (cc66, z, x, y, dimmz, dimmx);
 
-                const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
-                const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
-                const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
+                const real u_x = STENCILX (vxu, SX, dxi, z, x, y, dimmz, dimmx);
+                const real v_x = STENCILX (vxv, SX, dxi, z, x, y, dimmz, dimmx);
+                const real w_x = STENCILX (vxw, SX, dxi, z, x, y, dimmz, dimmx);
 
-                const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
-                const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
-                const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
+                const real u_y = STENCILY (vyu, SY, dyi, z, x, y, dimmz, dimmx);
+                const real v_y = STENCILY (vyv, SY, dyi, z, x, y, dimmz, dimmx);
+                const real w_y = STENCILY (vyw, SY, dyi, z, x, y, dimmz, dimmx);
 
-                const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
-                const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
-                const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
+                const real u_z = STENCILZ (vzu, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real v_z = STENCILZ (vzv, SZ, dzi, z, x, y, dimmz, dimmx);
+                const real w_z = STENCILZ (vzw, SZ, dzi, z, x, y, dimmz, dimmx);
 
-                stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
-                stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
-                stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
-                stress_update (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
-                stress_update (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
-                stress_update (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (syzptr,c14,c24,c34,c44,c45,c46,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (sxzptr,c15,c25,c35,c45,c55,c56,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
+                STRESS_UPDATE (sxyptr,c16,c26,c36,c46,c56,c66,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
             }
         }
     }
-#if defined(_OPENMP) && defined(USE_OMPSS)
-    #pragma omp taskwait
-#endif
-
-#else
-    void* stream = acc_get_cuda_stream(phase);
-
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
-    {
-        compute_component_scell_BL_cuda(
-            sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
-            vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
-            cc11, cc12, cc13, cc14, cc15, cc16,
-            cc22, cc23, cc24, cc25, cc26,
-            cc33, cc34, cc35, cc36,
-            cc44, cc45, cc46,
-            cc55, cc56,
-            cc66,
-            dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
-            stream);
-    }
-#endif
 };
+
+void stress_propagator(s_t           s,
+                       v_t           v,
+                       coeff_t       coeffs,
+                       real*         rho,
+                       const real    dt,
+                       const real    dzi,
+                       const real    dxi,
+                       const real    dyi,
+                       const integer nz0,
+                       const integer nzf,
+                       const integer nx0,
+                       const integer nxf,
+                       const integer ny0,
+                       const integer nyf,
+                       const integer dimmz,
+                       const integer dimmx,
+                       const integer dimmy,
+                       const phase_t phase )
+{
+#if defined(__INTEL_COMPILER)
+    #pragma forceinline recursive
+#endif
+    {
+        compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
+        compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
+    }
+    #pragma omp taskwait
+};
+

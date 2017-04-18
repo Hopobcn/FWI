@@ -209,7 +209,7 @@ void alloc_memory_shot( const integer numberOfCells,
     const integer datalen = numberOfCells;
 
     const real* rrho  = *rho;
-    
+
     coeff_t cc = *c;
     // TODO: Test that works with this shit
     #pragma acc enter data create(cc)
@@ -356,7 +356,7 @@ void free_memory_shot( coeff_t *c,
     #pragma acc exit data delete(s->br.xy)
     #pragma acc exit data delete(s->br.yy)
     #pragma acc exit data delete(s)
-    
+
     const real* rrho  = *rho;
     #pragma acc exit data delete(rrho)
 
@@ -891,7 +891,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx,
+                            dimmz, dimmx, dimmy,
                             ONE_L);
 
         /* Phase 1. Computation of the right-most planes of the domain */
@@ -902,7 +902,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
+                            dimmz, dimmx, dimmy,
                             ONE_R);
 
         /* Phase 2. Computation of the central planes. */
@@ -915,7 +915,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
+                            dimmz, dimmx, dimmy,
                             TWO);
 #if defined(USE_MPI)
         const integer plane_size = dimmz * dimmx;
@@ -939,7 +939,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
-                          dimmz, dimmx,
+                          dimmz, dimmx, dimmy,
                           ONE_L);
 
         /* Phase 1. Computation of the right-most planes of the domain */
@@ -950,7 +950,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           nyf - 2*HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
+                          dimmz, dimmx, dimmy,
                           ONE_R);
 
         /* Phase 2 computation. Central planes of the domain */
@@ -963,7 +963,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
+                          dimmz, dimmx, dimmy,
                           TWO);
 
 #if defined(USE_MPI)
