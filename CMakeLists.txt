@@ -63,7 +63,7 @@ else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
         set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-        if ("${CMAKE_SYSTEM_PROCESSOR" STREQUAL "x86_64")
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
             set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
         endif ()
 
@@ -119,10 +119,10 @@ if (USE_OPENACC)
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
         set(OpenACC_C_FLAGS "-acc -ta=multicore")
 
-        if ("${CMAKE_SYSTEM_PROCESSOR" STREQUAL "x86_64")
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
             #Flags for x86 machines (Minotauro, ironman, thor, ...)
             set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,lineinfo")
-        elseif("{CMAKE_SYSTEM_PROCESSOR" STREQUAL "ppc64le")
+        elseif("{CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
             #FLAGS FOR POWER8+P100  (Marenostrum4)
             set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60")
         else ()
