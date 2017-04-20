@@ -125,8 +125,6 @@ if (USE_OPENACC)
         elseif("{CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
             #FLAGS FOR POWER8+P100  (Marenostrum4)
             set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60")
-        else ()
-            message(FATAL "Error, architecture not recognized")
         endif ()
 
         find_package(CUDA)
