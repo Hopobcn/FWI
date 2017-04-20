@@ -38,8 +38,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f", randvalue);
 
-    for( integer i = 0; i < length; i++ )
-        array[i] = randvalue;
+    set_array_to_constant(array, randvalue, length);
 }
 
 /*
