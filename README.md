@@ -107,7 +107,7 @@ make utest
 ```
 
 Build FWI with OpenACC+CUDA kernels with PGI and execute tests:
->>>>>>> aff832c... Improve Documentation
+
 ```bash
 source scripts/environment_pgi.sh
 cd build
