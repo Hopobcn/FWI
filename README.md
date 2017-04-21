@@ -1,6 +1,20 @@
 # FWI mini-app
 
-Reverse time migration (RTM) modeling is a critical component in the seismic processing workflow of oil and gas exploration.
+## Parallelization of a Reverse Time Migration (RTM) program using OpenACC/CUDA
+
+Reverse time migration (RTM) modeling is a critical component in the seismic
+processing workflow of oil and gas exploration as well as for the understanding
+of energy release in subduction-zone earthquakes. With the help of high
+precision seismic sensors deployed on the field, it is possible to use the
+information gathered during seismic aftershocks and reverse-time migrate them.
+This can give scientists a large amount of highly accurate information of the
+seismic conditions of the region of interest.
+
+Such analysis is critical after a large earthquake because it can help
+scientists know the state of a seismic fault and the probability of subsequent
+large aftershocks. As the number of aftershocks sky-rockets after a large
+earthquake, the amount of data to analyse grows really fast.  Thus, it is
+mandatory to speed up the processing of all that information.
 
 ### [Steps](GTC2017.md)
 
