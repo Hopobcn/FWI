@@ -81,9 +81,6 @@ int main(int argc, const char *argv[])
         /* safe dummy buffer */
         for(int i = 0; i < WRITTEN_FIELDS; i++)
         {
-            /* fill the buffer with random numbers in [-1,1] interval */
-            //for(int j = 0; j < numberOfCells; j++)
-            //    buffer[j] = (rand() % 2) -1.0;     <<--- provoca NaNs en l'execucio
             set_array_to_random_real( buffer, numberOfCells );
 
             safe_fwrite( buffer, sizeof(real), numberOfCells, model, __FILE__, __LINE__);
