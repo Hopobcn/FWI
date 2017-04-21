@@ -103,6 +103,7 @@ make
 ```
 
 Build FWI with OpenMP support with PGI and execute tests:
+
 ```bash
 source scripts/environment_pgi.sh
 cd build
@@ -111,6 +112,7 @@ make utest
 ```
 
 Build FWI with OpenACC with PGI and execute tests:
+
 ```bash
 source scripts/environment_pgi.sh
 cd build
@@ -119,6 +121,7 @@ make utest
 ```
 
 Build FWI with OpenACC+CUDA kernels with PGI and execute tests:
+
 ```bash
 source scripts/environment_pgi.sh
 cd build
