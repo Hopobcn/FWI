@@ -217,19 +217,13 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const int SY = _SY;
     const int SZ = _SZ;
 
-    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-
-    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
-                                       copy_inout(vptr[0:size])
-    #pragma omp task in(rho, sxptr, syptr, szptr) \
-                     inout(vptr)\
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]rho, [size]sxptr, [size]syptr, [size]szptr ) \
+                     inout( [size]vptr )\
                      label(vcell_TL)
-    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -277,19 +271,13 @@ void compute_component_vcell_TR (      real* restrict vptr,
     const int SY = _SY;
     const int SZ = _SZ;
 
-  //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-  //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-  //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-
-    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
-                                       copy_inout(vptr[0:size])
-    #pragma omp task in(rho, sxptr, syptr, szptr) \
-                     inout(vptr)\
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]rho, [size]sxptr, [size]syptr, [size]szptr ) \
+                     inout( [size]vptr )\
                      label(vcell_TR)
-    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -337,19 +325,13 @@ void compute_component_vcell_BR (      real* restrict vptr,
     const int SY = _SY;
     const int SZ = _SZ;
 
-   //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-   //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-   //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-
-    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
-                                       copy_inout(vptr[0:size])
-    #pragma omp task in(rho, sxptr, syptr, szptr) \
-                     inout(vptr)\
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]rho, [size]sxptr, [size]syptr, [size]szptr ) \
+                     inout( [size]vptr )\
                      label(vcell_BR)
-    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -397,18 +379,13 @@ void compute_component_vcell_BL (      real* restrict vptr,
     const int SY = _SY;
     const int SZ = _SZ;
 
-    // const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    // const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    // const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-    #pragma omp target device(openacc) copy_in(rho[0:size], sxptr[0:size], syptr[0:size], szptr[0:size]) \
-                                       copy_inout(vptr[0:size])
-    #pragma omp task in(rho, sxptr, syptr, szptr) \
-                     inout(vptr)\
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]rho, [size]sxptr, [size]syptr, [size]szptr ) \
+                     inout( [size]vptr )\
                      label(vcell_BR)
-    #pragma acc parallel loop deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -469,7 +446,6 @@ void velocity_propagator(v_t           v,
         compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
         compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
     }
-    #pragma omp taskwait
 };
 
 
@@ -749,42 +725,28 @@ void compute_component_scell_TR (s_t             s,
     const int SY = _SY;
     const int SZ = _SZ;
 
-   //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-   //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-   //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-    #pragma omp target device(openacc) \
-                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
-                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
-                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
-                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
-                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
-                       copy_in(                                                                      cc66[0:size]) \
-                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
-                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
-                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
-                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
-    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
-                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
-                     depend(in:             cc33, cc34, cc35, cc35) \
-                     depend(in:                   cc44, cc45, cc45) \
-                     depend(in:                         cc55, cc56) \
-                     depend(in:                               cc66) \
-                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
-                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]cc11, [size]cc12, [size]cc13, [size]cc14, [size]cc15, [size]cc16 ) \
+                     in(             [size]cc22, [size]cc23, [size]cc24, [size]cc25, [size]cc26 ) \
+                     in(                         [size]cc33, [size]cc34, [size]cc35, [size]cc36 ) \
+                     in(                                     [size]cc44, [size]cc45, [size]cc46 ) \
+                     in(                                                 [size]cc55, [size]cc56 ) \
+                     in(                                                             [size]cc66 ) \
+                     in( [size]vxu, [size]vxv, [size]vxw, [size]vyu, [size]vyv, [size]vyw, [size]vzu, [size]vzv, [size]vzw ) \
+                     inout( [size]sxxptr, [size]syyptr, [size]szzptr, [size]syzptr, [size]sxzptr, [size]sxyptr ) \
                      label(scell_TR)
-    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
-                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
-                              deviceptr(            cc33, cc34, cc35, cc36) \
-                              deviceptr(                  cc44, cc45, cc46) \
-                              deviceptr(                        cc55, cc56) \
-                              deviceptr(                              cc66) \
-                              deviceptr(vxu, vxv, vxw) \
-                              deviceptr(vyu, vyv, vyw) \
-                              deviceptr(vzu, vzv, vzw) \
-                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc kernels deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                        deviceptr(            cc33, cc34, cc35, cc36) \
+                        deviceptr(                  cc44, cc45, cc46) \
+                        deviceptr(                        cc55, cc56) \
+                        deviceptr(                              cc66) \
+                        deviceptr(vxu, vxv, vxw) \
+                        deviceptr(vyu, vyv, vyw) \
+                        deviceptr(vzu, vzv, vzw) \
+                        deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -904,42 +866,28 @@ void compute_component_scell_TL (s_t             s,
     const int SY = _SY;
     const int SZ = _SZ;
 
-    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-    #pragma omp target device(openacc) \
-                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
-                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
-                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
-                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
-                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
-                       copy_in(                                                                      cc66[0:size]) \
-                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
-                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
-                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
-                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
-    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
-                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
-                     depend(in:             cc33, cc34, cc35, cc35) \
-                     depend(in:                   cc44, cc45, cc45) \
-                     depend(in:                         cc55, cc56) \
-                     depend(in:                               cc66) \
-                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
-                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]cc11, [size]cc12, [size]cc13, [size]cc14, [size]cc15, [size]cc16 ) \
+                     in(             [size]cc22, [size]cc23, [size]cc24, [size]cc25, [size]cc26 ) \
+                     in(                         [size]cc33, [size]cc34, [size]cc35, [size]cc36 ) \
+                     in(                                     [size]cc44, [size]cc45, [size]cc46 ) \
+                     in(                                                 [size]cc55, [size]cc56 ) \
+                     in(                                                             [size]cc66 ) \
+                     in( [size]vxu, [size]vxv, [size]vxw, [size]vyu, [size]vyv, [size]vyw, [size]vzu, [size]vzv, [size]vzw ) \
+                     inout( [size]sxxptr, [size]syyptr, [size]szzptr, [size]syzptr, [size]sxzptr, [size]sxyptr ) \
                      label(scell_TL)
-    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
-                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
-                              deviceptr(            cc33, cc34, cc35, cc36) \
-                              deviceptr(                  cc44, cc45, cc46) \
-                              deviceptr(                        cc55, cc56) \
-                              deviceptr(                              cc66) \
-                              deviceptr(vxu, vxv, vxw) \
-                              deviceptr(vyu, vyv, vyw) \
-                              deviceptr(vzu, vzv, vzw) \
-                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc kernels deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                        deviceptr(            cc33, cc34, cc35, cc36) \
+                        deviceptr(                  cc44, cc45, cc46) \
+                        deviceptr(                        cc55, cc56) \
+                        deviceptr(                              cc66) \
+                        deviceptr(vxu, vxv, vxw) \
+                        deviceptr(vyu, vyv, vyw) \
+                        deviceptr(vzu, vzv, vzw) \
+                        deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -1060,42 +1008,28 @@ void compute_component_scell_BR (s_t             s,
     const int SY = _SY;
     const int SZ = _SZ;
 
-    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-    #pragma omp target device(openacc) \
-                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
-                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
-                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
-                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
-                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
-                       copy_in(                                                                      cc66[0:size]) \
-                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
-                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
-                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
-                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
-    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
-                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
-                     depend(in:             cc33, cc34, cc35, cc35) \
-                     depend(in:                   cc44, cc45, cc45) \
-                     depend(in:                         cc55, cc56) \
-                     depend(in:                               cc66) \
-                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
-                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                     label(scell_TL)
-    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
-                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
-                              deviceptr(            cc33, cc34, cc35, cc36) \
-                              deviceptr(                  cc44, cc45, cc46) \
-                              deviceptr(                        cc55, cc56) \
-                              deviceptr(                              cc66) \
-                              deviceptr(vxu, vxv, vxw) \
-                              deviceptr(vyu, vyv, vyw) \
-                              deviceptr(vzu, vzv, vzw) \
-                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]cc11, [size]cc12, [size]cc13, [size]cc14, [size]cc15, [size]cc16) \
+                     in(             [size]cc22, [size]cc23, [size]cc24, [size]cc25, [size]cc26) \
+                     in(                         [size]cc33, [size]cc34, [size]cc35, [size]cc36) \
+                     in(                                     [size]cc44, [size]cc45, [size]cc46) \
+                     in(                                                 [size]cc55, [size]cc56) \
+                     in(                                                             [size]cc66) \
+                     in( [size]vxu, [size]vxv, [size]vxw, [size]vyu, [size]vyv, [size]vyw, [size]vzu, [size]vzv, [size]vzw) \
+                     inout( [size]sxxptr, [size]syyptr, [size]szzptr, [size]syzptr, [size]sxzptr, [size]sxyptr) \
+                     label(scell_BR)
+    #pragma acc kernels deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                        deviceptr(            cc33, cc34, cc35, cc36) \
+                        deviceptr(                  cc44, cc45, cc46) \
+                        deviceptr(                        cc55, cc56) \
+                        deviceptr(                              cc66) \
+                        deviceptr(vxu, vxv, vxw) \
+                        deviceptr(vyu, vyv, vyw) \
+                        deviceptr(vzu, vzv, vzw) \
+                        deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -1216,42 +1150,28 @@ void compute_component_scell_BL (s_t             s,
     const int SY = _SY;
     const int SZ = _SZ;
 
-    //const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    //const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    //const integer nelems = end - start;
-
     const integer size = dimmz * dimmx * dimmy;
 
-    #pragma omp target device(openacc) \
-                       copy_in(cc11[0:size], cc12[0:size], cc13[0:size], cc14[0:size], cc15[0:size], cc16[0:size]) \
-                       copy_in(              cc22[0:size], cc23[0:size], cc24[0:size], cc25[0:size], cc26[0:size]) \
-                       copy_in(                            cc33[0:size], cc34[0:size], cc35[0:size], cc36[0:size]) \
-                       copy_in(                                          cc44[0:size], cc45[0:size], cc46[0:size]) \
-                       copy_in(                                                        cc55[0:size], cc56[0:size]) \
-                       copy_in(                                                                      cc66[0:size]) \
-                       copy_in(vxu[0:size], vxv[0:size], vxw[0:size]) \
-                       copy_in(vyu[0:size], vyv[0:size], vyw[0:size]) \
-                       copy_in(vzu[0:size], vzv[0:size], vzw[0:size]) \
-                       copy_inout(sxxptr[0:size], syyptr[0:size], szzptr[0:size], syzptr[0:size], sxzptr[0:size], sxyptr[0:size])
-    #pragma omp task depend(in: cc11, cc12, cc13, cc14, cc15, cc16) \
-                     depend(in:       cc22, cc23, cc24, cc25, cc26) \
-                     depend(in:             cc33, cc34, cc35, cc35) \
-                     depend(in:                   cc44, cc45, cc45) \
-                     depend(in:                         cc55, cc56) \
-                     depend(in:                               cc66) \
-                     depend(in: vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw) \
-                     depend(inout: sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                     label(scell_TL)
-    #pragma acc parallel loop deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
-                              deviceptr(      cc22, cc23, cc24, cc25, cc26) \
-                              deviceptr(            cc33, cc34, cc35, cc36) \
-                              deviceptr(                  cc44, cc45, cc46) \
-                              deviceptr(                        cc55, cc56) \
-                              deviceptr(                              cc66) \
-                              deviceptr(vxu, vxv, vxw) \
-                              deviceptr(vyu, vyv, vyw) \
-                              deviceptr(vzu, vzv, vzw) \
-                              deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma omp target device(openacc) copy_deps
+    #pragma omp task in( [size]cc11, [size]cc12, [size]cc13, [size]cc14, [size]cc15, [size]cc16) \
+                     in(             [size]cc22, [size]cc23, [size]cc24, [size]cc25, [size]cc26) \
+                     in(                         [size]cc33, [size]cc34, [size]cc35, [size]cc36) \
+                     in(                                     [size]cc44, [size]cc45, [size]cc46) \
+                     in(                                                 [size]cc55, [size]cc56) \
+                     in(                                                             [size]cc66) \
+                     in( [size]vxu, [size]vxv, [size]vxw, [size]vyu, [size]vyv, [size]vyw, [size]vzu, [size]vzv, [size]vzw) \
+                     inout( [size]sxxptr, [size]syyptr, [size]szzptr, [size]syzptr, [size]sxzptr, [size]sxyptr) \
+                     label(scell_BL)
+    #pragma acc kernels deviceptr(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        deviceptr(      cc22, cc23, cc24, cc25, cc26) \
+                        deviceptr(            cc33, cc34, cc35, cc36) \
+                        deviceptr(                  cc44, cc45, cc46) \
+                        deviceptr(                        cc55, cc56) \
+                        deviceptr(                              cc66) \
+                        deviceptr(vxu, vxv, vxw) \
+                        deviceptr(vyu, vyv, vyw) \
+                        deviceptr(vzu, vzv, vzw) \
+                        deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -1333,6 +1253,5 @@ void stress_propagator(s_t           s,
         compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, dimmy, phase);
         compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, dimmy, phase);
     }
-    #pragma omp taskwait
 };
 

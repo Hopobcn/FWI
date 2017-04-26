@@ -10,4 +10,4 @@ PGCC=$(PGI_HOME)/bin/pgcc
 
 CFLAGS=-Wall -g
 MCCFLAGS=--ompss -g -O3
-PGCFLAGS=-g -O3 -acc -ta=tesla:cuda8.0,cc50,cc60 -Minline -Minfo=accel
+PGCFLAGS=-g -O3 -acc -ta=tesla:cuda8.0,cc50,cc60,maxregcount:128 -Minline -Minfo=accel
