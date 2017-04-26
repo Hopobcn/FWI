@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(FWI C CXX)
 
 ###### PROJECT OPTIONS #######
-option(ENABLE_TESTS     "Enable Unit Tests" ON)
+option(ENABLE_TESTS     "Enable Unit Tests" OFF)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
