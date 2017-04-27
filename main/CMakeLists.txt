@@ -7,6 +7,15 @@ target_link_libraries(fwi
     m
 )
 
+add_custom_target(irun
+    COMMAND PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} PROJECT_BINARY_DIR=${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMPILER_ID=${CMAKE_C_COMPILER_ID} ${PROJECT_SOURCE_DIR}/scripts/irun.sh
+    DEPENDS fwi
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/scripts/output
+    COMMENT "outputs will be in ${PROJECT_SOURCE_DIR}/scripts/output/"
+    VERBATIM
+    USES_TERMINAL
+)
+
 add_custom_target(run-seq
     COMMAND sbatch --export=PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR},PROJECT_BINARY_DIR=${CMAKE_RUNTIME_OUTPUT_DIRECTORY},COMPILER_ID=${CMAKE_C_COMPILER_ID} ${PROJECT_SOURCE_DIR}/scripts/jobscript_run.sequential.slurm
     DEPENDS fwi
