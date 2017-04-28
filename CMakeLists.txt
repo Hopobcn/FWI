@@ -32,7 +32,7 @@ set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-str
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,inline,mp")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,mp")
 
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
         ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
