@@ -131,11 +131,7 @@ if (USE_OPENACC)
 
         if (USE_CUDA_KERNELS AND CUDA_FOUND)
             # gcc version should be > 4.8 and < 5.0 (CUDA 8)
-            if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-                set(CUDA_HOST_COMPILER "gcc-5")
-            else ()
-                set(CUDA_HOST_COMPILER "/usr/bin/gcc")
-            endif ()
+            set(CUDA_HOST_COMPILER "gcc")
 
            # set(CUDA_HOST_COMPILATION_CPP OFF)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
