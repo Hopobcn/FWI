@@ -121,7 +121,7 @@ if (USE_OPENACC)
 
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
             #Flags for x86 machines (Minotauro, ironman, thor, ...)
-            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,lineinfo")
+            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc30,cc35,cc50,cc60,lineinfo")
         else ()
             #FLAGS FOR POWER8+P100  (Marenostrum4)
             set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60")
@@ -137,7 +137,7 @@ if (USE_OPENACC)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
             set(CUDA_SEPARABLE_COMPILATION OFF)
 
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_30,code=\"sm_60,sm_61\" -lineinfo")
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_30,sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=\"sm_60,sm_61\" -lineinfo")
             set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
             set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
 
