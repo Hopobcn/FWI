@@ -907,8 +907,8 @@ void propagate_shot(time_d        direction,
                             nzf -   HALO,
                             nx0 +   HALO,
                             nxf -   HALO,
-                            ny0 +   HALO,
-                            nyf -   HALO,
+                            ny0 + 2*HALO,
+                            nyf - 2*HALO,
                             dimmz, dimmx,
                             TWO);
 #if defined(USE_MPI)
@@ -955,8 +955,8 @@ void propagate_shot(time_d        direction,
                           nzf -   HALO,
                           nx0 +   HALO,
                           nxf -   HALO,
-                          ny0 +   HALO,
-                          nyf -   HALO,
+                          ny0 + 2*HALO,
+                          nyf - 2*HALO,
                           dimmz, dimmx,
                           TWO);
 
