@@ -224,6 +224,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                      inout( [size]vptr )\
                      label(vcell_TL)
     #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -278,6 +279,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
                      inout( [size]vptr )\
                      label(vcell_TR)
     #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -332,6 +334,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
                      inout( [size]vptr )\
                      label(vcell_BR)
     #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -386,6 +389,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
                      inout( [size]vptr )\
                      label(vcell_BR)
     #pragma acc kernels deviceptr(rho, sxptr, syptr, szptr, vptr)
+    #pragma acc loop independent
     for(integer y=ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -747,6 +751,7 @@ void compute_component_scell_TR (s_t             s,
                         deviceptr(vyu, vyv, vyw) \
                         deviceptr(vzu, vzv, vzw) \
                         deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc loop independent
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -888,6 +893,7 @@ void compute_component_scell_TL (s_t             s,
                         deviceptr(vyu, vyv, vyw) \
                         deviceptr(vzu, vzv, vzw) \
                         deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc loop independent
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -1030,6 +1036,7 @@ void compute_component_scell_BR (s_t             s,
                         deviceptr(vyu, vyv, vyw) \
                         deviceptr(vzu, vzv, vzw) \
                         deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc loop independent
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
@@ -1172,6 +1179,7 @@ void compute_component_scell_BL (s_t             s,
                         deviceptr(vyu, vyv, vyw) \
                         deviceptr(vzu, vzv, vzw) \
                         deviceptr(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr)
+    #pragma acc loop independent
     for (integer y = ny0; y < nyf; y++)
     {
         #pragma acc loop independent
