@@ -477,6 +477,10 @@ void stress_propagator(s_t           s,
                        const integer dimmx,
                        const phase_t phase )
 {
+#if defined(DEBUG)
+    fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
+#endif
+
 #if defined(__INTEL_COMPILER)
     #pragma forceinline recursive
 #endif
