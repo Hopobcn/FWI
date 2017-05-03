@@ -1,4 +1,17 @@
-include data/Makefile.common
+OMPSS_HOME=$(HOME)/scratch-local/ompss/16-dev
+MCXX_HOME=$(OMPSS_HOME)/mcxx-2.1-acc
+NANOS_HOME=$(OMPSS_HOME)/nanox-0.13a-acc
+
+PGI_HOME=/usr/local/pgi/linux86-64/16.10
+
+CC=gcc
+MCC=$(MCXX_HOME)/bin/mcc
+PGCC=$(PGI_HOME)/bin/pgcc
+##################################################################################
+CFLAGS=-Wall -g
+MCCFLAGS=--ompss -O3
+PGCFLAGS=-O3 -fast -Minline -acc -ta=tesla:cuda8.0,cc35,cc50,cc60,maxregcount:128 -Minfo=accel
+##################################################################################
 
 DEFS=-DDO_NOT_PERFORM_IO -DUSE_OMPSS
 
