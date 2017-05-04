@@ -1,13 +1,9 @@
-# Please set OMPSS_HOME
-#OMPSS_HOME=$(HOME)/scratch-local/ompss/16-dev
-MCXX_HOME=$(OMPSS_HOME)/mcxx-2.1-acc
-NANOS_HOME=$(OMPSS_HOME)/nanox-0.13a-acc
+# Please set MCXX_HOME & NANOS_HOME
 
-PGI_HOME=/usr/local/pgi/linux86-64/16.10
 
 CC=gcc
-MCC=$(MCXX_HOME)/bin/mcc
-PGCC=$(PGI_HOME)/bin/pgcc
+MCC=mcc
+PGCC=pgcc
 ##################################################################################
 CFLAGS=-Wall -g
 MCCFLAGS=--ompss -O3
@@ -16,8 +12,8 @@ PGCFLAGS=-O3 -fast -Minline -acc -ta=tesla:cuda8.0,cc30,cc35,cc50,cc60,maxregcou
 
 DEFS=-DDO_NOT_PERFORM_IO -DUSE_OMPSS
 
-INC=-Iinclude
-LIBS=-L$(NANOS_HOME)/lib/debug -lnanox-ompss -lnanox-c -lnanox-gpu-api
+INC=-I$(NANOS_HOME)/include/nanox -Iinclude
+LIBS=-L$(NANOS_HOME)/lib/performance -lnanox-ompss -lnanox-c -lnanox-gpu-api
 
 OBJS = main/fwi_main.o src/fwi_common.o src/fwi_core.o src/fwi_kernel.o src/fwi_propagator.o
 
