@@ -1,0 +1,19 @@
+# Image hosted in a public registry -> https://hub.docker.com/r/hopobcn/pgi-ce/
+image: hopobcn/pgi-ce
+
+before_script:
+  - apt update && \
+    apt install cmake
+    
+fwi:
+  script:
+    - git clone https://pfarre@pm.bsc.es/gitlab/pfarre/FWI.git && \
+      cd FWI && \
+      git checkout master && \
+      mkdir build && \
+      cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .. && \
+      make -j
+  tags:
+    - gpu
+    
+    
