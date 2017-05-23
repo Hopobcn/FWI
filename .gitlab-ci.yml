@@ -2,18 +2,19 @@
 image: hopobcn/pgi-ce
 
 before_script:
-  - apt update && \
-    apt install cmake
-    
+  - apt update
+  - apt install -y --no-install-recommends cmake
+
 fwi:
   script:
-    - git clone https://pfarre@pm.bsc.es/gitlab/pfarre/FWI.git && \
-      cd FWI && \
-      git checkout master && \
-      mkdir build && \
-      cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .. && \
-      make -j
+    - git clone https://pfarre@pm.bsc.es/gitlab/pfarre/FWI.git
+    - cd FWI
+    - git checkout master
+    - mkdir build
+    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
+    - make -j
+    - make utest
   tags:
     - gpu
-    
-    
+
+
