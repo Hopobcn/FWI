@@ -7,8 +7,7 @@ before_script:
 
 fwi:
   script:
-    - git clone https://pfarre@pm.bsc.es/gitlab/pfarre/FWI.git
-    - cd FWI
+    - cd ls
     - git checkout master
     - mkdir build
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
