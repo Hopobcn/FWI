@@ -8,8 +8,7 @@ before_script:
 fwi:
   script:
     - git checkout master
-    - mkdir build
-    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
+    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
     - make -j
     - make utest
   tags:
