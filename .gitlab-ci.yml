@@ -7,11 +7,6 @@ before_script:
 
 fwi:
   script:
-    - ls -l
-    - ls -l /builds/
-    - ls -l /builds/pfarre
-    - ls -l /builds/pfarre/FWI
-    - ls -l /cache
     - git checkout master
     - mkdir build
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
