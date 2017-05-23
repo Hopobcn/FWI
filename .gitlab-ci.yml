@@ -8,6 +8,7 @@ before_script:
 fwi:
   script:
     - git checkout master
+    - git submodule update --init --recursive
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
     - make -j
     - make utest
