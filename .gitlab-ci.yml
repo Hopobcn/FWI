@@ -1,24 +1,16 @@
 # Image hosted in a public registry -> https://hub.docker.com/r/hopobcn/pgi-ce/
 image: hopobcn/pgi-ce
 
-stages:
-  - build
-  - test
+before_script:
+  - apt update
+  - apt install -y --no-install-recommends cmake
 
-fwi_build:
-  stage: build
+fwi:
   script:
-    - apt update
-    - apt install -y --no-install-recommends cmake
+    - git checkout master
     - git submodule update --init --recursive
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
     - make -j
-  tags:
-    - gpu
-
-fwi_test:
-  stage: test
-  script:
     - make utest
   tags:
     - gpu
