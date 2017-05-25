@@ -8,7 +8,7 @@ stages:
 fwi_build:
   stage: build
   script:
-    - apt install
+    - apt update
     - apt install -y --no-install-recommends cmake
     - git submodule update --init --recursive
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
