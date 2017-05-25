@@ -2,22 +2,15 @@
 image: hopobcn/pgi-ce
 
 stages:
-  - prereq
   - build
   - test
-
-fwi_install_pre:
-  stage: prereq
-  script:
-    - apt update
-    - apt install -y --no-install-recommends cmake
-    - git submodule update --init --recursive
-  tags:
-    - gpu
 
 fwi_build:
   stage: build
   script:
+    - apt install
+    - apt install -y --no-install-recommends cmake
+    - git submodule update --init --recursive
     - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
     - make -j
   tags:
