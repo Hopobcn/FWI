@@ -5,14 +5,48 @@ before_script:
   - apt update
   - apt install -y --no-install-recommends cmake
 
-fwi:
+stages:
+ - build
+ - unit_tests
+ - performance_tests
+
+build_fwi:
+  stage: build
   script:
-    - git checkout master
-    - git submodule update --init --recursive
-    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON .
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
     - make -j
-    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - gpu
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
 
+test_fwi:
+  stage: unit_tests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi
 
+run_fwi:
+  stage: performance_tests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi
