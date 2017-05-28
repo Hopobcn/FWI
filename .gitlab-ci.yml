@@ -2,13 +2,22 @@
 image: hopobcn/fwi-pre
 
 stages:
- - build
- - unit_tests
- - performance_tests
+ - build_serial
+ - build_openmp
+ - build_openacc
+ - build_openacc_cuda
+ - unit_tests_serial
+ - unit_tests_openmp
+ - unit_tests_openacc
+ - unit_tests_openacc_cuda
+ - performance_tests_serial
+ - performance_tests_openmp
+ - performance_tests_openacc
+ - performance_tests_openacc_cuda
 
 # STAGE build
 build_fwi:serial:
-  stage: build
+  stage: build_serial
   script:
     - mkdir build
     - cd build
@@ -25,7 +34,7 @@ build_fwi:serial:
     - build
 
 build_fwi:openmp:
-  stage: build
+  stage: build_openmp
   script:
     - mkdir build
     - cd build
@@ -42,7 +51,7 @@ build_fwi:openmp:
     - build
 
 build_fwi:openacc:
-  stage: build
+  stage: build_openacc
   script:
     - mkdir build
     - cd build
@@ -59,7 +68,7 @@ build_fwi:openacc:
     - build
 
 build_fwi:openacc_cuda:
-  stage: build
+  stage: build_openacc_cuda
   script:
     - mkdir build
     - cd build
@@ -77,7 +86,7 @@ build_fwi:openacc_cuda:
 
 # STAGE: unit_tests
 test_fwi:serial:
-  stage: unit_tests
+  stage: unit_tests_serial
   script:
     - cd build
     - make utest
@@ -89,7 +98,7 @@ test_fwi:serial:
     - build_fwi:serial
 
 test_fwi:openmp:
-  stage: unit_tests
+  stage: unit_tests_openmp
   script:
     - cd build
     - make utest
@@ -101,7 +110,7 @@ test_fwi:openmp:
     - build_fwi:openmp
 
 test_fwi:openacc:
-  stage: unit_tests
+  stage: unit_tests_openacc
   script:
     - cd build
     - make utest
@@ -113,7 +122,7 @@ test_fwi:openacc:
     - build_fwi:openacc
 
 test_fwi:openacc_cuda:
-  stage: unit_tests
+  stage: unit_tests_openacc_cuda
   script:
     - cd build
     - make utest
@@ -126,7 +135,7 @@ test_fwi:openacc_cuda:
 
 # STAGE performance_tests
 run_fwi:serial:
-  stage: performance_tests
+  stage: performance_tests_serial
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
@@ -138,7 +147,7 @@ run_fwi:serial:
     - build_fwi:serial
 
 run_fwi:openmp:
-  stage: performance_tests
+  stage: performance_tests_openmp
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
@@ -150,7 +159,7 @@ run_fwi:openmp:
     - build_fwi:openmp
 
 run_fwi:openacc:
-  stage: performance_tests
+  stage: performance_tests_openacc
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
@@ -162,7 +171,7 @@ run_fwi:openacc:
     - build_fwi:openacc
 
 run_fwi:openacc_cuda:
-  stage: performance_tests
+  stage: performance_tests_openacc_cuda
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
