@@ -6,7 +6,42 @@ stages:
  - unit_tests
  - performance_tests
 
-build_fwi:
+# STAGE build
+build_fwi:serial:
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=gcc ..
+    - make -j
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
+
+build_fwi:openmp:
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=gcc -DUSE_OPENMP=ON ..
+    - make -j
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
+
+build_fwi:openacc:
   stage: build
   script:
     - mkdir build
@@ -23,7 +58,25 @@ build_fwi:
     paths:
     - build
 
-test_fwi:
+build_fwi:openacc_cuda:
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
+    - make -j
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
+
+# STAGE: unit_tests
+test_fwi:serial:
   stage: unit_tests
   script:
     - cd build
@@ -33,9 +86,46 @@ test_fwi:
   tags:
     - gpu
   dependencies:
-    - build_fwi
+    - build_fwi:serial
 
-run_fwi:
+test_fwi:openmp:
+  stage: unit_tests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openmp
+
+test_fwi:openacc:
+  stage: unit_tests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openacc
+
+test_fwi:openacc_cuda:
+  stage: unit_tests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openacc_cuda
+
+# STAGE performance_tests
+run_fwi:serial:
   stage: performance_tests
   script:
     - cd build
@@ -45,4 +135,41 @@ run_fwi:
   tags:
     - gpu
   dependencies:
-    - build_fwi
+    - build_fwi:serial
+
+run_fwi:openmp:
+  stage: performance_tests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openmp
+
+run_fwi:openacc:
+  stage: performance_tests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openacc
+
+run_fwi:openacc_cuda:
+  stage: performance_tests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - gpu
+  dependencies:
+    - build_fwi:openacc_cuda
+
