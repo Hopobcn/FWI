@@ -1,9 +1,5 @@
 # Image hosted in a public registry -> https://hub.docker.com/r/hopobcn/pgi-ce/
-image: hopobcn/pgi-ce
-
-before_script:
-  - apt update
-  - apt install -y --no-install-recommends cmake
+image: hopobcn/fwi-pre
 
 stages:
  - build
