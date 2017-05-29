@@ -49,6 +49,7 @@ build_fwi:openmp:
     expire_in: 1h
     paths:
     - build
+  dependencies: []
 
 build_fwi:openacc:
   stage: build_openacc
@@ -66,6 +67,7 @@ build_fwi:openacc:
     expire_in: 1h
     paths:
     - build
+  dependencies: []
 
 build_fwi:openacc_cuda:
   stage: build_openacc_cuda
@@ -83,6 +85,7 @@ build_fwi:openacc_cuda:
     expire_in: 1h
     paths:
     - build
+  dependencies: []
 
 # STAGE: unit_tests
 test_fwi:serial:
