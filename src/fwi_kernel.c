@@ -38,11 +38,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 
     print_debug("Array is being initialized to %f", randvalue);
 
-#if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
-#endif
-    for( integer i = 0; i < length; i++ )
-        array[i] = randvalue;
+    set_array_to_constant(array, randvalue, length);
 }
 
 /*
@@ -209,9 +205,8 @@ void alloc_memory_shot( const integer numberOfCells,
     const integer datalen = numberOfCells;
 
     const real* rrho  = *rho;
-    
+
     coeff_t cc = *c;
-    // TODO: Test that works with this shit
     #pragma acc enter data create(cc)
     #pragma acc enter data create(cc.c11[:datalen])
     #pragma acc enter data create(cc.c12[:datalen])
@@ -281,6 +276,7 @@ void alloc_memory_shot( const integer numberOfCells,
     #pragma acc enter data create(rrho[:datalen])
 
 #endif /* end of pragma _OPENACC */
+
     POP_RANGE
 };
 
@@ -356,7 +352,7 @@ void free_memory_shot( coeff_t *c,
     #pragma acc exit data delete(s->br.xy)
     #pragma acc exit data delete(s->br.yy)
     #pragma acc exit data delete(s)
-    
+
     const real* rrho  = *rho;
     #pragma acc exit data delete(rrho)
 
@@ -913,8 +909,8 @@ void propagate_shot(time_d        direction,
                             nzf -   HALO,
                             nx0 +   HALO,
                             nxf -   HALO,
-                            ny0 +   HALO,
-                            nyf -   HALO,
+                            ny0 + 2*HALO,
+                            nyf - 2*HALO,
                             dimmz, dimmx,
                             TWO);
 #if defined(USE_MPI)
@@ -961,8 +957,8 @@ void propagate_shot(time_d        direction,
                           nzf -   HALO,
                           nx0 +   HALO,
                           nxf -   HALO,
-                          ny0 +   HALO,
-                          nyf -   HALO,
+                          ny0 + 2*HALO,
+                          nyf - 2*HALO,
                           dimmz, dimmx,
                           TWO);
 

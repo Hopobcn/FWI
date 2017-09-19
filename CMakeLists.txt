@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(FWI C CXX)
 
 ###### PROJECT OPTIONS #######
-option(ENABLE_TESTS     "Enable Unit Tests" ON)
+option(ENABLE_TESTS     "Enable Unit Tests" OFF)
 option(PERFORM_IO       "Enable IO"         OFF)
 option(IO_STATS         "Print IO stats"    OFF)
 option(USE_MPI          "Use MPI"           OFF)
@@ -27,13 +27,12 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
 set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
-#TODO: FindOpenMP check program fails with this(LOL): -Wstrict-prototypes   -Wmissing-prototypes
 set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,inline,mp")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c99 -Minfo=accel,mp")
 
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
         ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
@@ -62,7 +61,11 @@ else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
+        set(CMAKE_C_FLAGS_RELEASE "-O3")
+
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+            set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+        endif ()
 
     elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 
@@ -114,19 +117,27 @@ endif (USE_MPI)
 if (USE_OPENACC)
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
-        set(OpenACC_C_FLAGS "-acc -ta=multicore -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,maxregcount:128,lineinfo")
+        set(OpenACC_C_FLAGS "-acc -ta=multicore")
+
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+            #Flags for x86 machines (Minotauro, ironman, thor, ...)
+            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc30,cc35,cc50,cc60,lineinfo,maxregcount:128")
+        else ()
+            #FLAGS FOR POWER8+P100  (Marenostrum4)
+            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60,maxregcount:128")
+        endif ()
 
         find_package(CUDA)
 
         if (USE_CUDA_KERNELS AND CUDA_FOUND)
-            # gcc version should be > 4.8 and < 5.0 (CUDA 8)
-            set(CUDA_HOST_COMPILER "gcc-5")
+            # gcc version should be > 4.8 and <= 5.0 (CUDA 8)
+            set(CUDA_HOST_COMPILER "gcc")
+
            # set(CUDA_HOST_COMPILATION_CPP OFF)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
             set(CUDA_SEPARABLE_COMPILATION OFF)
 
-           # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_20,code=sm_21 -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -lineinfo")
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_30,code=\"sm_60,sm_61\" -lineinfo")
+            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_30,sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=\"sm_60,sm_61\" -lineinfo")
             set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
             set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
 
@@ -226,6 +237,7 @@ endif (PROFILE)
 
 
 message(STATUS "----------------------------------------")
+message(STATUS "CPU TYPE: ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "BUILD TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS:                  ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_C_FLAGS_DEBUG:            ${CMAKE_C_FLAGS_DEBUG}")

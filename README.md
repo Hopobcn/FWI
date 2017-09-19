@@ -1,36 +1,135 @@
 # FWI mini-app
 
-Reverse time migration (RTM) modeling is a critical component in the seismic processing workflow of oil and gas exploration.
+## Parallelization of a Reverse Time Migration (RTM) program using OpenACC/CUDA
+
+Reverse time migration (RTM) modeling is a critical component in the seismic
+processing workflow of oil and gas exploration as well as for the understanding
+of energy release in subduction-zone earthquakes. With the help of high
+precision seismic sensors deployed on the field, it is possible to use the
+information gathered during seismic aftershocks and reverse-time migrate them.
+This can give scientists a large amount of highly accurate information of the
+seismic conditions of the region of interest.
+
+Such analysis is critical after a large earthquake because it can help
+scientists know the state of a seismic fault and the probability of subsequent
+large aftershocks. As the number of aftershocks sky-rockets after a large
+earthquake, the amount of data to analyse grows really fast.  Thus, it is
+mandatory to speed up the processing of all that information.
+
+### How to get the code:
+
+Pull the repo using `git clone`:
+```bash
+git clone https://github.com/Hopobcn/FWI.git
+```
+Download all pre-requisites using `git submodules`:
+```bash
+git submodule update --init --recursive
+```
 
 ### Build Instructions:
 
-This application uses CMake to discover all dependences and build the application. Therefore the build process follows the typical build process of every cmake application.
+This application uses CMake to discover all dependences and build the application. Then the build process follows the typical build process of every cmake application:
 
 ```bash
-cmake -DCMAKE_C_COMPILER=<foo-compiler> [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ... ]  <path-to-project-base-dir>
+cmake -DCMAKE_C_COMPILER=<foo-compiler> -DCMAKE_BUILD_TYPE=<Release|Debug> [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ... ]  <path-to-project-base-dir>
 ```
 
 __WARNING:__ *Always* make *out-of-source* builds (don't execute cmake from the project root directory):
 ```bash
-cd ~/<repo-name>/
+cd ~/FWI/
 mkdir build && cd build
 cmake <options> ..
 make
 ```
 
+#### Build Options:
 
 The FWI/CMakeLists.txt has been modified to accept those options:
 
 | CMake Options    | Default Value | Description                           | Observations                             |
 | -----------------|:-------------:| ------------------------------------- |------------------------------------------|
-| ENABLE_TESTS     | ON            | Build tests                           |                                          |
+| ENABLE_TESTS     | OFF           | Build tests                           | Requires git submodule `Unity`                                         |
 | PERFORM_IO       | OFF           | Load/Store dataset from disc          | Should be OFF when measuring performance |
 | IO_STATS         | OFF           | Log fwrite/fread performance          |                                          |
 | USE_MPI          | OFF           | Enable MPI compilation                |                                          |
 | USE_OPENMP       | OFF           | Enable OpenMP compilation             | Either OpenMP or OpenACC must be enabled  not both |
-| USE_OPENACC      | OFF           | Enable OpenACC compilation            | OpenACC requires the PGI 16.5 compiler   |
+| USE_OPENACC      | OFF           | Enable OpenACC compilation            | Requires compiler with OpenACC 2.5 or above  |
 | USE_CUDA_KERNELS | OFF           | Enable CUDA kernels back-end          | Requires OpenACC to be enabled           |
 | PROFILE          | OFF           | Add profile information to the binary |                                          |
+
+
+#### How to execute FWI:
+
+Usage:
+```bash
+bin/fwi <params-file> <frequency-file>
+```
+Example:
+```bash
+bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+```
+
+#### CPU Profiling Instructions:
+
+To profile the CPU execution, use `-DPROFILE=ON` to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) automatically:
+```bash
+cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release -DPROFILE=ON ..
+make
+<--- run application --->
+<--- run gprof       --->
+```
+
+#### Examples:
+
+Build FWI sequential with ICC:
+
+```bash
+source scripts/environment_icc.sh
+cd build
+cmake -DCMAKE_C_COMPILER=icc ..
+make
+```
+
+Build FWI sequential with GCC with profiling support:
+
+```bash
+source scripts/environment_gcc.sh
+cd build
+cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release -DPROFILE=ON ..
+make
+```
+
+Build FWI with OpenMP support with PGI and execute tests:
+
+```bash
+source scripts/environment_pgi.sh
+cd build
+cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=YES ..
+make utest
+```
+
+Build FWI with OpenACC with PGI and execute tests:
+
+```bash
+source scripts/environment_pgi.sh
+cd build
+cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_OPENACC=YES ..
+make utest
+```
+
+Build FWI with OpenACC+CUDA kernels with PGI and execute tests:
+
+```bash
+source scripts/environment_pgi.sh
+cd build
+cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_OPENACC=YES -DUSE_CUDA_KERNELS=YES ..
+make utest
+```
+
+### Minotauro:
+
+#### Build FWI in Minotauro:
 
 We provide three scripts `environment_icc.sh`, `environment_gcc.sh` and `environment_pgi.sh` that will load the required modules to compile the application with the supported compilers.
 But if you feel lucky you can load any other modules available in Minotauro. `module avail` will display all applications/compilers/tools available in this cluster which can be loaded with `module load <name>` and unloaded with `module unload <name>`.
@@ -51,52 +150,11 @@ We also provide a matrix of the three compilers supported (`icc >= 16.0.2`, `gcc
 
 *The code is prepared to use OpenMP parallelization or OpenACC acceleration, not both at the same time, so please use only one option at build time.
 
-CMake also provides a set of BUILD_TYPES. In our case we will use `Release` for performance tests and `Debug` for debugging the application (the default is set to `Release`). Example:
-```bash
-cmake -DCMAKE_C_COMPILER=<foo-compiler> -DCMAKE_BUILD_TYPE=Debug [ -D<OPTION_1>=<yes|no> -D<OPTION_2>=<YES|NO> ]  <path-to-project-base-dir>
-make
-```
 
-#### Examples:
-
-Building FWI sequential with ICC 16.0.2:
-
-```bash
-source scripts/environment_icc.sh
-cd build
-cmake -DCMAKE_C_COMPILER=icc ..
-make
-```
-
-Building FWI sequential with GCC 6.1.0 with profiling support:
-
-```bash
-source scripts/environment_gcc.sh
-cd build
-cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release -DPROFILE=ON ..
-make
-```
-
-Building FWI with OpenMP support with PGI 16.5 and execute tests:
-```bash
-source scripts/environment_pgi.sh
-cd build
-cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=YES ..
-make utest
-```
-
-Building FWI with OpenACC+CUDA kernels with PGI 16.5 and execute tests:
-```bash
-source scripts/environment_pgi.sh
-cd build
-cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_BUILD_TYPE=Release -DUSE_OPENMP=NO -DUSE_OPENACC=YES -DUSE_CUDA_KERNELS=YES ..
-make utest
-```
-
-#### Running Instructions:
+#### Run FWI in Minotauro:
 
 To facilitate your work launching jobs, we added a set of 'targets' that launch some SLURM scripts in the queue system.
-    
+
 |  Makefile target  | acction                                          | example       |
 | -----------------|:------------------------------------------------|:--------------|
 | run-seq          | Launches script/jobscript_run.sequential.slurm   | `make run-seq` |
@@ -105,18 +163,6 @@ To facilitate your work launching jobs, we added a set of 'targets' that launch 
 
 All executions **should** be performed in compute nodes. You can create/modify any script in `scripts` folder but **do not** modify the execution wall time.
 
-   
-#### Profiling Instructions:
-
-To help you, CMakeLists.txt has been modified to include `-pg` (gcc), `-p` (Intel) or `-Mprof` (PGI) when `-DPROFILE=ON` is provided:
-```bash
-source scripts/environment_gcc.sh
-cd build
-cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Release -DPROFILE=ON ..
-make
-<--- run application (in compute node not login node!) --->
-<--- run gprof                                         --->
-```
 
 ### References
 

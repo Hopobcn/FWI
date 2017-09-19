@@ -30,10 +30,10 @@
 #include "fwi/fwi_propagator.h"
 
 inline
-integer IDX (const integer z, 
-             const integer x, 
-             const integer y, 
-             const integer dimmz, 
+integer IDX (const integer z,
+             const integer x,
+             const integer y,
+             const integer dimmz,
              const integer dimmx)
 {
     return ((y*dimmx)+x)*dimmz + z;
@@ -163,14 +163,13 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if !defined(USE_CUDA)
-
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
+                        copy(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent
 #elif defined(_OPENMP)
@@ -191,11 +190,11 @@ void compute_component_vcell_TL (      real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TL(rho, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
@@ -234,17 +233,16 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
-
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
+                        copy(vptr[start:nelems]) \
                         async(phase) wait(H2D)
-    #pragma acc loop independent 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
@@ -263,25 +261,25 @@ void compute_component_vcell_TR (      real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_TR(rho, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
     #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
     {
         compute_component_vcell_TR_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void compute_component_vcell_BR (      real* restrict vptr,
@@ -306,15 +304,14 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
-
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
+                        copy(vptr[start:nelems]) \
                         async(phase) wait(H2D)
     #pragma acc loop independent
 #elif defined(_OPENMP)
@@ -335,25 +332,25 @@ void compute_component_vcell_BR (      real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx );
                 const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx );
                 const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx );
-                
+
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
     #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
     {
         compute_component_vcell_BR_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void compute_component_vcell_BL (      real* restrict vptr,
@@ -378,17 +375,16 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const integer        dimmx,
                                  const phase_t        phase)
 {
-#ifndef USE_CUDA
-
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copyin(vptr[start:nelems]) \
+                        copy(vptr[start:nelems]) \
                         async(phase) wait(H2D)
-    #pragma acc loop independent 
+    #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
@@ -407,25 +403,25 @@ void compute_component_vcell_BL (      real* restrict vptr,
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BL(rho, z, x, y, dimmz, dimmx);
-                
+
                 const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
                 const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
                 const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
-                
+
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
     #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
     {
         compute_component_vcell_BL_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void velocity_propagator(v_t           v,
@@ -529,6 +525,10 @@ void stress_propagator(s_t           s,
                        const integer dimmx,
                        const phase_t phase )
 {
+#if defined(DEBUG)
+    fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
+#endif
+
 #if defined(__INTEL_COMPILER)
     #pragma forceinline recursive
 #endif
@@ -540,7 +540,7 @@ void stress_propagator(s_t           s,
     }
 };
 
-real cell_coeff_BR ( const real* restrict ptr, 
+real cell_coeff_BR ( const real* restrict ptr,
                      const integer z,
                      const integer x,
                      const integer y,
@@ -553,21 +553,21 @@ real cell_coeff_BR ( const real* restrict ptr,
                               ptr[IDX(z+1, x+1,y,dimmz,dimmx)])) );
 };
 
-real cell_coeff_TL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TL ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx)
 {
     return ( 1.0f / (ptr[IDX(z,x,y,dimmz,dimmx)]));
 };
 
-real cell_coeff_BL ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_BL ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx)
 {
     return ( 1.0f / ( 2.5f *(ptr[IDX(z  ,x,y  ,dimmz,dimmx)] +
@@ -576,11 +576,11 @@ real cell_coeff_BL ( const real* restrict ptr,
                              ptr[IDX(z+1,x,y+1,dimmz,dimmx)])) );
 };
 
-real cell_coeff_TR ( const real* restrict ptr, 
-                     const integer z, 
-                     const integer x, 
-                     const integer y, 
-                     const integer dimmz, 
+real cell_coeff_TR ( const real* restrict ptr,
+                     const integer z,
+                     const integer x,
+                     const integer y,
+                     const integer dimmz,
                      const integer dimmx)
 {
     return ( 1.0f / ( 2.5f *(ptr[IDX(z  , x  , y  ,dimmz,dimmx)] +
@@ -589,11 +589,11 @@ real cell_coeff_TR ( const real* restrict ptr,
                              ptr[IDX(z  , x+1, y+1,dimmz,dimmx)])));
 };
 
-real cell_coeff_ARTM_BR( const real* restrict ptr, 
-                         const integer z, 
-                         const integer x, 
-                         const integer y, 
-                         const integer dimmz, 
+real cell_coeff_ARTM_BR( const real* restrict ptr,
+                         const integer z,
+                         const integer x,
+                         const integer y,
+                         const integer dimmz,
                          const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z  ,x  ,y,dimmz,dimmx )]  +
@@ -602,21 +602,21 @@ real cell_coeff_ARTM_BR( const real* restrict ptr,
              1.0f / ptr[IDX(z+1,x+1,y,dimmz,dimmx )]) * 0.25f);
 };
 
-real cell_coeff_ARTM_TL( const real* restrict ptr, 
-                         const integer z, 
-                         const integer x, 
-                         const integer y, 
-                         const integer dimmz, 
+real cell_coeff_ARTM_TL( const real* restrict ptr,
+                         const integer z,
+                         const integer x,
+                         const integer y,
+                         const integer dimmz,
                          const integer dimmx)
 {
     return (1.0f / ptr[IDX(z,x,y,dimmz,dimmx)]);
 };
 
-real cell_coeff_ARTM_BL( const real* restrict ptr, 
-                         const integer z, 
-                         const integer x, 
-                         const integer y, 
-                         const integer dimmz, 
+real cell_coeff_ARTM_BL( const real* restrict ptr,
+                         const integer z,
+                         const integer x,
+                         const integer y,
+                         const integer dimmz,
                          const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z  ,x,y  ,dimmz,dimmx)]  +
@@ -625,11 +625,11 @@ real cell_coeff_ARTM_BL( const real* restrict ptr,
              1.0f / ptr[IDX(z+1,x,y+1,dimmz,dimmx)]) * 0.25f);
 };
 
-real cell_coeff_ARTM_TR( const real* restrict ptr, 
-                         const integer z, 
-                         const integer x, 
-                         const integer y, 
-                         const integer dimmz, 
+real cell_coeff_ARTM_TR( const real* restrict ptr,
+                         const integer z,
+                         const integer x,
+                         const integer y,
+                         const integer dimmz,
                          const integer dimmx)
 {
     return ((1.0f / ptr[IDX(z,x  ,y  ,dimmz,dimmx)]  +
@@ -666,7 +666,7 @@ void compute_component_scell_TR (s_t             s,
     real* restrict syzptr __attribute__ ((aligned (64))) = s.tr.yz;
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.tr.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.tr.xy;
-    
+
     const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
     const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
     const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
@@ -699,24 +699,23 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
-    
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase) 
+                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
+                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
+                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
+                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
+                        copyin(cc55[start:nelems], cc56[start:nelems]) \
+                        copyin(cc66[start:nelems]) \
+                        async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -756,19 +755,19 @@ void compute_component_scell_TR (s_t             s,
                 const real c55 = cell_coeff_TR      (cc55, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_TR (cc56, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_TR      (cc66, z, x, y, dimmz, dimmx);
-                
+
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-                
+
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
@@ -778,10 +777,10 @@ void compute_component_scell_TR (s_t             s,
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
     {
         compute_component_scell_TR_cuda(
             sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -795,7 +794,7 @@ void compute_component_scell_TR (s_t             s,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
             stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void compute_component_scell_TL (s_t             s,
@@ -826,7 +825,7 @@ void compute_component_scell_TL (s_t             s,
     real* restrict syzptr __attribute__ ((aligned (64))) = s.tl.yz;
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.tl.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.tl.xy;
-    
+
     const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
     const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
     const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
@@ -858,25 +857,24 @@ void compute_component_scell_TL (s_t             s,
     const real* restrict cc55 = coeffs.c55;
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
-    
-#ifndef USE_CUDA
-    
+
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase) 
+                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
+                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
+                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
+                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
+                        copyin(cc55[start:nelems], cc56[start:nelems]) \
+                        copyin(cc66[start:nelems]) \
+                        async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -916,19 +914,19 @@ void compute_component_scell_TL (s_t             s,
                 const real c55 = cell_coeff_TL      (cc55, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_TL (cc56, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_TL      (cc66, z, x, y, dimmz, dimmx);
-                
+
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-                
+
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
@@ -938,10 +936,10 @@ void compute_component_scell_TL (s_t             s,
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
     {
         compute_component_scell_TL_cuda(
             sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -955,7 +953,7 @@ void compute_component_scell_TL (s_t             s,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
             stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 
@@ -987,7 +985,7 @@ void compute_component_scell_BR (s_t             s,
     real* restrict syzptr __attribute__ ((aligned (64))) = s.br.yz;
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
-    
+
     const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
     const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
     const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
@@ -1020,24 +1018,23 @@ void compute_component_scell_BR (s_t             s,
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
 
-#ifndef USE_CUDA
-    
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase) 
+                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
+                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
+                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
+                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
+                        copyin(cc55[start:nelems], cc56[start:nelems]) \
+                        copyin(cc66[start:nelems]) \
+                        async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -1065,7 +1062,7 @@ void compute_component_scell_BR (s_t             s,
                 const real c44 = cell_coeff_BR      (cc44, z, x, y, dimmz, dimmx);
                 const real c55 = cell_coeff_BR      (cc55, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_BR      (cc66, z, x, y, dimmz, dimmx);
-                
+
                 const real c14 = cell_coeff_ARTM_BR (cc14, z, x, y, dimmz, dimmx);
                 const real c15 = cell_coeff_ARTM_BR (cc15, z, x, y, dimmz, dimmx);
                 const real c16 = cell_coeff_ARTM_BR (cc16, z, x, y, dimmz, dimmx);
@@ -1078,19 +1075,19 @@ void compute_component_scell_BR (s_t             s,
                 const real c45 = cell_coeff_ARTM_BR (cc45, z, x, y, dimmz, dimmx);
                 const real c46 = cell_coeff_ARTM_BR (cc46, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_BR (cc56, z, x, y, dimmz, dimmx);
-                
+
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-                
+
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx );
@@ -1100,10 +1097,10 @@ void compute_component_scell_BR (s_t             s,
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
     {
         compute_component_scell_BR_cuda(
             sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -1117,7 +1114,7 @@ void compute_component_scell_BR (s_t             s,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
             stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };
 
 void compute_component_scell_BL (s_t             s,
@@ -1148,7 +1145,7 @@ void compute_component_scell_BL (s_t             s,
     real* restrict syzptr __attribute__ ((aligned (64))) = s.br.yz;
     real* restrict sxzptr __attribute__ ((aligned (64))) = s.br.xz;
     real* restrict sxyptr __attribute__ ((aligned (64))) = s.br.xy;
-    
+
     const real* restrict vxu    __attribute__ ((aligned (64))) = vnode_x.u;
     const real* restrict vxv    __attribute__ ((aligned (64))) = vnode_x.v;
     const real* restrict vxw    __attribute__ ((aligned (64))) = vnode_x.w;
@@ -1180,25 +1177,24 @@ void compute_component_scell_BL (s_t             s,
     const real* restrict cc55 = coeffs.c55;
     const real* restrict cc56 = coeffs.c56;
     const real* restrict cc66 = coeffs.c66;
-    
-#ifndef USE_CUDA
 
+#if !defined(USE_CUDA)
 #if defined(_OPENACC)
     const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copyin(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
+    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
                         copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
                         copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
                         copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        present(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems])             \
-                        present(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems])                   \
-                        present(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems])                         \
-                        present(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems])                               \
-                        present(cc55[start:nelems], cc56[start:nelems])                                     \
-                        present(cc66[start:nelems])                                           \
-                        async(phase) 
+                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
+                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
+                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
+                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
+                        copyin(cc55[start:nelems], cc56[start:nelems]) \
+                        copyin(cc66[start:nelems]) \
+                        async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -1238,19 +1234,19 @@ void compute_component_scell_BL (s_t             s,
                 const real c55 = cell_coeff_BL      (cc55, z, x, y, dimmz, dimmx);
                 const real c56 = cell_coeff_ARTM_BL (cc56, z, x, y, dimmz, dimmx);
                 const real c66 = cell_coeff_BL      (cc66, z, x, y, dimmz, dimmx);
-                
+
                 const real u_x = stencil_X (_SX, vxu, dxi, z, x, y, dimmz, dimmx);
                 const real v_x = stencil_X (_SX, vxv, dxi, z, x, y, dimmz, dimmx);
                 const real w_x = stencil_X (_SX, vxw, dxi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_y = stencil_Y (_SY, vyu, dyi, z, x, y, dimmz, dimmx);
                 const real v_y = stencil_Y (_SY, vyv, dyi, z, x, y, dimmz, dimmx);
                 const real w_y = stencil_Y (_SY, vyw, dyi, z, x, y, dimmz, dimmx);
-                
+
                 const real u_z = stencil_Z (_SZ, vzu, dzi, z, x, y, dimmz, dimmx);
                 const real v_z = stencil_Z (_SZ, vzv, dzi, z, x, y, dimmz, dimmx);
                 const real w_z = stencil_Z (_SZ, vzw, dzi, z, x, y, dimmz, dimmx);
-                
+
                 stress_update (sxxptr,c11,c12,c13,c14,c15,c16,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
                 stress_update (syyptr,c12,c22,c23,c24,c25,c26,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
                 stress_update (szzptr,c13,c23,c33,c34,c35,c36,z,x,y,dt,u_x,u_y,u_z,v_x,v_y,v_z,w_x,w_y,w_z,dimmz,dimmx);
@@ -1260,10 +1256,10 @@ void compute_component_scell_BL (s_t             s,
             }
         }
     }
-#else
+#else /* CUDA KERNELS ENABLED */
     void* stream = acc_get_cuda_stream(phase);
 
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66) 
+    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
     {
         compute_component_scell_BL_cuda(
             sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -1277,5 +1273,5 @@ void compute_component_scell_BL (s_t             s,
             dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, _SZ, _SX, _SY, dimmz, dimmx,
             stream);
     }
-#endif
+#endif /* end USE_CUDA */
 };

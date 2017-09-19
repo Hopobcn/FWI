@@ -26,7 +26,6 @@ if (USE_CUDA_KERNELS)
     cuda_include_directories( ${PROJECT_SOURCE_DIR}/include )
 
     cuda_add_library(fwi-core-cuda SHARED
-        fwi_common.cu
         fwi_propagator.cu
     )
 
