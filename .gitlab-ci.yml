@@ -21,7 +21,7 @@ build_fwi:serial:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_C_COMPILER=gcc ..
+    - cmake -DCMAKE_C_COMPILER=gcc -DENABLE_TESTS=ON ..
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -38,7 +38,7 @@ build_fwi:openmp:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_C_COMPILER=gcc -DUSE_OPENMP=ON ..
+    - cmake -DCMAKE_C_COMPILER=gcc -DENABLE_TESTS=ON -DUSE_OPENMP=ON ..
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -56,7 +56,7 @@ build_fwi:openacc:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON ..
+    - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON ..
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -74,7 +74,7 @@ build_fwi:openacc_cuda:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_C_COMPILER=pgcc -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
+    - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
