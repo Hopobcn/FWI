@@ -171,12 +171,12 @@ void compute_component_vcell_TL (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -225,12 +225,12 @@ void compute_component_vcell_TR (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -279,12 +279,12 @@ void compute_component_vcell_BR (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -333,12 +333,12 @@ void compute_component_vcell_BL (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -632,7 +632,6 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc66 = coeffs.c66;
 
 #if defined(_OPENACC)
-    //TODO: STEP2 - specify input (copyin) and inputoutput (copy) arrays
     #pragma acc kernels
     #pragma acc loop independent
 #elif defined(_OPENMP)
@@ -641,12 +640,12 @@ void compute_component_scell_TR (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
+            #pragma acc loop independent
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -767,12 +766,12 @@ void compute_component_scell_TL (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif
@@ -894,12 +893,12 @@ void compute_component_scell_BR (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif
@@ -1021,12 +1020,12 @@ void compute_component_scell_BL (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
+            #pragma acc loop independent
 #elif defined(__INTEL__COMPILER)
             #pragma simd
 #endif
