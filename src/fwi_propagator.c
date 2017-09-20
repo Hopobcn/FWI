@@ -168,8 +168,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer nelems = end - start;
 
     #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
+                        copy(vptr[start:nelems])
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -669,8 +668,7 @@ void compute_component_scell_TR (s_t             s,
                         copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
                         copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
                         copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems]) \
-                        async(phase)
+                        copyin(cc66[start:nelems])
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for

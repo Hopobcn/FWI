@@ -872,7 +872,7 @@ void propagate_shot(time_d        direction,
 
         /* wait read_snapshot H2D copies */
 #if defined(_OPENACC)
-        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+        #pragma acc wait if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
 #endif
 
         /* ------------------------------------------------------------------------------ */
@@ -919,7 +919,7 @@ void propagate_shot(time_d        direction,
         exchange_velocity_boundaries( v, plane_size, nyf, ny0);
 #endif
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO)
+        #pragma acc wait
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -968,7 +968,7 @@ void propagate_shot(time_d        direction,
 #endif
 
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+        #pragma acc wait
 #endif
         tstress_total += (dtime() - tstress_start);
 
