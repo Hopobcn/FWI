@@ -201,84 +201,6 @@ void alloc_memory_shot( const integer numberOfCells,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
-#if defined(_OPENACC)
-    const integer datalen = numberOfCells;
-
-    const real* rrho  = *rho;
-
-    coeff_t cc = *c;
-    //TODO: STEP4 - add 'pragma acc enter data create()` for each array
-    //            - check include/fwi/fwi_propagator.h for 'coeff_t' names
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-    #pragma acc enter data create(/* TODO */)
-
-    v_t vv = *v;
-
-    #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:datalen])
-    #pragma acc enter data create(vv.tl.v[:datalen])
-    #pragma acc enter data create(vv.tl.w[:datalen])
-    #pragma acc enter data create(vv.tr.u[:datalen])
-    #pragma acc enter data create(vv.tr.v[:datalen])
-    #pragma acc enter data create(vv.tr.w[:datalen])
-    #pragma acc enter data create(vv.bl.u[:datalen])
-    #pragma acc enter data create(vv.bl.v[:datalen])
-    #pragma acc enter data create(vv.bl.w[:datalen])
-    #pragma acc enter data create(vv.br.u[:datalen])
-    #pragma acc enter data create(vv.br.v[:datalen])
-    #pragma acc enter data create(vv.br.w[:datalen])
-
-    s_t ss = *s;
-    #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:datalen])
-    #pragma acc enter data create(ss.tl.xz[:datalen])
-    #pragma acc enter data create(ss.tl.yz[:datalen])
-    #pragma acc enter data create(ss.tl.xx[:datalen])
-    #pragma acc enter data create(ss.tl.xy[:datalen])
-    #pragma acc enter data create(ss.tl.yy[:datalen])
-    #pragma acc enter data create(ss.tr.zz[:datalen])
-    #pragma acc enter data create(ss.tr.xz[:datalen])
-    #pragma acc enter data create(ss.tr.yz[:datalen])
-    #pragma acc enter data create(ss.tr.xx[:datalen])
-    #pragma acc enter data create(ss.tr.xy[:datalen])
-    #pragma acc enter data create(ss.tr.yy[:datalen])
-    #pragma acc enter data create(ss.bl.zz[:datalen])
-    #pragma acc enter data create(ss.bl.xz[:datalen])
-    #pragma acc enter data create(ss.bl.yz[:datalen])
-    #pragma acc enter data create(ss.bl.xx[:datalen])
-    #pragma acc enter data create(ss.bl.xy[:datalen])
-    #pragma acc enter data create(ss.bl.yy[:datalen])
-    #pragma acc enter data create(ss.br.zz[:datalen])
-    #pragma acc enter data create(ss.br.xz[:datalen])
-    #pragma acc enter data create(ss.br.yz[:datalen])
-    #pragma acc enter data create(ss.br.xx[:datalen])
-    #pragma acc enter data create(ss.br.xy[:datalen])
-    #pragma acc enter data create(ss.br.yy[:datalen])
-
-    #pragma acc enter data create(rrho[:datalen])
-
-#endif /* end of pragma _OPENACC */
-
     POP_RANGE
 };
 
@@ -288,79 +210,6 @@ void free_memory_shot( coeff_t *c,
                        real    **rho)
 {
     PUSH_RANGE
-
-#if defined(_OPENACC)
-    #pragma acc wait
-
-    //TODO: STEP4 - add 'pragma acc exit data delete()' for each array
-    //            - check include/fwi/fwi_propagator.h for 'coeff_t' names
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-    #pragma acc exit data delete(/* TODO */)
-
-    #pragma acc exit data delete(v->tl.u)
-    #pragma acc exit data delete(v->tl.v)
-    #pragma acc exit data delete(v->tl.w)
-    #pragma acc exit data delete(v->tr.u)
-    #pragma acc exit data delete(v->tr.v)
-    #pragma acc exit data delete(v->tr.w)
-    #pragma acc exit data delete(v->bl.u)
-    #pragma acc exit data delete(v->bl.v)
-    #pragma acc exit data delete(v->bl.w)
-    #pragma acc exit data delete(v->br.u)
-    #pragma acc exit data delete(v->br.v)
-    #pragma acc exit data delete(v->br.w)
-
-
-    #pragma acc exit data delete(s->tl.zz)
-    #pragma acc exit data delete(s->tl.xz)
-    #pragma acc exit data delete(s->tl.yz)
-    #pragma acc exit data delete(s->tl.xx)
-    #pragma acc exit data delete(s->tl.xy)
-    #pragma acc exit data delete(s->tl.yy)
-    #pragma acc exit data delete(s->tr.zz)
-    #pragma acc exit data delete(s->tr.xz)
-    #pragma acc exit data delete(s->tr.yz)
-    #pragma acc exit data delete(s->tr.xx)
-    #pragma acc exit data delete(s->tr.xy)
-    #pragma acc exit data delete(s->tr.yy)
-    #pragma acc exit data delete(s->bl.zz)
-    #pragma acc exit data delete(s->bl.xz)
-    #pragma acc exit data delete(s->bl.yz)
-    #pragma acc exit data delete(s->bl.xx)
-    #pragma acc exit data delete(s->bl.xy)
-    #pragma acc exit data delete(s->bl.yy)
-    #pragma acc exit data delete(s->br.zz)
-    #pragma acc exit data delete(s->br.xz)
-    #pragma acc exit data delete(s->br.yz)
-    #pragma acc exit data delete(s->br.xx)
-    #pragma acc exit data delete(s->br.xy)
-    #pragma acc exit data delete(s->br.yy)
-    #pragma acc exit data delete(s)
-
-    const real* rrho  = *rho;
-    #pragma acc exit data delete(rrho)
-
-#endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
     __free( (void*) c->c11 );
@@ -618,29 +467,6 @@ void load_initial_model ( const real    waveletFreq,
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
-
-#if defined(_OPENACC)
-    const real* vtlu = v->tl.u;
-    const real* vtlv = v->tl.v;
-    const real* vtlw = v->tl.w;
-
-    const real* vtru = v->tr.u;
-    const real* vtrv = v->tr.v;
-    const real* vtrw = v->tr.w;
-
-    const real* vblu = v->bl.u;
-    const real* vblv = v->bl.v;
-    const real* vblw = v->bl.w;
-
-    const real* vbru = v->br.u;
-    const real* vbrv = v->br.v;
-    const real* vbrw = v->br.w;
-
-    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
-                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
-                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
-                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells])
-#endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
@@ -676,12 +502,6 @@ void write_snapshot(char *folder,
     const integer numberOfCells  = cellsInVolume + cellsInHALOs;
     const integer bytesForVolume = cellsInVolume * sizeof(real);
 
-#if defined(_OPENACC)
-    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
-#endif /* end pragma _OPENACC*/
 
     /* local variables */
     char fname[300];
@@ -819,12 +639,6 @@ void read_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
-#if defined(_OPENACC)
-    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
-#endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
