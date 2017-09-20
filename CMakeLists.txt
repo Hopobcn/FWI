@@ -121,10 +121,10 @@ if (USE_OPENACC)
 
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
             #Flags for x86 machines (Minotauro, ironman, thor, ...)
-            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc30,cc35,cc50,cc60,lineinfo,maxregcount:128")
+            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc30,cc35,cc50,cc60,lineinfo,managed,maxregcount:128")
         else ()
             #FLAGS FOR POWER8+P100  (Marenostrum4)
-            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60,maxregcount:128")
+            set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60,managed,maxregcount:128")
         endif ()
 
         find_package(CUDA)
