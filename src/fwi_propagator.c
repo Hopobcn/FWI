@@ -167,8 +167,9 @@ void compute_component_vcell_TL (      real* restrict vptr,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems])
+    //TODO: STEP3 - specify input (copyin) and inputoutput (copy) arrays
+    #pragma acc kernels copyin(/* TODO */) \
+                        copy(/* TODO */)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -656,16 +657,17 @@ void compute_component_scell_TR (s_t             s,
     const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
     const integer nelems = end - start;
 
-    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
-                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
-                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
-                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
-                        copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems])
+    //TODO: STEP3 - specify input (copyin) and inputoutput (copy) arrays
+    #pragma acc kernels copy(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */) \
+                        copyin(/* TODO */)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
