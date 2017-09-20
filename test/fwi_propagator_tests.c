@@ -55,20 +55,12 @@ void init_array( real* restrict array, const integer length )
 {
     for (integer i = 0; i < length; i++)
         array[i] = (i/(1.0+i)) + (rand() + 1.0) / (1.0 * RAND_MAX);
-
-#if defined(_OPENACC)
-    #pragma acc update device(array[:length])
-#endif
 }
 
 void copy_array( real* restrict dest, real* restrict src, const integer length )
 {
     for (integer i = 0; i < length; i++)
         dest[i] = src[i];
-
-#if defined(_OPENACC)
-    #pragma acc update device(dest[:length])
-#endif
 }
 
 TEST_GROUP(propagator);
@@ -376,9 +368,6 @@ TEST(propagator, compute_component_vcell_TL)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(v_cal.tl.u[:dimmz*dimmx*dimmy]) wait(phase)
-#endif
     
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tl.u, v_cal.tl.u, nelems );
 }
@@ -429,9 +418,6 @@ TEST(propagator, compute_component_vcell_TR)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     } 
-#if defined(_OPENACC)
-    #pragma acc update host(v_cal.tr.u[:dimmz*dimmx*dimmy]) wait(phase)
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.tr.u, v_cal.tr.u, nelems );
 }
@@ -483,9 +469,6 @@ TEST(propagator, compute_component_vcell_BR)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(v_cal.br.u[:dimmz*dimmx*dimmy]) wait(phase)
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.br.u, v_cal.br.u, nelems );
 }
@@ -536,9 +519,6 @@ TEST(propagator, compute_component_vcell_BL)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(v_cal.bl.u[:dimmz*dimmx*dimmy]) wait(phase)
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
 }
@@ -850,14 +830,6 @@ TEST(propagator, compute_component_scell_TR)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(s_cal.tr.xx[:dimmz*dimmx*dimmy]) wait(phase)
-    #pragma acc update host(s_cal.tr.yy[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tr.zz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tr.yz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tr.xz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tr.xy[:dimmz*dimmx*dimmy]) 
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.xx, s_cal.tr.xx, nelems );
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tr.yy, s_cal.tr.yy, nelems );
@@ -938,14 +910,6 @@ TEST(propagator, compute_component_scell_TL)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(s_cal.tl.xx[:dimmz*dimmx*dimmy]) wait(phase)
-    #pragma acc update host(s_cal.tl.yy[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tl.zz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tl.yz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tl.xz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.tl.xy[:dimmz*dimmx*dimmy]) 
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.xx, s_cal.tl.xx, nelems );
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.tl.yy, s_cal.tl.yy, nelems );
@@ -1027,15 +991,6 @@ TEST(propagator, compute_component_scell_BR)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(s_cal.br.xx[:dimmz*dimmx*dimmy]) wait(phase)
-    #pragma acc update host(s_cal.br.yy[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.zz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.yz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.xz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.xy[:dimmz*dimmx*dimmy]) 
-#endif
-
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
@@ -1116,14 +1071,6 @@ TEST(propagator, compute_component_scell_BL)
             nz0, nzf, nx0, nxf, ny0, nyf,
             SZ, SX, SY, dimmz, dimmx, phase);
     }
-#if defined(_OPENACC)
-    #pragma acc update host(s_cal.br.xx[:dimmz*dimmx*dimmy]) wait(phase)
-    #pragma acc update host(s_cal.br.yy[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.zz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.yz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.xz[:dimmz*dimmx*dimmy]) 
-    #pragma acc update host(s_cal.br.xy[:dimmz*dimmx*dimmy]) 
-#endif
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.xx, s_cal.br.xx, nelems );
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.br.yy, s_cal.br.yy, nelems );
