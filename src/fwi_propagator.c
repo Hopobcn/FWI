@@ -163,20 +163,20 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels
-    #pragma acc loop independent
+    #pragma acc /* TODO */
+    #pragma acc /* TODO */
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end _OPENACC */
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent
+        #pragma acc /* TODO */
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent
+            #pragma acc /* TODO */
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
@@ -632,20 +632,20 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc66 = coeffs.c66;
 
 #if defined(_OPENACC)
-    #pragma acc kernels
-    #pragma acc loop independent
+    #pragma acc /* TODO */
+    #pragma acc /* TODO */
 #elif defined(_OPENMP)
     #pragma omp parallel for
 #endif /* end pragma _OPENACC */
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent
+        #pragma acc /* TODO */
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent
+            #pragma acc /* TODO */
 #elif defined(__INTEL_COMPILER)
             #pragma simd
 #endif
