@@ -476,7 +476,7 @@ void compute_component_vcell_TL_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_TL
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_vcell_TL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
@@ -659,7 +659,7 @@ void compute_component_vcell_TR_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_TR
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_vcell_TR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
@@ -843,7 +843,7 @@ void compute_component_vcell_BR_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_BR
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_vcell_BR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
@@ -1019,7 +1019,7 @@ void compute_component_vcell_BL_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_BL
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_vcell_BL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
@@ -1676,7 +1676,7 @@ void compute_component_scell_TR_cuda ( float* sxxptr,
 
 #ifdef SCELL_TR
     const int HALO = 4;
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_scell_TR_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -2013,7 +2013,7 @@ void compute_component_scell_TL_cuda ( float* sxxptr,
 
 #ifdef SCELL_TL
     const int HALO = 4;
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_scell_TL_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -2350,7 +2350,7 @@ void compute_component_scell_BR_cuda ( float* sxxptr,
 
 #ifdef SCELL_BR
     const int HALO = 4;
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_scell_BR_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
@@ -2688,7 +2688,7 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
 
 #ifdef SCELL_BL
     const int HALO = 4;
-    grid_dim.z = 4;
+    grid_dim.z = 16;
 
     compute_component_scell_BL_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
