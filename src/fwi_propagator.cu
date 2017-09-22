@@ -334,7 +334,11 @@ void compute_component_vcell_TL_cuda_k ( float* __restrict__ vptr,
 {
     int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-    
+
+    int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    int ystart  = blockIdx.z * nplanes + ny0;
+    int ystop   =     ystart + nplanes;
+
     // WARNING: We can't predicate threads that fall outside of the [nz0:nzf][nx0:nxf] range because
     //          we use COLLECTIVE operations like SHUFFLE & SHARED.
     //          PREVENT incorrect GMEM memory access by checking boundaries at every access
@@ -344,19 +348,19 @@ void compute_component_vcell_TL_cuda_k ( float* __restrict__ vptr,
     float sy_back1, sy_back2, sy_back3, sy_back4;
     float sy_current;
 
-    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
-    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
-    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
-    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
-    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
-    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
-    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+6+SY,dimmz,dimmx)] : 0.0f;
 
     float rho_current, rho_front1;
-    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ny0,dimmz,dimmx)] : 0.0f;
+    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ystart,dimmz,dimmx)] : 0.0f;
 
-    for(int y = ny0; 
-            y < nyf; 
+    for(int y = ystart;
+            y < ystop && y < nyf; 
             y++)
     {
         /////////// register tiling-advance plane ////////////////
@@ -472,6 +476,8 @@ void compute_component_vcell_TL_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_TL
+    grid_dim.z = 16;
+
     compute_component_vcell_TL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -515,7 +521,11 @@ void compute_component_vcell_TR_cuda_k ( float* __restrict__ vptr,
 {
     int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-    
+
+    int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    int ystart  = blockIdx.z * nplanes + ny0;
+    int ystop   =     ystart + nplanes;
+
     // WARNING: We can't predicate threads that fall outside of the [nz0:nzf][nx0:nxf] range because
     //          we use COLLECTIVE operations like SHUFFLE & SHARED.
     //          PREVENT incorrect GMEM memory access by checking boundaries at every access
@@ -525,18 +535,18 @@ void compute_component_vcell_TR_cuda_k ( float* __restrict__ vptr,
     float sy_back1, sy_back2, sy_back3, sy_back4;
     float sy_current;
 
-    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
-    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
-    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
-    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
-    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
-    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
-    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+6+SY,dimmz,dimmx)] : 0.0f;
 
     __shared__ float rho_smem[BDIMY+1][BDIMX];
 
-    for(int y = ny0; 
-            y < nyf; 
+    for(int y = ystart;
+            y < ystop && y < nyf;
             y++)
     {
         /////////// register tiling-advance plane ////////////////
@@ -649,6 +659,8 @@ void compute_component_vcell_TR_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_TR
+    grid_dim.z = 16;
+
     compute_component_vcell_TR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -692,26 +704,30 @@ void compute_component_vcell_BR_cuda_k ( float* __restrict__ vptr,
 {
     int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-    
+
+    int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    int ystart  = blockIdx.z * nplanes + ny0;
+    int ystop   =     ystart + nplanes;
+
     __shared__ float sx_smem[NY][NX];
     float sy_front1, sy_front2, sy_front3;
     float sy_back1, sy_back2, sy_back3, sy_back4;
     float sy_current;
 
-    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
-    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
-    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
-    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
-    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
-    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
-    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+6+SY,dimmz,dimmx)] : 0.0f;
 
     __shared__ float rho_smem[BDIMY+1][BDIMX+1];
     float rho_current, rho_front1;
-    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ny0,dimmz,dimmx)] : 0.0f;
+    rho_front1 = (z<dimmz && x<dimmx) ? rho[IDX(z,x,ystart,dimmz,dimmx)] : 0.0f;
 
-    for(int y = ny0; 
-            y < nyf; 
+    for(int y = ystart;
+            y < ystop && y < nyf;
             y++)
     {
         /////////// register tiling-advance plane ////////////////
@@ -827,6 +843,8 @@ void compute_component_vcell_BR_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_BR
+    grid_dim.z = 16;
+
     compute_component_vcell_BR_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -869,22 +887,26 @@ void compute_component_vcell_BL_cuda_k ( float* __restrict__ vptr,
 {
     int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     int x = blockIdx.y * blockDim.y + threadIdx.y + nx0; 
-    
+
+    int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    int ystart  = blockIdx.z * nplanes + ny0;
+    int ystop   =     ystart + nplanes;
+
     __shared__ float sx_smem[NY][NX];
     float sy_front1, sy_front2, sy_front3;
     float sy_back1, sy_back2, sy_back3, sy_back4;
     float sy_current;
 
-    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+0+SY,dimmz,dimmx)] : 0.0f;
-    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+1+SY,dimmz,dimmx)] : 0.0f;
-    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+2+SY,dimmz,dimmx)] : 0.0f;
-    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+3+SY,dimmz,dimmx)] : 0.0f;
-    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+4+SY,dimmz,dimmx)] : 0.0f;
-    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+5+SY,dimmz,dimmx)] : 0.0f;
-    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ny0-HALO+6+SY,dimmz,dimmx)] : 0.0f;
+    sy_back3   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+0+SY,dimmz,dimmx)] : 0.0f;
+    sy_back2   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+1+SY,dimmz,dimmx)] : 0.0f;
+    sy_back1   = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+2+SY,dimmz,dimmx)] : 0.0f;
+    sy_current = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+3+SY,dimmz,dimmx)] : 0.0f;
+    sy_front1  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+4+SY,dimmz,dimmx)] : 0.0f;
+    sy_front2  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+5+SY,dimmz,dimmx)] : 0.0f;
+    sy_front3  = (z<dimmz && x<dimmx) ? syptr[IDX(z,x,ystart-HALO+6+SY,dimmz,dimmx)] : 0.0f;
 
-    for(int y = ny0; 
-            y < nyf; 
+    for(int y = ystart;
+            y < ystop && y < nyf;
             y++)
     {
         /////////// register tiling-advance plane ////////////////
@@ -997,6 +1019,8 @@ void compute_component_vcell_BL_cuda ( float* vptr,
     cudaStream_t s = (cudaStream_t) stream;
 
 #ifdef VCELL_BL
+    grid_dim.z = 16;
+
     compute_component_vcell_BL_cuda_k<4,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (vptr, szptr, sxptr, syptr, rho, dt, dzi, dxi, dyi, 
          nz0, nzf, nx0, nxf, ny0, nyf, SZ, SX, SY, dimmz, dimmx);
@@ -1405,9 +1429,15 @@ void compute_component_scell_TR_cuda_k ( float* __restrict__ sxxptr,
     const int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     const int x = blockIdx.y * blockDim.y + threadIdx.y + nx0;       
 
+    int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    int ystart  = blockIdx.z * nplanes + ny0;
+    int ystop   =     ystart + nplanes;
+
     __shared__ float bsmem[NY][NX];
 
-    for(int y = ny0; y < nyf; y++)
+    for(int y = ystart; 
+            y < ystop && y < nyf; 
+            y++)
     {
         float c11, c12, c13, c14, c15, c16;
         float c22, c23, c24, c25, c26;
@@ -1646,6 +1676,8 @@ void compute_component_scell_TR_cuda ( float* sxxptr,
 
 #ifdef SCELL_TR
     const int HALO = 4;
+    grid_dim.z = 16;
+
     compute_component_scell_TR_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
          vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
@@ -1734,9 +1766,15 @@ void compute_component_scell_TL_cuda_k ( float* __restrict__ sxxptr,
     const int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     const int x = blockIdx.y * blockDim.y + threadIdx.y + nx0;       
 
+    const int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    const int ystart  = blockIdx.z * nplanes + ny0;
+    const int ystop   =     ystart + nplanes;
+
     __shared__ float bsmem[NY][NX];
 
-    for(int y = ny0; y < nyf; y++)
+    for(int y = ystart;
+            y < ystop && y < nyf; 
+            y++)
     {
         float c11, c12, c13, c14, c15, c16;
         float c22, c23, c24, c25, c26;
@@ -1975,6 +2013,8 @@ void compute_component_scell_TL_cuda ( float* sxxptr,
 
 #ifdef SCELL_TL
     const int HALO = 4;
+    grid_dim.z = 16;
+
     compute_component_scell_TL_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
          vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
@@ -2063,9 +2103,15 @@ void compute_component_scell_BR_cuda_k ( float* __restrict__ sxxptr,
     const int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     const int x = blockIdx.y * blockDim.y + threadIdx.y + nx0;       
 
+    const int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    const int ystart  = blockIdx.z * nplanes + ny0;
+    const int ystop   =     ystart + nplanes;
+
     __shared__ float bsmem[NY][NX];
 
-    for(int y = ny0; y < nyf; y++)
+    for(int y = ystart;
+            y < ystop && y < nyf; 
+            y++)
     {
         float c11, c12, c13, c14, c15, c16;
         float c22, c23, c24, c25, c26;
@@ -2304,6 +2350,8 @@ void compute_component_scell_BR_cuda ( float* sxxptr,
 
 #ifdef SCELL_BR
     const int HALO = 4;
+    grid_dim.z = 16;
+
     compute_component_scell_BR_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
          vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
@@ -2393,9 +2441,15 @@ void compute_component_scell_BL_cuda_k ( float* __restrict__ sxxptr,
     const int z = blockIdx.x * blockDim.x + threadIdx.x + nz0; 
     const int x = blockIdx.y * blockDim.y + threadIdx.y + nx0;       
 
+    const int nplanes = (nyf - ny0 + gridDim.z - 1)/gridDim.z;
+    const int ystart  = blockIdx.z * nplanes + ny0;
+    const int ystop   =     ystart + nplanes;
+
     __shared__ float bsmem[NY][NX];
 
-    for(int y = ny0; y < nyf; y++)
+    for(int y = ystart; 
+            y < ystop && y < nyf; 
+            y++)
     {
         float c11, c12, c13, c14, c15, c16;
         float c22, c23, c24, c25, c26;
@@ -2634,6 +2688,8 @@ void compute_component_scell_BL_cuda ( float* sxxptr,
 
 #ifdef SCELL_BL
     const int HALO = 4;
+    grid_dim.z = 16;
+
     compute_component_scell_BL_cuda_k<HALO,block_dim_x,block_dim_y><<<grid_dim, block_dim, 0, s>>>
         (sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
          vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw,
