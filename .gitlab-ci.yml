@@ -396,6 +396,8 @@ deploy_github:
   environment:
     name: production
     url: https://github.com/Hopobcn/FWI
+  tags:
+    - gpu
   when: manual
   only:
     - master
@@ -407,6 +409,8 @@ deploy_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG.pm.bsc.es/gitlab
+  tags:
+    - gpu
   only:
     - branches
   except:
@@ -419,6 +423,8 @@ stop_review:
     GIT_STRATEGY: none
   script:
     - echo "Remove review app when their branch is deleted"
+  tags:
+    - gpu
   when: manual
   environment:
     name: review/$CI_COMMIT_REF_NAME
