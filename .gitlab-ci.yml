@@ -412,3 +412,14 @@ deploy_review:
   except:
     - master
     - gtc2017*
+
+stop_review:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Remove review app when their branch is deleted"
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
