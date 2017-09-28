@@ -1,4 +1,7 @@
 # GTC2017 Europe - Instructor-Led Lab: *Best GPU Code Practices Combining OpenACC, CUDA, and OmpSs*
+
+> This lab is shold to be executed inside nvidia-docker with hopobcn/gtc2017-fwi:eu image 
+
 ## Lab Instructions
 
 In this lab you will make modifications to a real world oil&gas mini application called `FWI`.  
@@ -21,13 +24,41 @@ After login into the machine you should see a folder called `FWI` containing eac
   gtc2017eu-step5-sol
   gtc2017eu-step6
   gtc2017eu-step6-sol
+  ompss-openacc
 ```
 
 Use `git diff <branch-name>` to compare branches and `git stash && git checkout <branch-name>` to discard non-commited changes and change to another step (branch).
 
-> Machine used to display execution times & speedups: Intel i7-5930k (6-core with HT) + 1x Titan X (Maxwell)
+###### Execution setup info:
+1. Serial & OpenMP executions on Marenostrum 4 Supercomputer: 
 
-> *Step 0: Characterize FWI application* can be found in Appendix 0
+   Intel(R) Xeon(R) Platinum 8160 CPU @ 2.10GHz with 24 cores
+
+2. OpenACC & CUDA executions on CTE-Power: 
+      
+   NVIDIA Tesla P100-SMX2 16GB with NVLink (w/ Power8nvl CPU)
+
+## Step 0: Characterize FWI
+
+> To save time, this step has been moved to Appendix 0
+
+To compare our GPU executions we will use serial & OpenMP executions on the Marenostrum 4 supercomputer (Xeon Platinium 8160):
+
+* Sequential execution with 1 core:
+```bash
+Freq: 2.0 ------------------------
+Processing 0-th gradient iteration.
+	Gradient loop processed for the 0-th shot
+FWI Program finished in 494.821120 seconds
+```
+* OpenMP execution with 24 threads (1 per core)
+```bash
+Freq: 2.0 ------------------------
+Processing 0-th gradient iteration.
+	Gradient loop processed for the 0-th shot
+FWI Program finished in 27.691120 seconds
+```
+
 
 ## Step 1: Adding OpenACC directives
 
@@ -72,7 +103,7 @@ For that purpose we already modified **CMakeLists.txt** to add the `managed` to 
 set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,lineinfo,managed")
 ```
 
-In the first step you should add a simple `#pragma acc kernels` in the outer-most loop of `src/fwi_propagator.c:166` (`compute_component_vcell_TL`) and `src/fwi_propagator.c:634` (`compute_component_scell_TR`). Example in `vcell_TR`:
+In the first step you should add a simple `#pragma acc kernels` in the outer-most loop of `src/fwi_propagator.c:166` (`compute_component_vcell_TL`) and `src/fwi_propagator.c:634` (`compute_component_scell_TR`). Example for `vcell_TR`:
 ```c
 #pragma acc kernels
 for(integer y=ny0; y < nyf; y++)
@@ -192,7 +223,7 @@ compute_component_scell_TR:
 
 Functions called inside OpenACC parallel regions must be either inlined or declared with the `#pragma acc routine <type>` specifier. 
 To facilitate your job we already added those pragmas.
-We encourage you to check it in `include/fwi/fwi_propagator.h`
+We encourage you to check `include/fwi/fwi_propagator.h` to see how it's done.
 
 We also parallelized other less important parts of this application for you like the function `set_array_to_constant` (file `src/fwi_kernels.c`):
 
@@ -226,10 +257,10 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.436970 seconds
+FWI Program finished in 2.3548 seconds
 [100%] Built target irun
 ```
-That is, 14.96x faster than the original OpenMP version (see Appendix 0).
+That is, 11.75x faster than the OpenMP execution on Marenostrum 4.
 
 Remember you can see differences with the soluction with `git diff gtc2017eu-step1-sol`
 
@@ -242,30 +273,29 @@ We could use *NVIDIA Visual Profiler* for a graphical assestment or `pgprof`/`nv
 For simplicity in this lab we are going to use `nvprof`:
 ```bash
 $ nvprof bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==1970== NVPROF is profiling process 1970, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-MPI rank 0 with GPU 0 (4)
+==15829== NVPROF is profiling process 15829, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+MPI rank 0 with GPU 0 (2)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.550828 seconds
-==1970== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==1970== Profiling result:
+FWI Program finished in 2.852562 seconds
+==15829== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+==15829== Profiling result:
 Time(%)      Time     Calls       Avg       Min       Max  Name
- 24.34%  890.20ms       300  2.9673ms  261.86us  9.6679ms  compute_component_scell_TR_652_gpu
- 23.61%  863.60ms       300  2.8787ms  235.27us  9.1643ms  compute_component_scell_BR_905_gpu
- 21.97%  803.60ms       300  2.6787ms  242.31us  8.5288ms  compute_component_scell_BL_1032_gpu
- 14.30%  523.06ms       300  1.7435ms  155.23us  5.6492ms  compute_component_scell_TL_778_gpu
-  4.23%  154.73ms       900  171.92us  19.520us  658.22us  compute_component_vcell_BR_291_gpu
-  3.87%  141.64ms       900  157.37us  17.440us  685.83us  compute_component_vcell_TL_183_gpu
-  3.80%  139.03ms       900  154.48us  17.472us  611.72us  compute_component_vcell_BL_345_gpu
-  3.77%  137.95ms       900  153.28us  17.312us  589.48us  compute_component_vcell_TR_237_gpu
-  0.09%  3.3592ms        58  57.917us  57.696us  58.688us  set_array_to_constant_52_gpu
+ 22.21%  502.12ms       300  1.6737ms  167.36us  4.7410ms  compute_component_scell_TR_653_gpu
+ 21.63%  488.89ms       300  1.6296ms  155.87us  4.8002ms  compute_component_scell_BL_1033_gpu
+ 19.87%  449.06ms       300  1.4969ms  140.10us  4.4297ms  compute_component_scell_BR_906_gpu
+ 12.49%  282.22ms       300  940.74us  94.369us  2.6565ms  compute_component_scell_TL_779_gpu
+  5.83%  131.87ms        58  2.2736ms  2.0034ms  2.7459ms  set_array_to_constant_52_gpu
+  4.89%  110.55ms       900  122.83us  14.432us  352.99us  compute_component_vcell_BR_291_gpu
+  4.40%  99.481ms       900  110.53us  13.408us  317.60us  compute_component_vcell_TL_183_gpu
+  4.36%  98.553ms       900  109.50us  13.376us  313.28us  compute_component_vcell_BL_345_gpu
+  4.32%  97.737ms       900  108.60us  12.896us  311.27us  compute_component_vcell_TR_237_gpu
 
-==1970== Unified Memory profiling result:
-Device "GeForce GTX TITAN X (0)"
+==15829== Unified Memory profiling result:
+Device "Tesla P100-SXM2-16GB (0)"
    Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
-       1  4.0000KB  4.0000KB  4.0000KB  4.000000KB  2.528000us  Host To Device
-       2  32.000KB  4.0000KB  60.000KB  64.00000KB  7.584000us  Device To Host
+    2797         -         -         -           -  77.56933ms  GPU Page fault groups
 Total CPU Page faults: 1
 ...
 ```
@@ -274,35 +304,35 @@ We can see that *scell* kernels take more time than *vcell* kernels.
 Now we could obtain the occupancy of each kernel with `nvprof`:
 ```bash
 $ nvprof --metrics achieved_occupancy bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==1982== NVPROF is profiling process 1982, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-MPI rank 0 with GPU 0 (4)
+==29037== NVPROF is profiling process 29037, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+MPI rank 0 with GPU 0 (1)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 86.161661 seconds
-==1982== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==1982== Profiling result:
-==1982== Metric result:
-Invocations                               Metric Name   Metric Description         Min         Max         Avg
-Device "GeForce GTX TITAN X (0)"
-    Kernel: compute_component_scell_BL_1032_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.182630    0.184938    0.184334
+FWI Program finished in 50.002512 seconds
+==29037== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+==29037== Profiling result:
+==29037== Metric result:
+Invocations                               Metric Name                        Metric Description         Min         Max         Avg
+Device "Tesla P100-SXM2-16GB (0)"
+    Kernel: compute_component_scell_BL_1033_gpu
+        300                        achieved_occupancy                        Achieved Occupancy    0.182248    0.185109    0.184320
     Kernel: compute_component_vcell_TR_237_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.377972    0.399152    0.388503
+        900                        achieved_occupancy                        Achieved Occupancy    0.395600    0.452339    0.420180
     Kernel: compute_component_vcell_BR_291_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.375341    0.395387    0.387548
+        900                        achieved_occupancy                        Achieved Occupancy    0.360654    0.397629    0.378349
     Kernel: compute_component_vcell_TL_183_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.379227    0.400051    0.389370
+        900                        achieved_occupancy                        Achieved Occupancy    0.399401    0.450857    0.423599
     Kernel: set_array_to_constant_52_gpu
-         58                        achieved_occupancy   Achieved Occupancy    0.274696    0.298007    0.275503
-    Kernel: compute_component_scell_BR_905_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.182237    0.184860    0.184205
-    Kernel: compute_component_scell_TL_778_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.181161    0.184661    0.183571
-    Kernel: compute_component_scell_TR_652_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.182847    0.185438    0.184791
+         58                        achieved_occupancy                        Achieved Occupancy    0.888319    0.921247    0.911842
+    Kernel: compute_component_scell_BR_906_gpu
+        300                        achieved_occupancy                        Achieved Occupancy    0.178378    0.184664    0.181873
+    Kernel: compute_component_scell_TL_779_gpu
+        300                        achieved_occupancy                        Achieved Occupancy    0.176510    0.183167    0.180917
+    Kernel: compute_component_scell_TR_653_gpu
+        300                        achieved_occupancy                        Achieved Occupancy    0.178290    0.184896    0.182404
     Kernel: compute_component_vcell_BL_345_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.378842    0.399955    0.388493
+        900                        achieved_occupancy                        Achieved Occupancy    0.440485    0.511483    0.471098
 ```
 To minimize kernel execution time we should aim to obtain 50% of occupancy. 
 Since *scell* occupancy is below that target we are going to focus on increasing that occupancy.
@@ -316,37 +346,67 @@ Now we benchmark again:
 
 ```bash
 $ nvprof --metrics achieved_occupancy bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==970== NVPROF is profiling process 970, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-MPI rank 0 with GPU 0 (4)
+==44509== NVPROF is profiling process 44509, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+MPI rank 0 with GPU 0 (1)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 85.155618 seconds
-==970== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-==970== Profiling result:
-==970== Metric result:
+FWI Program finished in 49.651134 seconds
+==44509== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+==44509== Profiling result:
+==44509== Metric result:
 Invocations                               Metric Name                        Metric Description         Min         Max         Avg
-Device "GeForce GTX TITAN X (0)"
+Device "Tesla P100-SXM2-16GB (0)"
     Kernel: compute_component_scell_BL_1033_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.239774    0.245808    0.243372
+        300                        achieved_occupancy                        Achieved Occupancy    0.238370    0.245830    0.242977
     Kernel: compute_component_vcell_TR_237_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.380310    0.401889    0.390591
+        900                        achieved_occupancy                        Achieved Occupancy    0.399286    0.451483    0.422414
     Kernel: compute_component_vcell_BR_291_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.384433    0.399168    0.391624
+        900                        achieved_occupancy                        Achieved Occupancy    0.360829    0.397582    0.377605
     Kernel: compute_component_vcell_TL_183_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.381601    0.400037    0.390715
+        900                        achieved_occupancy                        Achieved Occupancy    0.398806    0.450154    0.422655
     Kernel: set_array_to_constant_52_gpu
-         58                        achieved_occupancy   Achieved Occupancy    0.274668    0.298013    0.275561
+         58                        achieved_occupancy                        Achieved Occupancy    0.887166    0.928509    0.913351
     Kernel: compute_component_scell_BR_906_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.238774    0.246400    0.243266
+        300                        achieved_occupancy                        Achieved Occupancy    0.233576    0.245738    0.240203
     Kernel: compute_component_scell_TL_779_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.238081    0.244078    0.242195
+        300                        achieved_occupancy                        Achieved Occupancy    0.235300    0.243735    0.240790
     Kernel: compute_component_scell_TR_653_gpu
-        300                        achieved_occupancy   Achieved Occupancy    0.234759    0.246725    0.241176
+        300                        achieved_occupancy                        Achieved Occupancy    0.233336    0.245961    0.240668
     Kernel: compute_component_vcell_BL_345_gpu
-        900                        achieved_occupancy   Achieved Occupancy    0.381123    0.399174    0.389855
+        900                        achieved_occupancy                        Achieved Occupancy    0.441188    0.510914    0.470312
 ```
 occupancy went up from ~18% to ~24% for *scell* kernels.
+
+If we profile all kernels:
+```bash
+==61248== NVPROF is profiling process 61248, command: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+MPI rank 0 with GPU 0 (1)
+Freq: 2.0 ------------------------
+Processing 0-th gradient iteration.
+	Gradient loop processed for the 0-th shot
+FWI Program finished in 2.647710 seconds
+==61248== Profiling application: bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+==61248== Profiling result:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 21.66%  480.94ms       300  1.6031ms  160.71us  4.6537ms  compute_component_scell_TR_653_gpu
+ 21.19%  470.54ms       300  1.5685ms  156.10us  4.5518ms  compute_component_scell_BL_1033_gpu
+ 19.73%  438.12ms       300  1.4604ms  140.61us  4.2639ms  compute_component_scell_BR_906_gpu
+ 13.27%  294.76ms       300  982.55us  98.465us  2.8355ms  compute_component_scell_TL_779_gpu
+  5.89%  130.73ms        58  2.2540ms  1.9511ms  2.5148ms  set_array_to_constant_52_gpu
+  4.96%  110.15ms       900  122.39us  14.304us  351.68us  compute_component_vcell_BR_291_gpu
+  4.47%  99.272ms       900  110.30us  13.344us  316.83us  compute_component_vcell_TL_183_gpu
+  4.43%  98.346ms       900  109.27us  13.568us  311.68us  compute_component_vcell_BL_345_gpu
+  4.40%  97.782ms       900  108.65us  13.601us  310.21us  compute_component_vcell_TR_237_gpu
+
+==61248== Unified Memory profiling result:
+Device "Tesla P100-SXM2-16GB (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+    2955         -         -         -           -  77.90682ms  GPU Page fault groups
+Total CPU Page faults: 1
+```
+we can see how scell functions have reduced a few milliseconds their execution time.
+
 
 ```bash
 $ make irun
@@ -363,10 +423,12 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.282602 seconds
+FWI Program finished in 2.3748 seconds
 [100%] Built target irun
 ```
-We improved a bit from 14.96x to 15,95x.
+
+Unfortunately, for Tesla P100 this step instead of acheaving an speedup it remains neutral. On Tesla K40 this step achieved an 73% improvement, and a 10% in Titan X (Maxwell) GPU.
+To be consistend between different architectures we will maintain this step. 
 
 
 ## Step 3: Moving from Unified Memory to OpenACC Data clauses
@@ -422,7 +484,7 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 43.743209 seconds
+FWI Program finished in 30.0043 seconds
 [100%] Built target irun
 ```
 We got an important slowdown! We should profile the application again to get an insight of what is happening:
@@ -505,19 +567,23 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.151053 seconds
+FWI Program finished in 2.2745 seconds
 [100%] Built target irun
 ```
-And finally solved the problems we had in step 3, achieving 16.52x compared to OpenMP.
+And finally solved the problems we had in step 3, achieving 12.16x compared to OpenMP.
 
 ## Step 5: Asynchronous execution
 
 OpenACC follows the same semantics as CUDA regarding streams. 
 By default, kernels and memory copies are executed in the default stream which imposes seralization between kerenls and memory transfers.
 
-This step will focus on using multiple streams to perform H2D,D2H copies concurrently with Kernel executions.
-Also another important aspect of this step is that it allows us to optimize HALO copies between multiple-GPUs when MPI is enabled. 
-This is achieved by calculating first the HALO regions and then, while we exchange the HALO regions with MPI, execute the rest of the volume.
+FWI can be decomposed in multiples domains using MPI. 
+The 3D structured grid is divided by the most non-contiguous dimension (`Y` in this case) and is distributed between several MPI processes.
+At each timestep every MPI process must communicate their `HALO` regions to their neighbours.
+This is implemented in the `exchange_halos` function present in `src/fwi_kernel.c` file.
+One optimization when using GPUs is to overlap the communication phase of the *HALO* regions with the computation phase of the rest of the domain (excluding the HALOs).
+
+For that purpose in this step you will employ multiple streams to perform H2D,D2H copies concurrently with kernel executions.
 
 To differenciate the different parts of the application we are going to use the `phase_t` enum present in `include/fwi/fwi_propagator.h::78`:
 ```c
@@ -560,10 +626,10 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.135605 seconds
+FWI Program finished in 2.1762 seconds
 [100%] Built target irun
 ```
-This time we obtained a slight improvement due we are only using 1 GPU. When using multi-GPU excecutjions with MPI the performance should improve.
+This time we obtained a slight improvement (from 12.16x to 12.71x) due we are only using 1 GPU. When using multi-GPU excecutions with MPI the performance should improve.
 
 ## Step 6: Add glue code to call CUDA Kernels
 
@@ -571,10 +637,11 @@ If we are not satisfied with the OpenACC kernel performance or we want to use a 
 
 In CUDA it is essential maximize memory bandwidth to achieve maximum performance. In our case we could take advantage of shared memory and shuffle instructions to boost the performance.
 
-We already provide those optimized kernels (file `src/fwi_propagator.cu`) and your job is to add the boilerplate code to use those kernels from OpenACC (in file `src/fwi_propagator.c`).
+We already provide a set of highly optimized kernels (file `src/fwi_propagator.cu`).
+Your job in this step consists on adding the necessary boilerplate code to use those kernels from OpenACC (in file `src/fwi_propagator.c`).
 
 We also provide the necessary modifications in `CMakeLists.txt` for compiling with `nvcc` and linking with `pgcc`.
-Just remember to compile pass `-DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON` to cmake.
+Just remember to pass `-DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON` to cmake.
 
 In summary. You will have to add `#pragma acc host_data use_device` directives to pass the *device pointers* allocated by OpenACC to our CUDA kernels and call `acc_get_cuda_stream` to forward the current stream to cuda in every **vcell**/**scell** function. The parameters of `compute_component_vcell_TL_cuda` are the same of the current function without the phase, and with the stream we retrieved from the OpenACC runtime. Example:
 ```c
@@ -613,10 +680,10 @@ MPI rank 0 with GPU 0 (4)
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
 	Gradient loop processed for the 0-th shot
-FWI Program finished in 4.155579 seconds
+FWI Program finished in 1.4330 seconds
 [100%] Built target irun
 ```
-This time we improved the overall speedup to 20.64x compared OpenMP or 97.67x sequential version.
+This time we improved the overall speedup to 19.30x compared to a 24-thread OpenMP execution or 343.21x for the sequential version.
 
 ![](data/FWI_step6_speedup.png)
 
@@ -654,7 +721,8 @@ for(integer y=ny0; y < nyf; y++)
     }
 }
 ```
-We only support the `kernels` and `loop` directive with clauses `deviceptr`. Any other combination is not supported.
+We only support the `kernels` and `loop` directive with clauses `deviceptr`. 
+Any other combination is not supported.
 Also, we are restricted to only one GPU.
 
 To build this example:
@@ -664,7 +732,6 @@ make -i
 NX_ARGS="--gpus=1" ./fwi data/fwi_params.txt data/fwi_frequencies.profile.txt
 ```
 
-![](data/FWI_ompss_openacc_speedup.png)
 
 
 # Appendix
@@ -703,11 +770,14 @@ COMPILER_ID:        GNU
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
         Gradient loop processed for the 0-th shot
-FWI Program finished in 266.472365 seconds
+FWI Program finished in 491.82 seconds
 [100%] Built target irun
 ```
 
-Then we are going to profile FWI to search for hot spots using `nvprof --cpu-profiling on` (you can use `make iprofile` or call `nvprof` directly from console: `nvprof --cpu-profiling on bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt`). Like the following example:
+> This step was executed on a different machine because profiling results in Marenostrum were not reliable
+
+Then we are going to profile FWI to search for hot spots using `nvprof --cpu-profiling on` (you can use `make iprofile` or call `nvprof` directly from console: `nvprof --cpu-profiling on bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt`). 
+Like the following example:
 
 ```bash
 $ cmake -DCMAKE_C_COMPILER=gcc -DPROFILE=ON ..
@@ -764,7 +834,6 @@ COMPILER_ID:        GNU
 Freq: 2.0 ------------------------
 Processing 0-th gradient iteration.
         Gradient loop processed for the 0-th shot
-FWI Program finished in 52.054321 seconds
+FWI Program finished in 27,318 seconds
 ```
 
-We got 5.12x compared the sequential version.
