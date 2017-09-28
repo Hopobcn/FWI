@@ -5,6 +5,7 @@ stages:
  - Build
  - UnitTests
  - IntegrationTests
+ - Deploy
 
 # STAGE build
 build_fwi:serial:
@@ -385,3 +386,14 @@ run_fwi:openacc_cuda/maxwell:
     - maxwell
   dependencies:
     - build_fwi:openacc_cuda/maxwell
+
+deploy_github:
+  stage: Deploy
+  script:
+    - git remote add github git@github.com:Hopobcn/FWI.git
+    - git push github --all
+    - git push github --tags
+  environment: production
+  only:
+    - master
+  when: manual
