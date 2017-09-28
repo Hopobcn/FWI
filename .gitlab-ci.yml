@@ -5,7 +5,7 @@ stages:
  - Build
  - UnitTests
  - IntegrationTests
- - Deploy
+ - deploy
 
 # STAGE build
 build_fwi:serial:
@@ -388,12 +388,27 @@ run_fwi:openacc_cuda/maxwell:
     - build_fwi:openacc_cuda/maxwell
 
 deploy_github:
-  stage: Deploy
+  stage: deploy
   script:
     - git remote add github git@github.com:Hopobcn/FWI.git
-    - git push github --all
+    - git push github
     - git push github --tags
-  environment: production
+  environment:
+    name: production
+    url: https://github.com/Hopobcn/FWI
+  when: manual
   only:
     - master
-  when: manual
+
+deploy_review:
+  stage: deploy
+  script:
+    - echo "Deploy a review app"
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG.pm.bsc.es/gitlab
+  only:
+    - branches
+  except:
+    - master
+    - gtc2017*
