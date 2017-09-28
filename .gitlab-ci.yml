@@ -2,22 +2,13 @@
 image: hopobcn/fwi-pre
 
 stages:
- - build_serial
- - build_openmp
- - build_openacc
- - build_openacc_cuda
- - unit_tests_serial
- - unit_tests_openmp
- - unit_tests_openacc
- - unit_tests_openacc_cuda
- - performance_tests_serial
- - performance_tests_openmp
- - performance_tests_openacc
- - performance_tests_openacc_cuda
+ - Build
+ - UnitTests
+ - IntegrationTests
 
 # STAGE build
 build_fwi:serial:
-  stage: build_serial
+  stage: Build
   script:
     - mkdir build
     - cd build
@@ -25,6 +16,13 @@ build_fwi:serial:
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   artifacts:
@@ -34,7 +32,7 @@ build_fwi:serial:
     - build
 
 build_fwi:openmp:
-  stage: build_openmp
+  stage: Build
   script:
     - mkdir build
     - cd build
@@ -42,6 +40,13 @@ build_fwi:openmp:
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   artifacts:
@@ -51,8 +56,8 @@ build_fwi:openmp:
     - build
   dependencies: []
 
-build_fwi:openacc:
-  stage: build_openacc
+build_fwi:openacc/kepler:
+  stage: Build
   script:
     - mkdir build
     - cd build
@@ -60,8 +65,15 @@ build_fwi:openacc:
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - kepler
   artifacts:
     when: on_success
     expire_in: 1h
@@ -69,8 +81,33 @@ build_fwi:openacc:
     - build
   dependencies: []
 
-build_fwi:openacc_cuda:
-  stage: build_openacc_cuda
+build_fwi:openacc/maxwell:
+  stage: Build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON ..
+    - make -j
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - maxwell
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
+  dependencies: []
+
+build_fwi:openacc_cuda/kepler:
+  stage: Build
   script:
     - mkdir build
     - cd build
@@ -78,8 +115,40 @@ build_fwi:openacc_cuda:
     - make -j
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - kepler
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build
+  dependencies: []
+
+build_fwi:openacc_cuda/maxwell:
+  stage: Build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
+    - make -j
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - maxwell
   artifacts:
     when: on_success
     expire_in: 1h
@@ -89,99 +158,230 @@ build_fwi:openacc_cuda:
 
 # STAGE: unit_tests
 test_fwi:serial:
-  stage: unit_tests_serial
+  stage: UnitTests
   script:
     - cd build
     - make utest
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   dependencies:
     - build_fwi:serial
 
 test_fwi:openmp:
-  stage: unit_tests_openmp
+  stage: UnitTests
   script:
     - cd build
     - make utest
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   dependencies:
     - build_fwi:openmp
 
-test_fwi:openacc:
-  stage: unit_tests_openacc
+test_fwi:openacc/kepler:
+  stage: UnitTests
   script:
     - cd build
     - make utest
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - kepler
   dependencies:
-    - build_fwi:openacc
+    - build_fwi:openacc/kepler
 
-test_fwi:openacc_cuda:
-  stage: unit_tests_openacc_cuda
+test_fwi:openacc/maxwell:
+  stage: UnitTests
   script:
     - cd build
     - make utest
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - maxwell
   dependencies:
-    - build_fwi:openacc_cuda
+    - build_fwi:openacc/maxwell
+
+test_fwi:openacc_cuda/kepler:
+  stage: UnitTests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - kepler
+  dependencies:
+    - build_fwi:openacc_cuda/kepler
+
+test_fwi:openacc_cuda/maxwell:
+  stage: UnitTests
+  script:
+    - cd build
+    - make utest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - maxwell
+  dependencies:
+    - build_fwi:openacc_cuda/maxwell
 
 # STAGE performance_tests
 run_fwi:serial:
-  stage: performance_tests_serial
+  stage: IntegrationTests
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   dependencies:
     - build_fwi:serial
 
 run_fwi:openmp:
-  stage: performance_tests_openmp
+  stage: IntegrationTests
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
     - gpu
   dependencies:
     - build_fwi:openmp
 
-run_fwi:openacc:
-  stage: performance_tests_openacc
+run_fwi:openacc/kepler:
+  stage: IntegrationTests
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - kepler
   dependencies:
-    - build_fwi:openacc
+    - build_fwi:openacc/kepler
 
-run_fwi:openacc_cuda:
-  stage: performance_tests_openacc_cuda
+run_fwi:openacc/maxwell:
+  stage: IntegrationTests
   script:
     - cd build
     - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
   tags:
-    - gpu
+    - maxwell
   dependencies:
-    - build_fwi:openacc_cuda
+    - build_fwi:openacc/maxwell
 
+run_fwi:openacc_cuda/kepler:
+  stage: IntegrationTests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - kepler
+  dependencies:
+    - build_fwi:openacc_cuda/kepler
+
+run_fwi:openacc_cuda/maxwell:
+  stage: IntegrationTests
+  script:
+    - cd build
+    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - gtc2017eu-step1
+    - gtc2017eu-step2
+    - gtc2017eu-step3
+    - gtc2017eu-step4
+    - gtc2017eu-step5
+    - gtc2017eu-step6
+  tags:
+    - maxwell
+  dependencies:
+    - build_fwi:openacc_cuda/maxwell
