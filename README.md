@@ -16,6 +16,8 @@ large aftershocks. As the number of aftershocks sky-rockets after a large
 earthquake, the amount of data to analyse grows really fast.  Thus, it is
 mandatory to speed up the processing of all that information.
 
+## [GTC2017 Europe: Best GPU Code Practices Combining OpenACC, CUDA and OmpSs - Lab Instructions](GTC2017eu.md)
+
 ### How to get the code:
 
 Pull the repo using `git clone`:
