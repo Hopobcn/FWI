@@ -390,6 +390,8 @@ run_fwi:openacc_cuda/maxwell:
 deploy:
   stage: deploy
   script:
+    - git checkout master
+    - git config --global push.default simple
     - git remote add github git@github.com:Hopobcn/FWI.git
     - git push github
     - git push github --tags
@@ -428,3 +430,8 @@ stop_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
+  only:
+    - branches
+  except:
+    - master
+    - gtc2017*
