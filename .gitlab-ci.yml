@@ -390,7 +390,7 @@ run_fwi:openacc_cuda/maxwell:
 deploy:
   before_script:
     - apt update
-    - apt install ssh
+    - apt install -y --no-install-recommends ssh
   stage: deploy
   script:
     - git checkout master
