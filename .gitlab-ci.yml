@@ -387,24 +387,6 @@ run_fwi:openacc_cuda/maxwell:
   dependencies:
     - build_fwi:openacc_cuda/maxwell
 
-deploy:
-  before_script:
-    - apt update
-    - apt install -y --no-install-recommends ssh
-  stage: deploy
-  script:
-    - git checkout master
-    - git config --global push.default simple
-    - git push github
-    - git push github --tags
-  environment:
-    name: production
-    url: https://github.com/Hopobcn/FWI
-  tags:
-    - gpu
-  only:
-    - master
-
 deploy_review:
   stage: deploy
   script:
