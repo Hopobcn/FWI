@@ -392,7 +392,6 @@ deploy:
   script:
     - git checkout master
     - git config --global push.default simple
-    - git remote add github git@github.com:Hopobcn/FWI.git
     - git push github
     - git push github --tags
   environment:
