@@ -25,7 +25,7 @@ build_fwi:serial:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - asterix
+    - Westmere EP
   artifacts:
     when: on_success
     expire_in: 1h
@@ -49,7 +49,7 @@ build_fwi:openmp:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - maxwell
+    - Sandy Bridge EP
   artifacts:
     when: on_success
     expire_in: 1h
@@ -173,7 +173,7 @@ test_fwi:serial:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - asterix
+    - Westmere EP
   dependencies:
     - build_fwi:serial
 
@@ -192,7 +192,7 @@ test_fwi:openmp:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - maxwell
+    - Sandy Bridge EP
   dependencies:
     - build_fwi:openmp
 
@@ -288,7 +288,7 @@ run_fwi:serial:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - asterix
+    - Westmere EP
   dependencies:
     - build_fwi:serial
 
@@ -307,7 +307,7 @@ run_fwi:openmp:
     - gtc2017eu-step5
     - gtc2017eu-step6
   tags:
-    - maxwell
+    - Sandy Bridge EP
   dependencies:
     - build_fwi:openmp
 
@@ -387,7 +387,7 @@ run_fwi:openacc_cuda/maxwell:
   dependencies:
     - build_fwi:openacc_cuda/maxwell
 
-deploy_github:
+deploy:
   stage: deploy
   script:
     - git remote add github git@github.com:Hopobcn/FWI.git
@@ -398,7 +398,6 @@ deploy_github:
     url: https://github.com/Hopobcn/FWI
   tags:
     - gpu
-  when: manual
   only:
     - master
 
