@@ -36,15 +36,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <stdint.h>
-#include <assert.h>
+//#include <stdint.h>
+//#include <assert.h>
 #include <math.h>
 #include <sys/time.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <time.h>
+//#include <time.h>
 
 #if defined(USE_MPI)
 #include <mpi.h>
@@ -62,26 +62,13 @@
 #include <nvToolsExt.h>
 #endif
 
-
-/* data types definition */
-typedef float  real;
-typedef int    integer;
+#include "fwi_constants.h"
 
 #define I "%d"     // integer printf symbol
 
 typedef enum {RTM_KERNEL, FM_KERNEL} propagator_t;
 typedef enum {FORWARD   , BACKWARD, FWMODEL}  time_d;
 
-/* simulation parameters */
-extern const integer WRITTEN_FIELDS;
-extern const integer HALO;
-extern const integer SIMD_LENGTH;
-extern const real    IT_FACTOR;
-extern const real    IO_CHUNK_SIZE;
-
-extern const size_t ALIGN_INT;
-extern const size_t ALIGN_INTEGER;
-extern const size_t ALIGN_REAL;
 
 /* (MPI-local) file for logging */
 extern FILE* logfile;
@@ -111,14 +98,12 @@ static inline void checkErrors(const integer error, const char *filename, int li
     }
 };
 
+char* read_env_variable(const char* varname);
 FILE* safe_fopen  ( const char *filename, const char *mode, const char* srcfilename, const int linenumber);
 void  safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, const int linenumber);
 void  safe_fwrite ( const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
 void  safe_fread  (       void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber );
 integer roundup(integer number, integer multiple);
-
-void log_info  (const char *fmt, ...);
-void log_error (const char *fmt, ...);
 
 int max_int( int a, int b);
 
@@ -131,6 +116,11 @@ void read_fwi_parameters (const char *fname,
                           real *vmin,
                           real *srclen,
                           real *rcvlen,
+                          int  *nshots,
+                          int  *ngrads,
+                          int  *ntests,
+                          real *workmem,
+                          real *slavemem,
                           char *outputfolder);
 
 void store_shot_parameters(int     shotid,
@@ -144,6 +134,7 @@ void store_shot_parameters(int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
+                           integer *LocalYPlanes,
                            char    *outputfolder,
                            real    waveletFreq);
 
@@ -158,6 +149,7 @@ void load_shot_parameters(int     shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
+                          integer *LocalYPlanes,
                           char    *outputfolder,
                           real    waveletFreq);
 
@@ -177,14 +169,20 @@ void create_folder(const char *folder);
 
 #define print_error(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "ERROR ", M, ##__VA_ARGS__)
 #define print_info(M, ...)      fwi_writelog(__FILE__, __LINE__, __func__, "INFO  ", M, ##__VA_ARGS__)
+
+#if defined(COLLECT_STATS)
 #define print_stats(M, ...)     fwi_writelog(__FILE__, __LINE__, __func__, "STATS ", M, ##__VA_ARGS__)
+#else
+#define print_stats(M, ...)     fwi_dont_print(M, ##__VA_ARGS__)
+#endif
 
 #if defined(DEBUG)
   #define print_debug(M, ...)  fwi_writelog(__FILE__, __LINE__, __func__, "DEBUG ", M, ##__VA_ARGS__)
 #else
-  #define print_debug(M, ...)
+  #define print_debug(M, ...)  fwi_dont_print(M, ##__VA_ARGS__)
 #endif
 
+void fwi_dont_print(const char *fmt, ...);
 void fwi_writelog(const char *SourceFileName, 
                   const int LineNumber,
                   const char *FunctionName,
@@ -198,24 +196,6 @@ void fwi_writelog(const char *SourceFileName,
 #else
     #define PUSH_RANGE
     #define POP_RANGE
-#endif
-
-int parse_env(const char* name);
-
-// 
-// GPU-Affinity related functions:
-//
-#if defined(USE_MPI)
-int mpi_get_rank();
-int mpi_get_local_rank();
-#endif
-//Obs: due a BUG with PGI 16.5 & CUDA 7.5 we can't just 'include <cuda.h>' in C files
-//     we have to use NVCC and PGI separately and link the result
-#if 0
-#if defined(__cplusplus)
-extern "C"
-#endif
-int select_gpu_and_pin_proc(int rank, int local_rank);
 #endif
 
 #endif // end of _FWI_COMMON_H_ definition

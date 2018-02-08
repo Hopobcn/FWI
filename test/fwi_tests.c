@@ -34,12 +34,12 @@
 bool    is_negative(Float_t f)  { return f.i < 0;               }
 int32_t raw_mantissa(Float_t f) { return f.i & ((1 << 23) - 1); }
 int32_t raw_exponent(Float_t f) { return (f.i >> 23) & 0xFF;    }
-         
+
 bool assert_float_equal_ULPs(float A, float B, int maxUlpsDiff)
 {
     Float_t uA;
     Float_t uB;
-    
+
     uA.f = A;
     uB.f = B;
 
@@ -55,12 +55,12 @@ bool assert_float_equal_ULPs(float A, float B, int maxUlpsDiff)
             return true;
         return false;
     }
-                                                      
+
     // Find the difference in ULPs.
     int ulpsDiff = abs(uA.i - uB.i);
     if (ulpsDiff <= maxUlpsDiff)
         return true;
-                                                       
+
     return false;
 }
 

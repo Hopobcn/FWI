@@ -27,63 +27,70 @@
  * =============================================================================
  */
 
+#include "fwi/fwi_sched.h"
 #include "fwi/fwi_kernel.h"
 
+/*
+ * DISCLAIMER:
+ * The model contains (dimmz +2*HALO) * (dimmx +2HALO) * (dimmy +2*HALO) 
+ * cells. For now, it assumes that there are no boundary conditions (sponge)
+ * implemented.
+ * The initial velocity model should be loaded taking into account this
+ * criteria.
+ */
 
 int main(int argc, const char *argv[])
 {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s <params_file> <frequency_file>\n", argv[0]);
-        exit(0);
+    if (argc != 2) {
+        printf("Invalid argument! Schedule file is required.\n \
+                Usage: %s <schedule_file>\n", argv[0]);
+        abort();
+    }
+
+    if (argv[1] == NULL) {
+        printf("Invalid argument! Schedule file path is NULL.\n \
+                Usage: %s <schedule_file>\n", argv[0]);
+        abort();
     }
 
     /* set seed for random number generator */
     srand(314);
 
-    real lenz,lenx,leny,vmin,srclen,rcvlen;
-    char outputfolder[200];
+    /* Load schedule file */
+    schedule_t s = load_schedule(argv[1]);
 
-    fprintf(stderr, "Loading parameter from %s file\n", argv[1]);
-    read_fwi_parameters( argv[1], &lenz, &lenx, &leny, &vmin, &srclen, &rcvlen, outputfolder);
+    char foldername[500];
+    char* fwipath = read_env_variable("FWIDIR");
+    sprintf( foldername, "%s/data/inputmodels", fwipath);
+    create_folder(foldername);
 
-    /* create synthetic velocity model */
-    int nfreqs;
-    real *frequencies;
 
-    load_freqlist( argv[2], &nfreqs, &frequencies);
-
-    for(int i=0; i<nfreqs; i++)
+    /* Generate one velocity model per frequency */
+    for(int i=0; i<s.nfreqs; i++)
     {
-        real waveletFreq = frequencies[i];
-        fprintf(stderr, "Creating synthetic velocity input model for %f Hz freq\n", waveletFreq );
+        real waveletFreq = s.freq[i];
+        integer dimmz    = s.dimmz[i];
+        integer dimmy    = s.dimmy[i];
+        integer dimmx    = s.dimmx[i];
 
-        /* compute discretization deltas, 16 == puntos por longitud de onda */
-        real dx = vmin / (16.0 * waveletFreq);
-        real dy = vmin / (16.0 * waveletFreq);
-        real dz = vmin / (16.0 * waveletFreq);
+        print_info("Creating synthetic velocity input model for %f Hz freq", waveletFreq );
 
-        /* number of cells along axis */
-        integer dimmz = roundup( ceil( lenz / dz ) + 2*HALO, HALO);
-        integer dimmy = roundup( ceil( leny / dy ) + 2*HALO, HALO);
-        integer dimmx = roundup( ceil( lenx / dx ) + 2*HALO, HALO);
-
-        const integer numberOfCells = dimmz * dimmy * dimmx;
-
-        fprintf(stderr, "Elements/array = "I"\n", numberOfCells);
-
-        char modelname[300];
-        sprintf( modelname, "../data/inputmodels/velocitymodel_%.2f.bin", waveletFreq );
+        /* generate complete path for output model */
+        char modelname[500];
+        sprintf( modelname, "%s/velocitymodel_%.2f.bin", foldername, waveletFreq );
 
         FILE* model = safe_fopen( modelname, "wb", __FILE__, __LINE__);
 
-        real *buffer = __malloc( ALIGN_REAL, sizeof(real) * numberOfCells);
+        /* compute number of cells per array */
+        const integer cellsInVolume = dimmz * dimmy * dimmx;
+        print_info("Number of cells in volume:"I, cellsInVolume);
+        real *buffer = __malloc( ALIGN_REAL, sizeof(real) * cellsInVolume);
 
         /* safe dummy buffer */
         for(int i = 0; i < WRITTEN_FIELDS; i++)
         {
-            set_array_to_random_real( buffer, numberOfCells );
-
-            safe_fwrite( buffer, sizeof(real), numberOfCells, model, __FILE__, __LINE__);
+            set_array_to_random_real( buffer, cellsInVolume );
+            safe_fwrite( buffer, sizeof(real), cellsInVolume, model, __FILE__, __LINE__);
         }
 
         /* free buffer */
@@ -92,10 +99,12 @@ int main(int argc, const char *argv[])
         /*  close model file */
         safe_fclose( modelname, model, __FILE__, __LINE__);
 
-        fprintf(stderr, "Model %s created correctly\n", modelname);
+        print_info("Model %s created correctly", modelname);
     }
 
-    __free( frequencies );
-    fprintf(stderr, "End of the program\n");
+    schedule_free(s);
+
+    print_info("End of the program");
+
     return 0;
 }

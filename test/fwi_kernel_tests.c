@@ -41,8 +41,8 @@ TEST_SETUP(kernel)
 {
     nelems = dimmz * dimmx * dimmy;
 
-    alloc_memory_shot(nelems, &c_ref, &s_ref, &v_ref, &rho_ref);
-    alloc_memory_shot(nelems, &c_cal, &s_cal, &v_cal, &rho_cal);
+    alloc_memory_shot(dimmz, dimmx, dimmy, &c_ref, &s_ref, &v_ref, &rho_ref);
+    alloc_memory_shot(dimmz, dimmx, dimmy, &c_cal, &s_cal, &v_cal, &rho_cal);
 
     /* constants initialization */
     init_array(c_ref.c11, nelems);

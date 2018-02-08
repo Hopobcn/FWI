@@ -28,7 +28,7 @@
  */
 
 #include "fwi/fwi_core.h"
-
+#include "fwi/fwi_sched.h"
 
 /*
  * In order to generate a source for injection,
@@ -36,51 +36,53 @@
  * functions can be used.
  */
 void kernel( propagator_t propagator, real waveletFreq, int shotid, char* outputfolder, char* shotfolder)
-{   
+{
+#if defined(USE_MPI)
+    /* find ourselves into the MPI space */
+    int mpi_rank, mpi_size;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size( MPI_COMM_WORLD, &mpi_size);
+#endif /* USE_MPI */
+
     /* local variables */
     int stacki;
     double start_t, end_t;
     real dt,dz,dx,dy;
-    integer dimmz, dimmx, dimmy, forw_steps, back_steps;
+    integer dimmz, dimmx, dimmy, MaxYPlanesPerWorker, forw_steps, back_steps;
 
-    load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps, &dz, &dx, &dy, &dimmz, &dimmx, &dimmy, outputfolder, waveletFreq );
+    load_shot_parameters( shotid, &stacki, &dt, &forw_steps, &back_steps,
+            &dz, &dx, &dy,
+            &dimmz, &dimmx, &dimmy,
+            &MaxYPlanesPerWorker,
+            outputfolder, waveletFreq );
 
 #if defined(USE_MPI)
-    /* find ourselves into the MPI space */
-    int mpi_rank, Subdomains;
-    MPI_Comm_size( MPI_COMM_WORLD, &Subdomains);
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
+    /* aux variables, just to make it more readable */
+    const int FIRSTRANK = 0;
+    const int LASTRANK  = mpi_size - 1;
 
-    /* number of cell for each MPI rank */
-    const integer planesPerSubdomain = ((dimmy-2*HALO)/Subdomains);
-    const integer planesRemaining    = ((dimmy-2*HALO)%Subdomains);
-
-    /* Compute local computing limits */
-    const integer y0 = planesPerSubdomain * mpi_rank; 
-    const integer yF = y0 + planesPerSubdomain + 2*HALO + ((mpi_rank == Subdomains-1) ? planesRemaining : 0);
-    assert(yF <= dimmy);
-
-    print_debug( "MPI rank " I " compute from y=" I " to=" I ". #planes per subdomain " I " ", 
-            mpi_rank, y0, yF, planesPerSubdomain);
-
-    const integer edimmy = (yF - y0);
-    const integer numberOfCells = dimmz * dimmx * edimmy;
-
-    /* set GLOBAL integration limits */
-    const integer nyf = edimmy;
+    /* Compute the integration limits in order to load the correct slice from the input
+     * velocity model. These are not the limits for the wave propagator! (they are local,
+     * i.e. starts at zero!) */
+    const integer y0 = (mpi_rank == FIRSTRANK) ? 0     : (MaxYPlanesPerWorker * mpi_rank) - HALO;
+    const integer yf = (mpi_rank == LASTRANK ) ? dimmy : y0 + MaxYPlanesPerWorker;
+    const integer edimmy = (yf - y0);
 #else
-    const integer numberOfCells = dimmz * dimmx * dimmy;
+    const integer y0 = 0;
+    const integer yf = dimmy;
+    const integer edimmy = dimmy;
+#endif /* USE_MPI */
 
-    /* set GLOBAL integration limits */
-    const integer nyf = dimmy;
-#endif
-    /* set GLOBAL integration limits -COMMON PART-*/
+    /* Compute integration limits for the wave propagator. 
+     * It assumes that the volume is local, so the indices start at zero */
     const integer nz0 = 0;
     const integer ny0 = 0;
     const integer nx0 = 0;
     const integer nzf = dimmz;
     const integer nxf = dimmx;
-    
+    const integer nyf = edimmy;
+    const integer numberOfCells = dimmz * dimmx * edimmy;
+
     real    *rho;
     v_t     v;
     s_t     s;
@@ -89,23 +91,18 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
     print_debug("The length of local arrays is " I " cells zxy[%d][%d][%d]", numberOfCells, nzf, nxf, nyf);
 
     /* allocate shot memory */
-    alloc_memory_shot  ( numberOfCells, &coeffs, &s, &v, &rho);
+    alloc_memory_shot  ( dimmz, dimmx, (nyf - ny0), &coeffs, &s, &v, &rho);
 
-#if defined(USE_MPI)
     /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, dimmz, dimmx, edimmy, &coeffs, &s, &v, rho);
-#else
-    /* load initial model from a binary file */
-    load_initial_model ( waveletFreq, dimmz, dimmx, dimmy, &coeffs, &s, &v, rho);
-#endif
+    load_local_velocity_model ( waveletFreq, dimmz, dimmx, y0, yf, &coeffs, &s, &v, rho);
 
     /* Allocate memory for IO buffer */
     real* io_buffer = (real*) __malloc( ALIGN_REAL, numberOfCells * sizeof(real) * WRITTEN_FIELDS );
 
     /* inspects every array positions for leaks. Enabled when DEBUG flag is defined */
-    check_memory_shot  ( numberOfCells, &coeffs, &s, &v, rho);
+    check_memory_shot  ( dimmz, dimmx, (nyf - ny0), &coeffs, &s, &v, rho);
 
-    
+    /* Perform forward, backward or test propagations */
     switch( propagator )
     {
     case( RTM_KERNEL ):
@@ -120,14 +117,14 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         dimmz, dimmx, dimmy);
+                         dimmz, dimmx, (nyf - ny0));
 
         end_t = dtime();
 
         print_stats("Forward propagation finished in %lf seconds", end_t - start_t );
 
         start_t = dtime();
-        
+
         propagate_shot ( BACKWARD,
                          v, s, coeffs, rho,
                          forw_steps, back_steps -1,
@@ -136,7 +133,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         dimmz, dimmx, dimmy);
+                         dimmz, dimmx, (nyf - ny0));
 
         end_t = dtime();
 
@@ -149,7 +146,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
 #if defined(USE_MPI)
         if ( mpi_rank == 0 ) 
-#endif
+#endif /* USE_MPI */
         {
             char fnameGradient[300];
             char fnamePrecond[300];
@@ -184,8 +181,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
                          stacki,
                          shotfolder,
                          io_buffer,
-                         numberOfCells,
-                         dimmz, dimmx);
+                         dimmz, dimmx, dimmy);
 
         end_t = dtime();
 
@@ -207,7 +203,7 @@ void kernel( propagator_t propagator, real waveletFreq, int shotid, char* output
 
 void gather_shots( char* outputfolder, const real waveletFreq, const int nshots, const int numberOfCells )
 {
-#ifdef DO_NOT_PERFORM_IO
+#if defined(DO_NOT_PERFORM_IO)
     print_info("Warning: we are not gathering the results because the IO is disabled "
                "for this execution");
 #else
@@ -306,17 +302,14 @@ void gather_shots( char* outputfolder, const real waveletFreq, const int nshots,
 
     __free(  sumbuffer);
     __free( readbuffer);
-#endif
+#endif /* end DO_NOT_PERFORM_IO */
 };
 
 int execute_simulation( int argc, char* argv[] )
 {
 #if defined(USE_MPI)
-    int mpi_rank;
-
-    int subdomains;
     MPI_Init ( &argc, &argv );
-    MPI_Comm_size( MPI_COMM_WORLD, &subdomains);
+    int mpi_rank;
     MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank);
 #elif !defined(USE_MPI) && defined(_OPENACC)
     //TODO: fix name
@@ -332,41 +325,27 @@ int execute_simulation( int argc, char* argv[] )
 #endif /*_OPENACC*/
 
 
-    real lenz,lenx,leny,vmin,srclen,rcvlen;
-    char outputfolder[200];
+    /* Load parameters from schedule file */
+    schedule_t s = load_schedule(argv[1]);
 
-    read_fwi_parameters( argv[1], &lenz, &lenx, &leny, &vmin, &srclen, &rcvlen, outputfolder);
-
-    const int nshots = 1;
-    const int ngrads = 1;
-    //const int ntest  = 0;
-
-    int   nfreqs;
-    real *frequencies;
-
-    load_freqlist( argv[2], &nfreqs, &frequencies );
-
-    for(int i=0; i<nfreqs; i++)
+    for(int i=0; i<s.nfreqs; i++)
     {
         /* Process one frequency at a time */
-        real waveletFreq = frequencies[i];
-        fprintf(stderr, "Freq: %2.1f ------------------------\n", waveletFreq); 
+        real waveletFreq   = s.freq[i];
+        integer stacki     = s.stacki[i];
+        real dt            = s.dt[i];
+        integer forw_steps = s.forws[i];
+        integer back_steps = s.backs[i];
+        real dx            = s.dx[i];
+        real dy            = s.dy[i];
+        real dz            = s.dz[i];
+        integer dimmz      = s.dimmz[i];
+        integer dimmx      = s.dimmx[i];
+        integer dimmy      = s.dimmy[i];
+        //integer nworkers = s.nworkers[i];
+        integer MaxYPlanesPerWorker = s.ppd[i];
 
-        /* Deltas of space, 16 grid point per Hz */
-        real dx = vmin / (16.0 * waveletFreq);
-        real dy = vmin / (16.0 * waveletFreq);
-        real dz = vmin / (16.0 * waveletFreq);
-
-        /* number of cells along axis, adding HALO planes */
-        integer dimmz = roundup(ceil( lenz / dz ) + 2*HALO, HALO);
-        integer dimmy = roundup(ceil( leny / dy ) + 2*HALO, HALO);
-        integer dimmx = roundup(ceil( lenx / dx ) + 2*HALO, HALO);
-
-        /* compute delta T */
-        real dt = 68e-6 * dx;
-
-        /* dynamic I/O */
-        integer stacki = floor( 0.25 / (2.5 * waveletFreq * dt) );
+        print_info("\n------ Computing %d-th frequency (%.2fHz). ------\n", i, waveletFreq);
 
         const integer numberOfCells = dimmz * dimmx * dimmx;
         const size_t VolumeMemory  = numberOfCells * sizeof(real) * 58;
@@ -374,95 +353,84 @@ int execute_simulation( int argc, char* argv[] )
         print_stats("Local domain size for freq %f [%d][%d][%d] is %lu bytes (%lf GB)", 
                     waveletFreq, dimmz, dimmx, dimmy, VolumeMemory, TOGB(VolumeMemory) );
 
-        /* compute time steps */
-        int forw_steps = max_int ( IT_FACTOR * (srclen/dt), 1);
-        int back_steps = max_int ( IT_FACTOR * (rcvlen/dt), 1);
-
-        for(int grad=0; grad<ngrads; grad++) /* iteracion de inversion */
+        for(int grad=0; grad<s.ngrads; grad++) /* backward iteration */
         {
-            fprintf(stderr, "Processing %d-th gradient iteration.\n", grad);
             print_info("Processing %d-gradient iteration", grad);
 
-            for(int shot=0; shot<nshots; shot++)
+            for(int shot=0; shot<s.nshots; shot++)
             {
                 char shotfolder[200];
-                sprintf(shotfolder, "%s/shot.%2.1f.%05d", outputfolder, waveletFreq, shot);
-                
+                sprintf(shotfolder, "%s/shot.%2.2fHz.%03d", s.outputfolder, waveletFreq, shot);
+
 #if defined(USE_MPI)
-                if ( mpi_rank == 0 ) 
+                if ( mpi_rank == 0 )
+#endif
                 {
                     create_folder( shotfolder );
 
                     store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps,
-                                           &dz, &dx, &dy, 
-                                           &dimmz, &dimmx, &dimmy, 
-                                           outputfolder, waveletFreq );
+                                           &dz, &dx, &dy,
+                                           &dimmz, &dimmx, &dimmy,
+                                           &MaxYPlanesPerWorker,
+                                           s.outputfolder, waveletFreq );
                 }
+#if defined(USE_MPI)
                 MPI_Barrier( MPI_COMM_WORLD );
-#else
-                create_folder( shotfolder );
-
-                store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps,
-                                       &dz, &dx, &dy, 
-                                       &dimmz, &dimmx, &dimmy, 
-                                       outputfolder, waveletFreq );
 #endif
 
-                kernel( RTM_KERNEL, waveletFreq, shot, outputfolder, shotfolder);
+                kernel( RTM_KERNEL, waveletFreq, shot, s.outputfolder, shotfolder);
 
-                fprintf(stderr, "\tGradient loop processed for the %d-th shot\n", shot);
                 print_info("\tGradient loop processed for %d-th shot", shot);
-                
+
                 //update_shot()
             }
 
-#if defined(USE_MPI)
-            MPI_Barrier( MPI_COMM_WORLD );
-            
-            if ( mpi_rank == 0 ) { 
-                gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );    
-            }
-            
-            MPI_Barrier( MPI_COMM_WORLD );
-#else
-            gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );
-#endif
+//#if defined(USE_MPI)
+//           MPI_Barrier( MPI_COMM_WORLD );
+//
+//           if ( mpi_rank == 0 ) { 
+//               gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );    
+//           }
+//
+//           MPI_Barrier( MPI_COMM_WORLD );
+//#else
+//           gather_shots( s.outputfolder, waveletFreq, s.nshots, numberOfCells );
+//#endif
 
-            #if 0
-            for(int test=0; test<ntest; test++)
+            for(int test=0; test<s.ntests; test++)
             {
-                fprintf(stderr, "\tProcessing %d-th test iteration.\n", test);
                 print_info("\tProcessing %d-th test iteration", test);
-                
-                for(int shot=0; shot<nshots; shot++)
+
+                for(int shot=0; shot<s.nshots; shot++)
                 {
                     char shotfolder[200];
-                    sprintf(shotfolder, "%s/test.%05d.shot.%2.1f.%05d", 
-                            outputfolder, test, waveletFreq, shot);
+                    sprintf(shotfolder, "%s/test.%05d.shot.%2.2fHz.%03d", 
+                            s.outputfolder, test, waveletFreq, shot);
 
+#if defined(USE_MPI)
                     if ( mpi_rank == 0)
+#endif
                     {
-                        create_folder( shotfolder );    
+                        create_folder( shotfolder );
 
-                        store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps, 
-                                               &dz, &dx, &dy, 
-                                               &dimmz, &dimmx, &dimmy, 
-                                               outputfolder, waveletFreq );
+                        store_shot_parameters( shot, &stacki, &dt, &forw_steps, &back_steps,
+                                               &dz, &dx, &dy,
+                                               &dimmz, &dimmx, &dimmy,
+                                               &MaxYPlanesPerWorker,
+                                               s.outputfolder, waveletFreq );
                     }
-
+#if defined(USE_MPI)
                     MPI_Barrier( MPI_COMM_WORLD );
+#endif
+                    kernel( FM_KERNEL , waveletFreq, shot, s.outputfolder, shotfolder);
 
-                    kernel( FM_KERNEL , waveletFreq, shot, outputfolder, shotfolder);
-                
-                    fprintf(stderr, "\t\tTest loop processed for the %d-th shot\n", shot);
                     print_info("\t\tTest loop processed for the %d-th shot", shot);
                 }
             } /* end of test loop */
-            #endif
         } /* end of gradient loop */
     } /* end of frequency loop */
 
-#ifdef USE_MPI
+#if defined(USE_MPI)
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 #endif

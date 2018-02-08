@@ -53,7 +53,9 @@ void set_array_to_constant( real* restrict array, const real value, const intege
         array[i] = value;
 }
 
-void check_memory_shot( const integer numberOfCells,
+void check_memory_shot( const integer dimmz,
+                        const integer dimmx,
+                        const integer dimmy,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -63,7 +65,8 @@ void check_memory_shot( const integer numberOfCells,
     print_debug("Checking memory shot values");
 
     real UNUSED(value);
-    for( int i=0; i < numberOfCells; i++)
+    const integer size = dimmz * dimmx * dimmy;
+    for( int i=0; i < size; i++)
     {
         value = c->c11[i];
         value = c->c12[i];
@@ -113,7 +116,9 @@ void check_memory_shot( const integer numberOfCells,
 };
 
 
-void alloc_memory_shot( const integer numberOfCells,
+void alloc_memory_shot( const integer dimmz,
+                        const integer dimmx,
+                        const integer dimmy,
                         coeff_t *c,
                         s_t     *s,
                         v_t     *v,
@@ -121,9 +126,10 @@ void alloc_memory_shot( const integer numberOfCells,
 {
     PUSH_RANGE
 
-    const integer size = numberOfCells * sizeof(real);
+    const size_t size = dimmz * dimmx * dimmy * sizeof(real);
 
-    print_debug("ptr size = " I " bytes ("I" elements)", size, numberOfCells);
+    print_debug("ptr size = " I " bytes ("I" elements)", 
+            size, (size_t) dimmz * dimmx * dimmy);
 
     /* allocate coefficients */
     c->c11 = (real*) __malloc( ALIGN_REAL, size);
@@ -202,78 +208,76 @@ void alloc_memory_shot( const integer numberOfCells,
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
 #if defined(_OPENACC)
-    const integer datalen = numberOfCells;
-
     const real* rrho  = *rho;
 
     coeff_t cc = *c;
     #pragma acc enter data create(cc)
-    #pragma acc enter data create(cc.c11[:datalen])
-    #pragma acc enter data create(cc.c12[:datalen])
-    #pragma acc enter data create(cc.c13[:datalen])
-    #pragma acc enter data create(cc.c14[:datalen])
-    #pragma acc enter data create(cc.c15[:datalen])
-    #pragma acc enter data create(cc.c16[:datalen])
-    #pragma acc enter data create(cc.c22[:datalen])
-    #pragma acc enter data create(cc.c23[:datalen])
-    #pragma acc enter data create(cc.c24[:datalen])
-    #pragma acc enter data create(cc.c25[:datalen])
-    #pragma acc enter data create(cc.c26[:datalen])
-    #pragma acc enter data create(cc.c33[:datalen])
-    #pragma acc enter data create(cc.c34[:datalen])
-    #pragma acc enter data create(cc.c35[:datalen])
-    #pragma acc enter data create(cc.c36[:datalen])
-    #pragma acc enter data create(cc.c44[:datalen])
-    #pragma acc enter data create(cc.c45[:datalen])
-    #pragma acc enter data create(cc.c46[:datalen])
-    #pragma acc enter data create(cc.c55[:datalen])
-    #pragma acc enter data create(cc.c56[:datalen])
-    #pragma acc enter data create(cc.c66[:datalen])
+    #pragma acc enter data create(cc.c11[:size])
+    #pragma acc enter data create(cc.c12[:size])
+    #pragma acc enter data create(cc.c13[:size])
+    #pragma acc enter data create(cc.c14[:size])
+    #pragma acc enter data create(cc.c15[:size])
+    #pragma acc enter data create(cc.c16[:size])
+    #pragma acc enter data create(cc.c22[:size])
+    #pragma acc enter data create(cc.c23[:size])
+    #pragma acc enter data create(cc.c24[:size])
+    #pragma acc enter data create(cc.c25[:size])
+    #pragma acc enter data create(cc.c26[:size])
+    #pragma acc enter data create(cc.c33[:size])
+    #pragma acc enter data create(cc.c34[:size])
+    #pragma acc enter data create(cc.c35[:size])
+    #pragma acc enter data create(cc.c36[:size])
+    #pragma acc enter data create(cc.c44[:size])
+    #pragma acc enter data create(cc.c45[:size])
+    #pragma acc enter data create(cc.c46[:size])
+    #pragma acc enter data create(cc.c55[:size])
+    #pragma acc enter data create(cc.c56[:size])
+    #pragma acc enter data create(cc.c66[:size])
 
     v_t vv = *v;
 
     #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:datalen])
-    #pragma acc enter data create(vv.tl.v[:datalen])
-    #pragma acc enter data create(vv.tl.w[:datalen])
-    #pragma acc enter data create(vv.tr.u[:datalen])
-    #pragma acc enter data create(vv.tr.v[:datalen])
-    #pragma acc enter data create(vv.tr.w[:datalen])
-    #pragma acc enter data create(vv.bl.u[:datalen])
-    #pragma acc enter data create(vv.bl.v[:datalen])
-    #pragma acc enter data create(vv.bl.w[:datalen])
-    #pragma acc enter data create(vv.br.u[:datalen])
-    #pragma acc enter data create(vv.br.v[:datalen])
-    #pragma acc enter data create(vv.br.w[:datalen])
+    #pragma acc enter data create(vv.tl.u[:size])
+    #pragma acc enter data create(vv.tl.v[:size])
+    #pragma acc enter data create(vv.tl.w[:size])
+    #pragma acc enter data create(vv.tr.u[:size])
+    #pragma acc enter data create(vv.tr.v[:size])
+    #pragma acc enter data create(vv.tr.w[:size])
+    #pragma acc enter data create(vv.bl.u[:size])
+    #pragma acc enter data create(vv.bl.v[:size])
+    #pragma acc enter data create(vv.bl.w[:size])
+    #pragma acc enter data create(vv.br.u[:size])
+    #pragma acc enter data create(vv.br.v[:size])
+    #pragma acc enter data create(vv.br.w[:size])
 
     s_t ss = *s;
     #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:datalen])
-    #pragma acc enter data create(ss.tl.xz[:datalen])
-    #pragma acc enter data create(ss.tl.yz[:datalen])
-    #pragma acc enter data create(ss.tl.xx[:datalen])
-    #pragma acc enter data create(ss.tl.xy[:datalen])
-    #pragma acc enter data create(ss.tl.yy[:datalen])
-    #pragma acc enter data create(ss.tr.zz[:datalen])
-    #pragma acc enter data create(ss.tr.xz[:datalen])
-    #pragma acc enter data create(ss.tr.yz[:datalen])
-    #pragma acc enter data create(ss.tr.xx[:datalen])
-    #pragma acc enter data create(ss.tr.xy[:datalen])
-    #pragma acc enter data create(ss.tr.yy[:datalen])
-    #pragma acc enter data create(ss.bl.zz[:datalen])
-    #pragma acc enter data create(ss.bl.xz[:datalen])
-    #pragma acc enter data create(ss.bl.yz[:datalen])
-    #pragma acc enter data create(ss.bl.xx[:datalen])
-    #pragma acc enter data create(ss.bl.xy[:datalen])
-    #pragma acc enter data create(ss.bl.yy[:datalen])
-    #pragma acc enter data create(ss.br.zz[:datalen])
-    #pragma acc enter data create(ss.br.xz[:datalen])
-    #pragma acc enter data create(ss.br.yz[:datalen])
-    #pragma acc enter data create(ss.br.xx[:datalen])
-    #pragma acc enter data create(ss.br.xy[:datalen])
-    #pragma acc enter data create(ss.br.yy[:datalen])
+    #pragma acc enter data create(ss.tl.zz[:size])
+    #pragma acc enter data create(ss.tl.xz[:size])
+    #pragma acc enter data create(ss.tl.yz[:size])
+    #pragma acc enter data create(ss.tl.xx[:size])
+    #pragma acc enter data create(ss.tl.xy[:size])
+    #pragma acc enter data create(ss.tl.yy[:size])
+    #pragma acc enter data create(ss.tr.zz[:size])
+    #pragma acc enter data create(ss.tr.xz[:size])
+    #pragma acc enter data create(ss.tr.yz[:size])
+    #pragma acc enter data create(ss.tr.xx[:size])
+    #pragma acc enter data create(ss.tr.xy[:size])
+    #pragma acc enter data create(ss.tr.yy[:size])
+    #pragma acc enter data create(ss.bl.zz[:size])
+    #pragma acc enter data create(ss.bl.xz[:size])
+    #pragma acc enter data create(ss.bl.yz[:size])
+    #pragma acc enter data create(ss.bl.xx[:size])
+    #pragma acc enter data create(ss.bl.xy[:size])
+    #pragma acc enter data create(ss.bl.yy[:size])
+    #pragma acc enter data create(ss.br.zz[:size])
+    #pragma acc enter data create(ss.br.xz[:size])
+    #pragma acc enter data create(ss.br.yz[:size])
+    #pragma acc enter data create(ss.br.xx[:size])
+    #pragma acc enter data create(ss.br.xy[:size])
+    #pragma acc enter data create(ss.br.yy[:size])
 
-    #pragma acc enter data create(rrho[:datalen])
+    #pragma acc enter data create(rrho[:size])
 
 #endif /* end of pragma _OPENACC */
 
@@ -441,115 +445,127 @@ void free_memory_shot( coeff_t *c,
 
 /*
  * Loads initial values from coeffs, stress and velocity.
+ *
+ * dimmz: number of z planes
+ * dimmx: number of x planes
+ * FirstYPlane: first Y plane of my local domain (includes HALO)
+ * LastYPlane: last Y plane of my local domain (includes HALO)
  */
-void load_initial_model ( const real    waveletFreq,
-                          const integer dimmz,
-                          const integer dimmx,
-                          const integer dimmy,
-                          coeff_t *c,
-                          s_t     *s,
-                          v_t     *v,
-                          real    *rho)
+void load_local_velocity_model ( const real    waveletFreq,
+                                 const integer dimmz,
+                                 const integer dimmx,
+                                 const integer FirstYPlane,
+                                 const integer LastYPlane,
+                                 coeff_t *c,
+                                 s_t     *s,
+                                 v_t     *v,
+                                 real    *rho)
 {
     PUSH_RANGE
 
-    const int numberOfCells = dimmz * dimmx * dimmy;
+    const integer cellsInVolume = dimmz * dimmx * (LastYPlane - FirstYPlane);
 
-    /* initialize stress */
-    set_array_to_constant( s->tl.zz, 0, numberOfCells);
-    set_array_to_constant( s->tl.xz, 0, numberOfCells);
-    set_array_to_constant( s->tl.yz, 0, numberOfCells);
-    set_array_to_constant( s->tl.xx, 0, numberOfCells);
-    set_array_to_constant( s->tl.xy, 0, numberOfCells);
-    set_array_to_constant( s->tl.yy, 0, numberOfCells);
-    set_array_to_constant( s->tr.zz, 0, numberOfCells);
-    set_array_to_constant( s->tr.xz, 0, numberOfCells);
-    set_array_to_constant( s->tr.yz, 0, numberOfCells);
-    set_array_to_constant( s->tr.xx, 0, numberOfCells);
-    set_array_to_constant( s->tr.xy, 0, numberOfCells);
-    set_array_to_constant( s->tr.yy, 0, numberOfCells);
-    set_array_to_constant( s->bl.zz, 0, numberOfCells);
-    set_array_to_constant( s->bl.xz, 0, numberOfCells);
-    set_array_to_constant( s->bl.yz, 0, numberOfCells);
-    set_array_to_constant( s->bl.xx, 0, numberOfCells);
-    set_array_to_constant( s->bl.xy, 0, numberOfCells);
-    set_array_to_constant( s->bl.yy, 0, numberOfCells);
-    set_array_to_constant( s->br.zz, 0, numberOfCells);
-    set_array_to_constant( s->br.xz, 0, numberOfCells);
-    set_array_to_constant( s->br.yz, 0, numberOfCells);
-    set_array_to_constant( s->br.xx, 0, numberOfCells);
-    set_array_to_constant( s->br.xy, 0, numberOfCells);
-    set_array_to_constant( s->br.yy, 0, numberOfCells);
+    /*
+     * Material, velocities and stresses are initizalized
+     * accorting to the compilation flags, either randomly
+     * or by reading an input velocity model.
+     */
+
+    /* initialize stress arrays */
+    set_array_to_constant( s->tl.zz, 0, cellsInVolume);
+    set_array_to_constant( s->tl.xz, 0, cellsInVolume);
+    set_array_to_constant( s->tl.yz, 0, cellsInVolume);
+    set_array_to_constant( s->tl.xx, 0, cellsInVolume);
+    set_array_to_constant( s->tl.xy, 0, cellsInVolume);
+    set_array_to_constant( s->tl.yy, 0, cellsInVolume);
+    set_array_to_constant( s->tr.zz, 0, cellsInVolume);
+    set_array_to_constant( s->tr.xz, 0, cellsInVolume);
+    set_array_to_constant( s->tr.yz, 0, cellsInVolume);
+    set_array_to_constant( s->tr.xx, 0, cellsInVolume);
+    set_array_to_constant( s->tr.xy, 0, cellsInVolume);
+    set_array_to_constant( s->tr.yy, 0, cellsInVolume);
+    set_array_to_constant( s->bl.zz, 0, cellsInVolume);
+    set_array_to_constant( s->bl.xz, 0, cellsInVolume);
+    set_array_to_constant( s->bl.yz, 0, cellsInVolume);
+    set_array_to_constant( s->bl.xx, 0, cellsInVolume);
+    set_array_to_constant( s->bl.xy, 0, cellsInVolume);
+    set_array_to_constant( s->bl.yy, 0, cellsInVolume);
+    set_array_to_constant( s->br.zz, 0, cellsInVolume);
+    set_array_to_constant( s->br.xz, 0, cellsInVolume);
+    set_array_to_constant( s->br.yz, 0, cellsInVolume);
+    set_array_to_constant( s->br.xx, 0, cellsInVolume);
+    set_array_to_constant( s->br.xy, 0, cellsInVolume);
+    set_array_to_constant( s->br.yy, 0, cellsInVolume);
 
 #if defined(DO_NOT_PERFORM_IO)
 
-    /* initialize coefficients */
-    set_array_to_random_real( c->c11, numberOfCells);
-    set_array_to_random_real( c->c12, numberOfCells);
-    set_array_to_random_real( c->c13, numberOfCells);
-    set_array_to_random_real( c->c14, numberOfCells);
-    set_array_to_random_real( c->c15, numberOfCells);
-    set_array_to_random_real( c->c16, numberOfCells);
-    set_array_to_random_real( c->c22, numberOfCells);
-    set_array_to_random_real( c->c23, numberOfCells);
-    set_array_to_random_real( c->c24, numberOfCells);
-    set_array_to_random_real( c->c25, numberOfCells);
-    set_array_to_random_real( c->c26, numberOfCells);
-    set_array_to_random_real( c->c33, numberOfCells);
-    set_array_to_random_real( c->c34, numberOfCells);
-    set_array_to_random_real( c->c35, numberOfCells);
-    set_array_to_random_real( c->c36, numberOfCells);
-    set_array_to_random_real( c->c44, numberOfCells);
-    set_array_to_random_real( c->c45, numberOfCells);
-    set_array_to_random_real( c->c46, numberOfCells);
-    set_array_to_random_real( c->c55, numberOfCells);
-    set_array_to_random_real( c->c56, numberOfCells);
-    set_array_to_random_real( c->c66, numberOfCells);
+    /* initialize material coefficients */
+    set_array_to_random_real( c->c11, cellsInVolume);
+    set_array_to_random_real( c->c12, cellsInVolume);
+    set_array_to_random_real( c->c13, cellsInVolume);
+    set_array_to_random_real( c->c14, cellsInVolume);
+    set_array_to_random_real( c->c15, cellsInVolume);
+    set_array_to_random_real( c->c16, cellsInVolume);
+    set_array_to_random_real( c->c22, cellsInVolume);
+    set_array_to_random_real( c->c23, cellsInVolume);
+    set_array_to_random_real( c->c24, cellsInVolume);
+    set_array_to_random_real( c->c25, cellsInVolume);
+    set_array_to_random_real( c->c26, cellsInVolume);
+    set_array_to_random_real( c->c33, cellsInVolume);
+    set_array_to_random_real( c->c34, cellsInVolume);
+    set_array_to_random_real( c->c35, cellsInVolume);
+    set_array_to_random_real( c->c36, cellsInVolume);
+    set_array_to_random_real( c->c44, cellsInVolume);
+    set_array_to_random_real( c->c45, cellsInVolume);
+    set_array_to_random_real( c->c46, cellsInVolume);
+    set_array_to_random_real( c->c55, cellsInVolume);
+    set_array_to_random_real( c->c56, cellsInVolume);
+    set_array_to_random_real( c->c66, cellsInVolume);
 
     /* initalize velocity components */
-    set_array_to_random_real( v->tl.u, numberOfCells );
-    set_array_to_random_real( v->tl.v, numberOfCells );
-    set_array_to_random_real( v->tl.w, numberOfCells );
-    set_array_to_random_real( v->tr.u, numberOfCells );
-    set_array_to_random_real( v->tr.v, numberOfCells );
-    set_array_to_random_real( v->tr.w, numberOfCells );
-    set_array_to_random_real( v->bl.u, numberOfCells );
-    set_array_to_random_real( v->bl.v, numberOfCells );
-    set_array_to_random_real( v->bl.w, numberOfCells );
-    set_array_to_random_real( v->br.u, numberOfCells );
-    set_array_to_random_real( v->br.v, numberOfCells );
-    set_array_to_random_real( v->br.w, numberOfCells );
+    set_array_to_random_real( v->tl.u, cellsInVolume );
+    set_array_to_random_real( v->tl.v, cellsInVolume );
+    set_array_to_random_real( v->tl.w, cellsInVolume );
+    set_array_to_random_real( v->tr.u, cellsInVolume );
+    set_array_to_random_real( v->tr.v, cellsInVolume );
+    set_array_to_random_real( v->tr.w, cellsInVolume );
+    set_array_to_random_real( v->bl.u, cellsInVolume );
+    set_array_to_random_real( v->bl.v, cellsInVolume );
+    set_array_to_random_real( v->bl.w, cellsInVolume );
+    set_array_to_random_real( v->br.u, cellsInVolume );
+    set_array_to_random_real( v->br.v, cellsInVolume );
+    set_array_to_random_real( v->br.w, cellsInVolume );
 
-    /* initialize rho */
-    set_array_to_random_real( rho, numberOfCells );
+    /* initialize density (rho) */
+    set_array_to_random_real( rho, cellsInVolume );
 
 #else /* load velocity model from external file */
 
-    /* initialize coefficients */
-    set_array_to_constant( c->c11, 1.0, numberOfCells);
-    set_array_to_constant( c->c12, 1.0, numberOfCells);
-    set_array_to_constant( c->c13, 1.0, numberOfCells);
-    set_array_to_constant( c->c14, 1.0, numberOfCells);
-    set_array_to_constant( c->c15, 1.0, numberOfCells);
-    set_array_to_constant( c->c16, 1.0, numberOfCells);
-    set_array_to_constant( c->c22, 1.0, numberOfCells);
-    set_array_to_constant( c->c23, 1.0, numberOfCells);
-    set_array_to_constant( c->c24, 1.0, numberOfCells);
-    set_array_to_constant( c->c25, 1.0, numberOfCells);
-    set_array_to_constant( c->c26, 1.0, numberOfCells);
-    set_array_to_constant( c->c33, 1.0, numberOfCells);
-    set_array_to_constant( c->c34, 1.0, numberOfCells);
-    set_array_to_constant( c->c35, 1.0, numberOfCells);
-    set_array_to_constant( c->c36, 1.0, numberOfCells);
-    set_array_to_constant( c->c44, 1.0, numberOfCells);
-    set_array_to_constant( c->c45, 1.0, numberOfCells);
-    set_array_to_constant( c->c46, 1.0, numberOfCells);
-    set_array_to_constant( c->c55, 1.0, numberOfCells);
-    set_array_to_constant( c->c56, 1.0, numberOfCells);
-    set_array_to_constant( c->c66, 1.0, numberOfCells);
+    /* initialize material coefficients */
+    set_array_to_constant( c->c11, 1.0, cellsInVolume);
+    set_array_to_constant( c->c12, 1.0, cellsInVolume);
+    set_array_to_constant( c->c13, 1.0, cellsInVolume);
+    set_array_to_constant( c->c14, 1.0, cellsInVolume);
+    set_array_to_constant( c->c15, 1.0, cellsInVolume);
+    set_array_to_constant( c->c16, 1.0, cellsInVolume);
+    set_array_to_constant( c->c22, 1.0, cellsInVolume);
+    set_array_to_constant( c->c23, 1.0, cellsInVolume);
+    set_array_to_constant( c->c24, 1.0, cellsInVolume);
+    set_array_to_constant( c->c25, 1.0, cellsInVolume);
+    set_array_to_constant( c->c26, 1.0, cellsInVolume);
+    set_array_to_constant( c->c33, 1.0, cellsInVolume);
+    set_array_to_constant( c->c34, 1.0, cellsInVolume);
+    set_array_to_constant( c->c35, 1.0, cellsInVolume);
+    set_array_to_constant( c->c36, 1.0, cellsInVolume);
+    set_array_to_constant( c->c44, 1.0, cellsInVolume);
+    set_array_to_constant( c->c45, 1.0, cellsInVolume);
+    set_array_to_constant( c->c46, 1.0, cellsInVolume);
+    set_array_to_constant( c->c55, 1.0, cellsInVolume);
+    set_array_to_constant( c->c56, 1.0, cellsInVolume);
+    set_array_to_constant( c->c66, 1.0, cellsInVolume);
 
-    /* initialize rho */
-    set_array_to_constant( rho, 1.0, numberOfCells );
+    /* initialize density (rho) */
+    set_array_to_constant( rho, 1.0, cellsInVolume );
 
     /* local variables */
     double tstart_outer, tstart_inner;
@@ -559,7 +575,6 @@ void load_initial_model ( const real    waveletFreq,
 
      /* open initial model, binary file */
     sprintf( modelname, "../data/inputmodels/velocitymodel_%.2f.bin", waveletFreq );
-
     print_info("Loading input model %s from disk (this could take a while)", modelname);
 
     /* start clock, take into account file opening */
@@ -569,48 +584,37 @@ void load_initial_model ( const real    waveletFreq,
     /* start clock, do not take into account file opening */
     tstart_inner = dtime();
 
-    int id;
-#if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &id );
-#else
-    id = 0;
-#endif
-
-    const integer bytesForVolume = numberOfCells * sizeof(real);
-
-    /* seek to the correct position corresponding to id (0 or rank) */
-    if (fseek ( model, bytesForVolume * id, SEEK_SET) != 0)
+    /* seek to the correct position corresponding to mpi_rank */
+    if (fseek ( model, sizeof(real) * WRITTEN_FIELDS * dimmz * dimmx * FirstYPlane, SEEK_SET) != 0)
         print_error("fseek() failed to set the correct position");
 
     /* initalize velocity components */
-    safe_fread( v->tl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->tl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->tr.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->bl.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->br.u, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->br.v, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
-    safe_fread( v->br.w, sizeof(real), numberOfCells, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.u, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), cellsInVolume, model, __FILE__, __LINE__ );
 
     /* stop inner timer */
     tend_inner = dtime() - tstart_inner;
 
     /* stop timer and compute statistics */
-    safe_fclose ( "velocitymodel.bin", model, __FILE__, __LINE__ );
+    safe_fclose ( modelname, model, __FILE__, __LINE__ );
     tend_outer = dtime() - tstart_outer;
 
-    //fprintf(stderr, "Number of cells %d\n", numberOfCells);
-    //fprintf(stderr, "sizeof real %lu\n", sizeof(real));
-    //fprintf(stderr, "bytes %lf\n", numberOfCells * sizeof(real) * 12.f);
+    const integer bytesForVolume = WRITTEN_FIELDS * cellsInVolume * sizeof(real);
 
-    iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
-    iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+    iospeed_inner = (bytesForVolume / (1000.f * 1000.f)) / tend_inner;
+    iospeed_outer = (bytesForVolume / (1000.f * 1000.f)) / tend_outer;
 
-    print_stats("Initial velocity model loaded (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("Initial velocity model loaded (%lf GB)", TOGB(1.f * bytesForVolume));
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
@@ -632,10 +636,10 @@ void load_initial_model ( const real    waveletFreq,
     const real* vbrv = v->br.v;
     const real* vbrw = v->br.w;
 
-    #pragma acc update device(vtlu[0:numberOfCells], vtlv[0:numberOfCells], vtlw[0:numberOfCells]) \
-                       device(vtru[0:numberOfCells], vtrv[0:numberOfCells], vtrw[0:numberOfCells]) \
-                       device(vblu[0:numberOfCells], vblv[0:numberOfCells], vblw[0:numberOfCells]) \
-                       device(vbru[0:numberOfCells], vbrv[0:numberOfCells], vbrw[0:numberOfCells]) \
+    #pragma acc update device(vtlu[0:cellsInVolume], vtlv[0:cellsInVolume], vtlw[0:cellsInVolume]) \
+                       device(vtru[0:cellsInVolume], vtrv[0:cellsInVolume], vtrw[0:cellsInVolume]) \
+                       device(vblu[0:cellsInVolume], vblv[0:cellsInVolume], vblw[0:cellsInVolume]) \
+                       device(vbru[0:cellsInVolume], vbrv[0:cellsInVolume], vbrw[0:cellsInVolume]) \
                        async(H2D)
 #endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
@@ -660,31 +664,25 @@ void write_snapshot(char *folder,
     print_info("We are not writing the snapshot here cause IO is not enabled!");
 #else
 
-    int domain, ndomains;
+    int rank = 0;
 #if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
-    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
-#else
-    domain = 0; ndomains = 1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
-    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
-    const integer numberOfCells  = cellsInVolume + cellsInHALOs;
-    const integer bytesForVolume = cellsInVolume * sizeof(real);
+    const integer cellsInVolume  = dimmz * dimmx * dimmy;
 
 #if defined(_OPENACC)
-    #pragma acc update self(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       self(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       self(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       self(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells])
+    #pragma acc update self(v->tr.u[0:cellsInVolume], v->tr.v[0:cellsInVolume], v->tr.w[0:cellsInVolume]) \
+                       self(v->tl.u[0:cellsInVolume], v->tl.v[0:cellsInVolume], v->tl.w[0:cellsInVolume]) \
+                       self(v->br.u[0:cellsInVolume], v->br.v[0:cellsInVolume], v->br.w[0:cellsInVolume]) \
+                       self(v->bl.u[0:cellsInVolume], v->bl.v[0:cellsInVolume], v->bl.w[0:cellsInVolume])
 #endif /* end pragma _OPENACC*/
 
     /* local variables */
     char fname[300];
 
     /* open snapshot file and write results */
-    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    sprintf(fname,"%s/snapshot.%03d.%05d", folder, rank, suffix);
 
 #if defined(LOG_IO_STATS)
     double tstart_outer = dtime();
@@ -694,25 +692,21 @@ void write_snapshot(char *folder,
     double tstart_inner = dtime();
 #endif
 
-    /* seek to the correct position corresponding to domain(id) */
-    if (fseek ( snapshot, bytesForVolume * domain, SEEK_SET) != 0)
-        print_error("fseek() failed to set the correct position");
+    safe_fwrite( v->tr.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tr.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    safe_fwrite( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->tl.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    safe_fwrite( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->br.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    safe_fwrite( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-
-    safe_fwrite( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fwrite( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fwrite( v->bl.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
 #if defined(LOG_IO_STATS)
     /* stop inner timer */
@@ -723,10 +717,10 @@ void write_snapshot(char *folder,
 #if defined(LOG_IO_STATS)
     double tend_outer = dtime();
 
-    double iospeed_inner = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
-    double iospeed_outer = (( (double) numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
+    double iospeed_inner = (( (double) cellsInVolume * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_inner - tstart_inner);
+    double iospeed_outer = (( (double) cellsInVolume * sizeof(real) * 12.f) / (1000.f * 1000.f)) / (tend_outer - tstart_outer);
 
-    print_stats("Write snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("Write snapshot (%lf GB)", TOGB(cellsInVolume * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MB/s)", (tend_inner - tstart_inner), iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MB/s)", (tend_outer - tstart_outer), iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
@@ -754,8 +748,13 @@ void read_snapshot(char *folder,
     /* local variables */
     char fname[300];
 
+    int rank = 0;
+#if defined(USE_MPI)
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+#endif
+
     /* open file and read snapshot */
-    sprintf(fname,"%s/snapshot.%05d.bin", folder, suffix);
+    sprintf(fname,"%s/snapshot.%03d.%05d", folder, rank, suffix);
 
 #if defined(LOG_IO_STATS)
     double tstart_outer = dtime();
@@ -765,38 +764,23 @@ void read_snapshot(char *folder,
     double tstart_inner = dtime();
 #endif
 
-    int domain, ndomains;
-#if defined(USE_MPI)
-    MPI_Comm_rank( MPI_COMM_WORLD, &domain );
-    MPI_Comm_size( MPI_COMM_WORLD, &ndomains );
-#else
-    domain = 0; ndomains = 1;
-#endif
+    const integer cellsInVolume  = dimmz * dimmx * dimmy;
 
-    const integer cellsInVolume  = (dimmz) * (dimmx) * ( (dimmy-2*HALO)/ndomains );
-    const integer cellsInHALOs   = (dimmz) * (dimmx) * (2*HALO);
-    const integer numberOfCells  = cellsInVolume + cellsInHALOs;
-    const integer bytesForVolume = cellsInVolume * sizeof(real);
+    safe_fread( v->tr.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tr.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    /* seek to the correct position corresponding to rank */
-    if (fseek ( snapshot, bytesForVolume * domain, SEEK_SET) != 0)
-        print_error("fseek() failed to set the correct position");
+    safe_fread( v->tl.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->tl.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    safe_fread( v->tr.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->tr.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->tr.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->br.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
-    safe_fread( v->tl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->tl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->tl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-
-    safe_fread( v->br.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->br.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->br.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-
-    safe_fread( v->bl.u, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->bl.v, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
-    safe_fread( v->bl.w, sizeof(real), numberOfCells, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.u, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.v, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
+    safe_fread( v->bl.w, sizeof(real), cellsInVolume, snapshot, __FILE__, __LINE__ );
 
 #if defined(LOG_IO_STATS)
     /* stop inner timer */
@@ -807,20 +791,20 @@ void read_snapshot(char *folder,
 #if defined(LOG_IO_STATS)
     double tend_outer = dtime() - tstart_outer;
 
-    double iospeed_inner = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
-    double iospeed_outer = ((numberOfCells * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
+    double iospeed_inner = ((cellsInVolume * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_inner;
+    double iospeed_outer = ((cellsInVolume * sizeof(real) * 12.f) / (1000.f * 1000.f)) / tend_outer;
 
-    print_stats("Read snapshot (%lf GB)", TOGB(numberOfCells * sizeof(real) * 12));
+    print_stats("Read snapshot (%lf GB)", TOGB(cellsInVolume * sizeof(real) * 12));
     print_stats("\tInner time %lf seconds (%lf MiB/s)", tend_inner, iospeed_inner);
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
 #if defined(_OPENACC)
-    #pragma acc update device(v->tr.u[0:numberOfCells], v->tr.v[0:numberOfCells], v->tr.w[0:numberOfCells]) \
-                       device(v->tl.u[0:numberOfCells], v->tl.v[0:numberOfCells], v->tl.w[0:numberOfCells]) \
-                       device(v->br.u[0:numberOfCells], v->br.v[0:numberOfCells], v->br.w[0:numberOfCells]) \
-                       device(v->bl.u[0:numberOfCells], v->bl.v[0:numberOfCells], v->bl.w[0:numberOfCells]) \
+    #pragma acc update device(v->tr.u[0:cellsInVolume], v->tr.v[0:cellsInVolume], v->tr.w[0:cellsInVolume]) \
+                       device(v->tl.u[0:cellsInVolume], v->tl.v[0:cellsInVolume], v->tl.w[0:cellsInVolume]) \
+                       device(v->br.u[0:cellsInVolume], v->br.v[0:cellsInVolume], v->br.w[0:cellsInVolume]) \
+                       device(v->bl.u[0:cellsInVolume], v->bl.v[0:cellsInVolume], v->bl.w[0:cellsInVolume]) \
                        async(H2D)
 #endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
@@ -857,7 +841,6 @@ void propagate_shot(time_d        direction,
     double tglobal_start, tglobal_total = 0.0;
     double tstress_start, tstress_total = 0.0;
     double tvel_start, tvel_total = 0.0;
-    double megacells = 0.0;
 
     for(int t=0; t < timesteps; t++)
     {
@@ -901,6 +884,11 @@ void propagate_shot(time_d        direction,
                             dimmz, dimmx,
                             ONE_R);
 
+#if defined(USE_MPI)
+        /* Boundary exchange for velocity values */
+        exchange_velocity_boundaries( v, dimmz * dimmx, nyf, ny0);
+#endif
+
         /* Phase 2. Computation of the central planes. */
         tvel_start = dtime();
 
@@ -913,11 +901,7 @@ void propagate_shot(time_d        direction,
                             nyf - 2*HALO,
                             dimmz, dimmx,
                             TWO);
-#if defined(USE_MPI)
-        const integer plane_size = dimmz * dimmx;
-        /* Boundary exchange for velocity values */
-        exchange_velocity_boundaries( v, plane_size, nyf, ny0);
-#endif
+
 #if defined(_OPENACC)
         #pragma acc wait(ONE_L, ONE_R, TWO)
 #endif
@@ -949,6 +933,11 @@ void propagate_shot(time_d        direction,
                           dimmz, dimmx,
                           ONE_R);
 
+#if defined(USE_MPI)
+        /* Boundary exchange for stress values */
+        exchange_stress_boundaries( s, dimmz * dimmx, nyf, ny0);
+#endif
+
         /* Phase 2 computation. Central planes of the domain */
         tstress_start = dtime();
 
@@ -961,11 +950,6 @@ void propagate_shot(time_d        direction,
                           nyf - 2*HALO,
                           dimmz, dimmx,
                           TWO);
-
-#if defined(USE_MPI)
-        /* Boundary exchange for stress values */
-        exchange_stress_boundaries( s, plane_size, nyf, ny0);
-#endif
 
 #if defined(_OPENACC)
         #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
@@ -984,7 +968,7 @@ void propagate_shot(time_d        direction,
     }
 
     /* compute some statistics */
-    megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
+    double megacells = ((nzf - nz0) * (nxf - nx0) * (nyf - ny0)) / 1e6;
     tglobal_total /= (double) timesteps;
     tstress_total /= (double) timesteps;
     tvel_total    /= (double) timesteps;

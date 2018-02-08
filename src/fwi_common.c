@@ -29,98 +29,6 @@
 
 #include "fwi/fwi_common.h"
 
-/* extern variables declared in the header file */
-const integer  WRITTEN_FIELDS =   12; /* >= 12.  */
-const integer  HALO           =    4; /* >= 4    */ 
-const integer  SIMD_LENGTH    =    8; /* # of real elements fitting into regs */
-const real     IT_FACTOR      = 0.02;
-const real     IO_CHUNK_SIZE  = 1024.f * 1024.f;
-
-const size_t ALIGN_INT     = 16;
-const size_t ALIGN_INTEGER = 16;
-const size_t ALIGN_REAL    = 64;
-
-//extern 
-FILE* logfile = NULL;
-
-void log_info (const char *fmt, ...) 
-{
-#ifdef DEBUG
-
-#if defined(USE_MPI)
-    /* locate myself into the MPI world */
-    int id;
-    MPI_Comm_rank( MPI_COMM_WORLD, &id);
-#else
-    int id = 0;
-#endif
-
-    /* build log file name */
-    char logname[50];
-    sprintf( logname, "%02d.log", id);
-    FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-
-    /* create the string from variadic input arguments */
-    char str[1000];
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(str, fmt, args);
-    va_end(args);
-    
-    /* create time string */
-    char timestr[20];
-    struct tm *sTm;
-    time_t now = time (0);
-    sTm = gmtime (&now);
-    strftime ( timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", sTm);
-    
-    /* print actual line to log file  */
-    fprintf( flog, "%s: %s\n", timestr, str);
-   
-    /*  close file  */
-    safe_fclose( logname, flog, __FILE__, __LINE__ );
-#endif
-};
-
-void log_error (const char *fmt, ...) 
-{ 
-#if defined(USE_MPI)
-    /* locate myself into the MPI world */
-    int id;
-    MPI_Comm_rank( MPI_COMM_WORLD, &id);
-#else
-    int id = 0;
-#endif
-    
-    /* build log file name */
-    char logname[50];
-    sprintf( logname, "%02d.log", id);
-    FILE* flog = safe_fopen( logname, "a+", __FILE__, __LINE__ );
-    
-    /* create the string from variadic input arguments */
-    char str[1000];
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(str, fmt, args);
-    va_end(args);
-
-    /* create time string */
-    char timestr[20];
-    struct tm *sTm;
-    time_t now = time (0);
-    sTm = gmtime (&now);
-    strftime ( timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", sTm);
-
-    /* print actual line to log file  */
-    fprintf( flog, "-----> ERROR :: %s: %s\n", timestr, str);
-
-    /*  close file  */
-    safe_fclose( logname, flog, __FILE__, __LINE__ );
-};
-
-
-
-
 int max_int( int a, int b)
 {
     return ((a >= b) ? a : b);
@@ -147,6 +55,11 @@ void read_fwi_parameters (const char *fname,
                           real *vmin,
                           real *srclen,
                           real *rcvlen,
+                          int  *nshots,
+                          int  *ngrads,
+                          int  *ntests,
+                          real *workmem,
+                          real *slavemem,
                           char *outputfolder)
 {
     FILE *fp = safe_fopen(fname, "r", __FILE__, __LINE__ );
@@ -157,20 +70,17 @@ void read_fwi_parameters (const char *fname,
     IO_CHECK( fscanf( fp, "%f\n", (real*) vmin   ) );
     IO_CHECK( fscanf( fp, "%f\n", (real*) srclen ) );
     IO_CHECK( fscanf( fp, "%f\n", (real*) rcvlen ) );
-    
-    /* these three values are not needed for the shared memory implementation */
-    int NotNeededValue;
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
-    IO_CHECK( fscanf( fp, "%d\n", (int*) &NotNeededValue ) );
- 
-    /* Recover the value of the output directory path */
+    IO_CHECK( fscanf( fp, "%d\n", (int*)  nshots ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*)  ngrads ) );
+    IO_CHECK( fscanf( fp, "%d\n", (int*)  ntests ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) workmem ) );
+    IO_CHECK( fscanf( fp, "%f\n", (real*) slavemem ) );
     IO_CHECK( fscanf( fp, "%s\n",  outputfolder  ) );
 
-    print_debug("Len (z,x,y) (%f,%f,%f) vmin %f scrlen %f rcvlen %f outputfolder '%s'",
-      *lenz, *lenx, *leny, *vmin, *srclen, *rcvlen, outputfolder );
+    print_debug("Len (z,x,y) (%.2f,%.2f,%.2f)\n \
+                 vmin %.2f scrlen %.2f rcvlen %.2f outputfolder '%s'\n \
+                 worker memory %.5f GB slave memory %.5fGB",
+      *lenz, *lenx, *leny, *vmin, *srclen, *rcvlen, outputfolder, *workmem, *slavemem );
 
     fclose(fp);
 };
@@ -305,7 +215,8 @@ void store_shot_parameters(int     shotid,
                            integer *dimmz,
                            integer *dimmx,
                            integer *dimmy,
-                           char    *outputfolder, 
+                           integer *LocalYPlanes,
+                           char    *outputfolder,
                            real    waveletFreq)
 {
     char name[200];
@@ -323,6 +234,7 @@ void store_shot_parameters(int     shotid,
     fprintf(fp,  I"\n", (integer) *dimmz  );
     fprintf(fp,  I"\n", (integer) *dimmx  );
     fprintf(fp,  I"\n", (integer) *dimmy  );
+    fprintf(fp,  I"\n", (integer) *LocalYPlanes);
     fprintf(fp, "%d\n",  (int    ) *nt_fwd );
     fprintf(fp, "%d\n",  (int    ) *nt_bwd );
     fprintf(fp, "%f\n",  (real   ) *dt     );
@@ -342,13 +254,14 @@ void load_shot_parameters(int     shotid,
                           integer *dimmz,
                           integer *dimmx,
                           integer *dimmy,
+                          integer *LocalYPlanes,
                           char    *outputfolder,
                           real    waveletFreq)
 {
     char name[200];
 
     sprintf(name, "%s/shotparams_%2.1f.%05d.dat", outputfolder, waveletFreq, shotid);
-    print_debug("Loading parameters for freq %d shot %d from %s", waveletFreq, shotid, name);
+    print_debug("Loading parameters for freq %.3fHz shot %d from %s", waveletFreq, shotid, name);
 
     FILE *fp = safe_fopen(name, "r", __FILE__, __LINE__);
 
@@ -358,6 +271,7 @@ void load_shot_parameters(int     shotid,
     IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmz  ) );
     IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmx  ) );
     IO_CHECK( fscanf(fp,  I"\n",  (integer*) dimmy  ) );
+    IO_CHECK( fscanf(fp,  I"\n",  (integer*) LocalYPlanes ) );
     IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_fwd ) );
     IO_CHECK( fscanf(fp, "%d\n",  (int*    ) nt_bwd ) );
     IO_CHECK( fscanf(fp, "%f\n",  (real*   ) dt     ) );
@@ -434,25 +348,56 @@ void* __malloc( size_t alignment, const integer size)
 {
     void *buffer;
     int error;
-    
+
+#if defined(__INTEL_COMPILER)
+    buffer = (void*) _mm_malloc( size, alignment );
+    if ( buffer == NULL)
+    {
+        print_error("Cant allocate buffer correctly");
+    }
+#else
     if( (error=posix_memalign( &buffer, alignment, size)) != 0)
     {
         print_error("Cant allocate buffer correctly");
         abort();
     }
-    
+#endif
+
     return (buffer);
 };
 
 void __free ( void* ptr)
 {
+#if defined(__INTEL_COMPILER)
+    _mm_free( ptr );
+#else
     free( ptr );
+#endif
 };
+
+/*
+ * Reads an environmental variable.
+ */
+char* read_env_variable (const char* varname)
+{
+    char* s = getenv(varname);
+
+    if ( s == NULL )
+    {
+        fprintf(stderr, "%s: ERROR: unable to read  %s env. var\n", __FUNCTION__, varname);
+        abort();
+    }
+
+    print_debug("ENV variable %d value is :%s\n", varname, s);
+
+    return (s);
+};
+
 
 FILE* safe_fopen(const char *filename, const char *mode, const char* srcfilename, const int linenumber)
 {
     FILE* temp = fopen( filename, mode);
-    
+
     if( temp == NULL){
         print_error("Cant open filename %s, openmode '%s' (called from %s - %d)", 
                     filename, mode, srcfilename, linenumber);
@@ -468,16 +413,10 @@ void safe_fclose ( const char *filename, FILE* stream, const char* srcfilename, 
         print_error("Cant close filename %s (called from %s - %d)", filename, srcfilename, linenumber);
         abort();
     }
-
-/*if ( unlink(filename)  != 0)
-  {
-    fprintf(stderr, "%s:%d: Cant unlink file %s correctly!\n", srcfilename, linenumber, filename );
-    abort();
-  }*/
 };
 
 
-inline 
+inline
 void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
@@ -487,30 +426,24 @@ void safe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream, cons
         print_error("Invalid stream\n");
         abort();
     }
-    size_t res;
-    
-#if defined(LOG_IO_STATS)
     double start = dtime();
-#endif
-    res = fwrite( ptr, size, nmemb, stream);   
-#if defined(LOG_IO_STATS)
+    size_t res = fwrite( ptr, size, nmemb, stream);
     double end = dtime() - start;
-
-    double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
-
-    print_stats("Time %lf, elements %lu bytes %lu, MB %lf MB/s %lf", 
-                 end, nmemb, size*nmemb, mbytes, mbytes / end);
-#endif
 
     if( res != nmemb )
     {
         print_error("Error while fwrite (called from %s - %d)", srcfilename, linenumber );
         abort();
     }
+
+    double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
+
+    print_stats("WRITE Time %lf, elements %lu, bytes %lu, MB %lf, MB/s %lf", 
+                 end, nmemb, size*nmemb, mbytes, mbytes / end);
 #endif
 };
 
-inline 
+inline
 void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char* srcfilename, const int linenumber)
 {
 #ifdef DO_NOT_PERFORM_IO
@@ -521,18 +454,24 @@ void safe_fread (void *ptr, size_t size, size_t nmemb, FILE *stream, const char*
         abort();
     }
 
+    double start = dtime();
     size_t res = fread( ptr, size, nmemb, stream);
+    double end = dtime() - start;
 
     if( res != nmemb )
     {
-        print_error("Cant fread (called from %s - %d)", srcfilename, linenumber);
+        print_error("Error while fread (called from %s - %d)", srcfilename, linenumber);
         print_error("Trying to read %lu elements, only %lu were recovered", nmemb, res);
         abort();
     }
+
+    double mbytes = (1.0 * size * nmemb) / (1024.0 * 1024.0);
+    print_stats("READ Time %lf, elements %lu, bytes %lu, MB %lf, MB/s %lf", end, nmemb, size*nmemb, mbytes, mbytes / end);
 #endif
 };
 
-
+/* Dummy function used to avoid UNUSED warings */
+void fwi_dont_print(const char *fmt, ...) {};
 
 void fwi_writelog(const char *SourceFileName, 
                   const int LineNumber,
@@ -548,54 +487,19 @@ void fwi_writelog(const char *SourceFileName,
 #else
     int id = 0;
 #endif
-    
+
     char LogFileName[50];
     sprintf(LogFileName, "fwi.%02d.log", id);
-    
+
     FILE *fp = safe_fopen ( LogFileName, "a", __FILE__, __LINE__ );
-    
+
     va_list args;
     va_start(args, fmt);
-    fprintf(fp, "%s:%s:%d:%s: ", MessageHeader, SourceFileName, LineNumber, FunctionName );
+    fprintf(fp, "%s :[%s:%d:%s] :: ", MessageHeader, SourceFileName, LineNumber, FunctionName );
     vfprintf(fp, fmt, args);
     fprintf(fp, "\n");
     va_end(args);
-    
+
     safe_fclose ( LogFileName, fp, __FILE__, __LINE__);
 };
 
-
-int parse_env(const char* name)
-{
-    char* value = getenv(name);
-    if (value != NULL)
-    {
-        return atoi(value);
-    }
-    return 0;
-}
-
-#if defined(USE_MPI)
-int mpi_get_rank()
-{
-#if defined(OPEN_MPI)
-    int rank       = parse_env("OMPI_COMM_WORLD_RANK");
-#elif defined(MPICH)
-    int rank       = parse_env("MV2_COMM_WORLD_RANK");
-#else
-    int rank       = 0;
-#endif
-    return rank;
-}
-
-int mpi_get_local_rank()
-{
-#if defined(OPEN_MPI)
-    int local_rank = parse_env("OMPI_COMM_WORLD_LOCAL_RANK");
-#elif defined(MPICH)
-    int local_rank = parse_env("MV2_COMM_WORLD_LOCAL_RANK");
-#else
-    int local_rank = 0;
-#endif
-}
-#endif

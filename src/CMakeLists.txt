@@ -1,7 +1,9 @@
 add_library(fwi-core STATIC
     fwi_core.c
+    fwi_sched.c
     fwi_common.c
     fwi_kernel.c
+    fwi_constants.c
     fwi_propagator.c
 )
 
@@ -45,3 +47,4 @@ if (TRACE_CUDA)
 endif (TRACE_CUDA)
 
 add_subdirectory(datagen)
+add_subdirectory(schedgen)

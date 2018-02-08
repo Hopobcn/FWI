@@ -4,418 +4,217 @@ image: hopobcn/fwi-pre
 stages:
  - Build
  - UnitTests
- - IntegrationTests
- - deploy
+ - Tests
+ - PerformanceTests
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+before_script:
+ - export FWIDIR=$PWD
+
+#
 # STAGE build
-build_fwi:serial:
+#
+.job_build_template: &build_tdef
   stage: Build
+  except:
+    - gtc*-step*
+  artifacts:
+    when: on_success
+    expire_in: 1h
+    paths:
+    - build/bin/fwi
+    - build/bin/fwi-tests
+    - build/bin/fwi-data-generator
+    - build/bin/fwi-sched-generator
+  dependencies: []
+
+build_fwi:serial:
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=gcc -DENABLE_TESTS=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - Westmere EP
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
+    - cpu
+  <<: *build_tdef
 
 build_fwi:openmp:
-  stage: Build
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=gcc -DENABLE_TESTS=ON -DUSE_OPENMP=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - Sandy Bridge EP
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
-  dependencies: []
+    - cpu
+  <<: *build_tdef
 
 build_fwi:openacc/kepler:
-  stage: Build
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - kepler
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
-  dependencies: []
+    - cpu
+  <<: *build_tdef
 
 build_fwi:openacc/maxwell:
-  stage: Build
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - maxwell
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
-  dependencies: []
+    - cpu
+  <<: *build_tdef
 
 build_fwi:openacc_cuda/kepler:
-  stage: Build
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - kepler
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
-  dependencies: []
+    - cpu
+  <<: *build_tdef
 
 build_fwi:openacc_cuda/maxwell:
-  stage: Build
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_C_COMPILER=pgcc -DENABLE_TESTS=ON -DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON ..
     - make -j
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - maxwell
-  artifacts:
-    when: on_success
-    expire_in: 1h
-    paths:
-    - build
-  dependencies: []
+    - cpu
+  <<: *build_tdef
 
+#
 # STAGE: unit_tests
-test_fwi:serial:
+#
+
+.job_test_template: &test_tdef
   stage: UnitTests
   script:
     - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    - bin/fwi-tests
   except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+    - gtc*-step*
+
+test_fwi:serial:
   tags:
-    - Westmere EP
+    - cpu
+  <<: *test_tdef
   dependencies:
     - build_fwi:serial
 
 test_fwi:openmp:
-  stage: UnitTests
-  script:
-    - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
-    - Sandy Bridge EP
+    - cpu
+  <<: *test_tdef
   dependencies:
     - build_fwi:openmp
 
 test_fwi:openacc/kepler:
-  stage: UnitTests
-  script:
-    - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
     - kepler
+  <<: *test_tdef
   dependencies:
     - build_fwi:openacc/kepler
 
 test_fwi:openacc/maxwell:
-  stage: UnitTests
-  script:
-    - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
     - maxwell
+  <<: *test_tdef
   dependencies:
     - build_fwi:openacc/maxwell
 
 test_fwi:openacc_cuda/kepler:
-  stage: UnitTests
-  script:
-    - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
     - kepler
+  <<: *test_tdef
   dependencies:
     - build_fwi:openacc_cuda/kepler
 
 test_fwi:openacc_cuda/maxwell:
-  stage: UnitTests
-  script:
-    - cd build
-    - make utest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
   tags:
     - maxwell
+  <<: *test_tdef
   dependencies:
     - build_fwi:openacc_cuda/maxwell
 
-# STAGE performance_tests
-run_fwi:serial:
-  stage: IntegrationTests
+#
+# STAGE tests
+#
+
+.job_tests_template: &gentest_tdef
+  stage: Tests
   script:
     - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    - bin/fwi-sched-generator fwi_params.txt fwi_frequencies.txt
+    - bin/fwi-data-generator fwi_schedule.txt
   except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+    - gtc*-step*
+
+test_fwi:generate_files:
+  <<: *gentest_tdef
   tags:
-    - Westmere EP
+    - cpu
+  dependencies:
+    - build_fwi:serial
+
+#
+# STAGE performance_tests
+#
+
+.job_perftest_template: &perftest_tdef
+  stage: PerformanceTests
+  script:
+    - cd build
+    - bin/fwi fwi_schedule.txt
+  except:
+    - gtc*-step*
+
+run_fwi:serial:
+  <<: *perftest_tdef
+  tags:
+    - cpu
   dependencies:
     - build_fwi:serial
 
 run_fwi:openmp:
-  stage: IntegrationTests
-  script:
-    - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+  <<: *perftest_tdef
   tags:
-    - Sandy Bridge EP
+    - cpu
   dependencies:
     - build_fwi:openmp
 
 run_fwi:openacc/kepler:
-  stage: IntegrationTests
-  script:
-    - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+  <<: *perftest_tdef
   tags:
     - kepler
   dependencies:
     - build_fwi:openacc/kepler
 
 run_fwi:openacc/maxwell:
-  stage: IntegrationTests
-  script:
-    - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+  <<: *perftest_tdef
   tags:
     - maxwell
   dependencies:
     - build_fwi:openacc/maxwell
 
 run_fwi:openacc_cuda/kepler:
-  stage: IntegrationTests
-  script:
-    - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+  <<: *perftest_tdef
   tags:
     - kepler
   dependencies:
     - build_fwi:openacc_cuda/kepler
 
 run_fwi:openacc_cuda/maxwell:
-  stage: IntegrationTests
-  script:
-    - cd build
-    - bin/fwi ../data/fwi_params.txt ../data/fwi_frequencies.profile.txt
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  except:
-    - gtc2017eu-step1
-    - gtc2017eu-step2
-    - gtc2017eu-step3
-    - gtc2017eu-step4
-    - gtc2017eu-step5
-    - gtc2017eu-step6
+  <<: *perftest_tdef
   tags:
     - maxwell
   dependencies:
     - build_fwi:openacc_cuda/maxwell
 
-deploy_review:
-  stage: deploy
-  script:
-    - echo "Deploy a review app"
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: https://$CI_ENVIRONMENT_SLUG.pm.bsc.es/gitlab
-  tags:
-    - gpu
-  only:
-    - branches
-  except:
-    - master
-    - gtc2017*
-
-stop_review:
-  stage: deploy
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - echo "Remove review app when their branch is deleted"
-  tags:
-    - gpu
-  when: manual
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
-  only:
-    - branches
-  except:
-    - master
-    - gtc2017*

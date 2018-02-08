@@ -54,27 +54,30 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions("-DDEBUG")
 else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # set RELEASE FLAGS (unfortunately it's compiler dependent...)
+    set(FWI_PERFORMANCE_FLAGS "")
+
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -fast -Minline")
+        set(FWI_PERFORMANCE_FLAGS "-O3 -fast -Minline")
 
     elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3")
-
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-            set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+            set(FWI_PERFORMANCE_FLAGS "-O3 -march=x86-64")
+        else ()
+            set(FWI_PERFORMANCE_FLAGS "-O3")
         endif ()
 
     elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 
-        set(CMAKE_C_FLAGS_RELEASE "-O3 -xHost -restrict")
+        set(FWI_PERFORMANCE_FLAGS "-O3 -xHost -restrict")
 
     else()
         message(WARNING "Compiler not supported!")
     endif ()
 
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${FWI_PERFORMANCE_FLAGS}")
     add_definitions("-DNDEBUG")
 
 endif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
