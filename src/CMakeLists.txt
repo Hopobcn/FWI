@@ -25,14 +25,16 @@ if (USE_MPI)
 endif (USE_MPI)
 
 if (USE_CUDA_KERNELS)
-    cuda_include_directories( ${PROJECT_SOURCE_DIR}/include )
-
-    cuda_add_library(fwi-core-cuda SHARED
+    add_library(fwi-core-cuda SHARED
         fwi_propagator.cu
     )
 
-    target_link_libraries(fwi-core-cuda
-        ${CUDA_LIBRARIES}
+    set_target_properties(fwi-core-cuda PROPERTIES
+        CUDA_STANDARD 11
+    )
+
+    target_include_directories(fwi-core-cuda PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
     )
 
     target_link_libraries(fwi-core

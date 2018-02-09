@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0)
-project(FWI C CXX)
+cmake_minimum_required(VERSION 3.8)
+project(FWI LANGUAGES C)
 
 ###### PROJECT OPTIONS #######
 option(ENABLE_TESTS     "Enable Unit Tests" OFF)
@@ -27,7 +27,7 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
 set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
-set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
+set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wmissing-declarations")
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
@@ -130,22 +130,15 @@ if (USE_OPENACC)
             set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc60,maxregcount:128")
         endif ()
 
-        find_package(CUDA)
+        if (USE_CUDA_KERNELS)
+            enable_language(CUDA)
 
-        if (USE_CUDA_KERNELS AND CUDA_FOUND)
-            # gcc version should be > 4.8 and <= 5.0 (CUDA 8)
-            set(CUDA_HOST_COMPILER "gcc")
+            set(CMAKE_CUDA_FLAGS "-Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_35,code=sm_37 -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=sm_61 -Wno-deprecated-declarations")
 
-           # set(CUDA_HOST_COMPILATION_CPP OFF)
-            set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-            set(CUDA_SEPARABLE_COMPILATION OFF)
-
-            set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_30,code=\"sm_30,sm_35,sm_37\" -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=\"sm_60,sm_61\" -lineinfo")
-            set(CUDA_NVCC_FLAGS_DEBUG   "-O0 -g -G")
-            set(CUDA_NVCC_FLAGS_RELEASE "-O3       -res-usage")
+            set(CMAKE_CUDA_FLAGS_DEBUG   "-O0 -g -G")
+            set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -res-usage -lineinfo")
 
             add_definitions("-DUSE_CUDA")
-            include_directories(${CUDA_INCLUDE_DIR})
 
             # list of optimized kernels
             add_definitions("-DVCELL_TL")
@@ -158,21 +151,20 @@ if (USE_OPENACC)
             add_definitions("-DSCELL_BR")
             add_definitions("-DSCELL_BL")
 
-            message(STATUS "--------------------------------------")
-            message(STATUS "----[CUDA ENABLED] :                  ")
-            message(STATUS "---- CUDA_VERSION:      ${CUDA_VERSION} (${CUDA_VERSION_STRING})")
-            message(STATUS "---- CUDA_TOOLKIT_DIR:  ${CUDA_TOOLKIT_ROOT_DIR}")
-            message(STATUS "---- CUDA_INCLUDE_DIRS: ${CUDA_INCLUDE_DIRS}")
-            message(STATUS "---- CUDA_LIBRARIES:    ${CUDA_LIBRARIES}")
-            message(STATUS "--------                      --------")
-            message(STATUS "---- CUDA_HOST_COMPILER: ${CUDA_HOST_COMPILER}")
-            message(STATUS "--------------------------------------")
+            message(STATUS "----[CUDA ENABLED]")
 
-        endif (USE_CUDA_KERNELS AND CUDA_FOUND)
+        endif ()
 
         if (TRACE_CUDA)
             add_definitions("-DTRACE_CUDA")
-            set(CUDA_TRACE_LIBRARY "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so")
+
+            list(GET CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES 0 CUDA_TOOLKIT_INCLUDE_DIR)
+
+            find_library(CUDA_TRACE_LIBRARY
+                NAMES nvToolsExt
+                HINTS "${CUDA_TOOLKIT_INCLUDE_DIR}/../lib64"
+                PATHS /usr/local/cuda/lib64
+            )
         endif (TRACE_CUDA)
 
     elseif( ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") AND
@@ -248,9 +240,9 @@ message(STATUS "CMAKE_C_FLAGS_RELEASE:          ${CMAKE_C_FLAGS_RELEASE}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS:         ${CMAKE_EXE_LINKER_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS_DEBUG:   ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS_RELEASE: ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
-message(STATUS "CUDA_NVCC_FLAGS:                ${CUDA_NVCC_FLAGS}")
-message(STATUS "CUDA_NVCC_FLAGS_DEBUG:          ${CUDA_NVCC_FLAGS_DEBUG}")
-message(STATUS "CUDA_NVCC_FLAGS_RELEASE:        ${CUDA_NVCC_FLAGS_RELEASE}")
+message(STATUS "CMAKE_CUDA_FLAGS:               ${CMAKE_CUDA_FLAGS}")
+message(STATUS "CMAKE_CUDA_FLAGS_DEBUG:         ${CMAKE_CUDA_FLAGS_DEBUG}")
+message(STATUS "CMAKE_CUDA_FLAGS_RELEASE:       ${CMAKE_CUDA_FLAGS_RELEASE}")
 message(STATUS "----------------------------------------")
 
 add_subdirectory(src)
