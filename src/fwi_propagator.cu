@@ -37,6 +37,43 @@
 #define C2 1.6f
 #define C3 1.8f
 
+#define FULLMASK 0xffffffff
+
+template <typename T>
+__device__ inline
+T fwi_shfl_up(T var, unsigned int delta, int width=warpSize)
+{
+   T res;
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 300) && \
+    defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+   res = __shfl_up_sync(FULLMASK, var, delta, width);
+#elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 300) && \
+      defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9)
+   res = __shfl_up(var, delta, width);
+#elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 300)
+#warning CUDA arch is too old
+#endif
+
+   return res;
+}
+
+template <typename T>
+__device__ inline
+T fwi_shfl_down(T var, unsigned int delta, int width=warpSize)
+{
+   T res;
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 300) && \
+    defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+   res = __shfl_down_sync(FULLMASK, var, delta, width);
+#elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 300) && \
+      defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9)
+   res = __shfl_down(var, delta, width);
+#elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 300)
+#warning CUDA arch is too old
+#endif
+
+   return res;
+}
 
 __device__ inline
 int IDX (const int z, 
@@ -77,13 +114,13 @@ float stencil_Z_shfl (const int off,
                       const int dimmx)
 {
     float current = (z+off < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off,x,y,dimmz,dimmx)] : 0.0f;
-    float right3  = __shfl_down(current, 3);
-    float right2  = __shfl_down(current, 2);
-    float right1  = __shfl_down(current, 1);
-    float left1   = __shfl_up(current, 1);
-    float left2   = __shfl_up(current, 2);
-    float left3   = __shfl_up(current, 3);
-    float left4   = __shfl_up(current, 4);
+    float right3  = fwi_shfl_down(current, 3);
+    float right2  = fwi_shfl_down(current, 2);
+    float right1  = fwi_shfl_down(current, 1);
+    float left1   = fwi_shfl_up(current, 1);
+    float left2   = fwi_shfl_up(current, 2);
+    float left3   = fwi_shfl_up(current, 3);
+    float left4   = fwi_shfl_up(current, 4);
 
     /* For threads without neighbors: */
     if (threadIdx.x < 1 /* 1 */) left1 = (z+off-1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+off-1,x,y,dimmz,dimmx)] : 0.0f;
@@ -193,7 +230,7 @@ float rho_BL_shfl (const float* __restrict__ ptr_gmem,
                    const int dimmx)
 {
     float current = (z<dimmz && x<dimmx) ? ptr_gmem[IDX(z,x,y,dimmz,dimmx)] : 0.0f;
-    float right1  = __shfl_down(current, 1);
+    float right1  = fwi_shfl_down(current, 1);
 
     /* For threads without neighbors: */
     if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = (z+1<dimmz && x<dimmx) ? ptr_gmem[IDX(z+1,x,y,dimmz,dimmx)] : 0.0f;
@@ -1153,13 +1190,13 @@ float cell_coeff_BL_shfl (const float* __restrict__ ptr_gmem,
                           const int dimmx)
 {
     float current = ptr_gmem[IDX(z,x,y,dimmz,dimmx)];
-    float right1  = __shfl_down(current, 1);
+    float right1  = fwi_shfl_down(current, 1);
 
     /* For threads without neighbors: */
     if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = ptr_gmem[IDX(z+1,x,y,dimmz,dimmx)];
 
     float current_front = ptr_gmem[IDX(z,x,y+1,dimmz,dimmx)];
-    float right1_front  = __shfl_down(current_front, 1);
+    float right1_front  = fwi_shfl_down(current_front, 1);
 
     /* For threads without neighbors: */
     if (threadIdx.x >= BDIMX-1 /* 1 */) right1_front = ptr_gmem[IDX(z+1,x,y+1,dimmz,dimmx)];
@@ -1298,13 +1335,13 @@ float cell_coeff_ARTM_BL_shfl(const float* __restrict__ ptr_gmem,
                               const int dimmx)
 {
     float current = ((z < dimmz && x < dimmx) ? ptr_gmem[IDX(z,x,y,dimmz,dimmx)] : 1.0f);
-    float right1  = __shfl_down(current, 1);
+    float right1  = fwi_shfl_down(current, 1);
 
     /* For threads without neighbors: */
     if (threadIdx.x >= BDIMX-1 /* 1 */) right1 = ((z+1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+1,x,y,dimmz,dimmx)] : 1.0f);
 
     float current_front = ((z < dimmz && x < dimmx) ? ptr_gmem[IDX(z,x,y+1,dimmz,dimmx)] : 1.0f);
-    float right1_front  = __shfl_down(current_front, 1);
+    float right1_front  = fwi_shfl_down(current_front, 1);
 
     /* For threads without neighbors: */
     if (threadIdx.x >= BDIMX-1 /* 1 */) right1_front = ((z+1 < dimmz && x < dimmx) ? ptr_gmem[IDX(z+1,x,y+1,dimmz,dimmx)] : 1.0f);

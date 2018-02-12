@@ -133,7 +133,7 @@ if (USE_OPENACC)
         if (USE_CUDA_KERNELS)
             enable_language(CUDA)
 
-            set(CMAKE_CUDA_FLAGS "-Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_35,code=sm_37 -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=sm_61 -Wno-deprecated-declarations")
+            set(CMAKE_CUDA_FLAGS "-Xcompiler \"${COMMON_CXX_GNU_FLAGS}\" -gencode arch=compute_35,code=[sm_35,sm_37] -gencode arch=compute_50,code=sm_52 -gencode arch=compute_60,code=[sm_60,sm_61]")
 
             set(CMAKE_CUDA_FLAGS_DEBUG   "-O0 -g -G")
             set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -res-usage -lineinfo")
