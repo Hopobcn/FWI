@@ -28,6 +28,7 @@ before_script:
     - build/bin/fwi-tests
     - build/bin/fwi-data-generator
     - build/bin/fwi-sched-generator
+    - build/lib/libfwi-core-cuda.so
   dependencies: []
 
 build_fwi:serial:
