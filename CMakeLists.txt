@@ -58,7 +58,7 @@ else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
 
-        set(FWI_PERFORMANCE_FLAGS "-O3 -fast -Minline")
+        set(FWI_PERFORMANCE_FLAGS "-O3 -fast -tp=k8 -Minline")
 
     elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR
             ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
