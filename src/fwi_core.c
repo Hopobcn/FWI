@@ -359,7 +359,7 @@ int execute_simulation( int argc, char* argv[] )
 
             for(int shot=0; shot<s.nshots; shot++)
             {
-                char shotfolder[200];
+                char shotfolder[512];
                 sprintf(shotfolder, "%s/shot.%2.2fHz.%03d", s.outputfolder, waveletFreq, shot);
 
 #if defined(USE_MPI)
@@ -403,7 +403,7 @@ int execute_simulation( int argc, char* argv[] )
 
                 for(int shot=0; shot<s.nshots; shot++)
                 {
-                    char shotfolder[200];
+                    char shotfolder[512];
                     sprintf(shotfolder, "%s/test.%05d.shot.%2.2fHz.%03d", 
                             s.outputfolder, test, waveletFreq, shot);
 
