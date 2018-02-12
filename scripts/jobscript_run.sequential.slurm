@@ -39,7 +39,9 @@ fi
 # In case you compiled with openmp, force only one thread
 export OMP_NUM_THREADS=1
 
-# estimated elapsed time 8:30 minutes
-${PROJECT_BINARY_DIR}/fwi ${PROJECT_SOURCE_DIR}/data/fwi_params.txt ${PROJECT_SOURCE_DIR}/data/fwi_frequencies.profile.txt
+export FWIDIR=${PROJECT_SOURCE_DIR}
+
+
+${PROJECT_BINARY_DIR}/fwi fwi_schedule.txt
 
 mv fwi.00.log fwi.seq.${SLURM_JOB_ID}.log

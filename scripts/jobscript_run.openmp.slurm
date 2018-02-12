@@ -55,6 +55,8 @@ else
     echo "ERROR: COMPILER_ID not recognized as PGI/GNU/Intel"
 fi
 
-${PROJECT_BINARY_DIR}/fwi ${PROJECT_SOURCE_DIR}/data/fwi_params.txt ${PROJECT_SOURCE_DIR}/data/fwi_frequencies.txt
+export FWIDIR=${PROJECT_SOURCE_DIR}
+
+${PROJECT_BINARY_DIR}/fwi fwi_schedule.txt
 
 mv fwi.00.log fwi.omp.${SLURM_JOB_ID}.log

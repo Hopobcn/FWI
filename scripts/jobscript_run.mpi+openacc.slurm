@@ -43,7 +43,9 @@ fi
 # If your MULTI-GPU implementation uses OpenMP, modify this!
 export OMP_NUM_THREADS=1
 
-mpirun -np 2 ${PROJECT_BINARY_DIR}/fwi ${PROJECT_SOURCE_DIR}/data/fwi_params.txt ${PROJECT_SOURCE_DIR}/data/fwi_frequencies.txt
+export FWIDIR=${PROJECT_SOURCE_DIR}
+
+mpirun -np 2 ${PROJECT_BINARY_DIR}/fwi fwi_schedule.txt
 
 mv fwi.00.log fwi.PGI.mpi.${SLURM_JOB_ID}.00.log
 mv fwi.01.log fwi.PGI.mpi.${SLURM_JOB_ID}.01.log
