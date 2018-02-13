@@ -381,21 +381,11 @@ int execute_simulation( int argc, char* argv[] )
                 kernel( RTM_KERNEL, waveletFreq, shot, s.outputfolder, shotfolder);
 
                 print_info("\tGradient loop processed for %d-th shot", shot);
-
-                //update_shot()
             }
 
-//#if defined(USE_MPI)
-//           MPI_Barrier( MPI_COMM_WORLD );
-//
-//           if ( mpi_rank == 0 ) { 
-//               gather_shots( outputfolder, waveletFreq, nshots, numberOfCells );    
-//           }
-//
-//           MPI_Barrier( MPI_COMM_WORLD );
-//#else
-//           gather_shots( s.outputfolder, waveletFreq, s.nshots, numberOfCells );
-//#endif
+#if defined(USE_MPI)
+           MPI_Barrier( MPI_COMM_WORLD );
+#endif
 
             for(int test=0; test<s.ntests; test++)
             {
