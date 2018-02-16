@@ -191,9 +191,7 @@ TEST(kernel, set_array_to_random_real)
     }
 
     srand(0);
-#if defined(_OPENACC)
-    #pragma acc data copy(array_cal[:NELEMS])
-#endif
+
     {
         set_array_to_random_real( array_cal, NELEMS );
     }

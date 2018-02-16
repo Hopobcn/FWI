@@ -47,7 +47,7 @@ void set_array_to_random_real( real* restrict array, const integer length)
 void set_array_to_constant( real* restrict array, const real value, const integer length)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels copyin(array[0:length])
+    #pragma acc kernels
 #endif
     for( integer i = 0; i < length; i++ )
         array[i] = value;
@@ -208,80 +208,6 @@ void alloc_memory_shot( const integer dimmz,
     /* allocate density array       */
     *rho = (real*) __malloc( ALIGN_REAL, size);
 
-#if defined(_OPENACC)
-    const real* rrho  = *rho;
-
-    coeff_t cc = *c;
-    #pragma acc enter data create(cc)
-    #pragma acc enter data create(cc.c11[:ncells])
-    #pragma acc enter data create(cc.c12[:ncells])
-    #pragma acc enter data create(cc.c13[:ncells])
-    #pragma acc enter data create(cc.c14[:ncells])
-    #pragma acc enter data create(cc.c15[:ncells])
-    #pragma acc enter data create(cc.c16[:ncells])
-    #pragma acc enter data create(cc.c22[:ncells])
-    #pragma acc enter data create(cc.c23[:ncells])
-    #pragma acc enter data create(cc.c24[:ncells])
-    #pragma acc enter data create(cc.c25[:ncells])
-    #pragma acc enter data create(cc.c26[:ncells])
-    #pragma acc enter data create(cc.c33[:ncells])
-    #pragma acc enter data create(cc.c34[:ncells])
-    #pragma acc enter data create(cc.c35[:ncells])
-    #pragma acc enter data create(cc.c36[:ncells])
-    #pragma acc enter data create(cc.c44[:ncells])
-    #pragma acc enter data create(cc.c45[:ncells])
-    #pragma acc enter data create(cc.c46[:ncells])
-    #pragma acc enter data create(cc.c55[:ncells])
-    #pragma acc enter data create(cc.c56[:ncells])
-    #pragma acc enter data create(cc.c66[:ncells])
-
-    v_t vv = *v;
-
-    #pragma acc enter data copyin(vv)
-    #pragma acc enter data create(vv.tl.u[:ncells])
-    #pragma acc enter data create(vv.tl.v[:ncells])
-    #pragma acc enter data create(vv.tl.w[:ncells])
-    #pragma acc enter data create(vv.tr.u[:ncells])
-    #pragma acc enter data create(vv.tr.v[:ncells])
-    #pragma acc enter data create(vv.tr.w[:ncells])
-    #pragma acc enter data create(vv.bl.u[:ncells])
-    #pragma acc enter data create(vv.bl.v[:ncells])
-    #pragma acc enter data create(vv.bl.w[:ncells])
-    #pragma acc enter data create(vv.br.u[:ncells])
-    #pragma acc enter data create(vv.br.v[:ncells])
-    #pragma acc enter data create(vv.br.w[:ncells])
-
-    s_t ss = *s;
-    #pragma acc enter data copyin(ss)
-    #pragma acc enter data create(ss.tl.zz[:ncells])
-    #pragma acc enter data create(ss.tl.xz[:ncells])
-    #pragma acc enter data create(ss.tl.yz[:ncells])
-    #pragma acc enter data create(ss.tl.xx[:ncells])
-    #pragma acc enter data create(ss.tl.xy[:ncells])
-    #pragma acc enter data create(ss.tl.yy[:ncells])
-    #pragma acc enter data create(ss.tr.zz[:ncells])
-    #pragma acc enter data create(ss.tr.xz[:ncells])
-    #pragma acc enter data create(ss.tr.yz[:ncells])
-    #pragma acc enter data create(ss.tr.xx[:ncells])
-    #pragma acc enter data create(ss.tr.xy[:ncells])
-    #pragma acc enter data create(ss.tr.yy[:ncells])
-    #pragma acc enter data create(ss.bl.zz[:ncells])
-    #pragma acc enter data create(ss.bl.xz[:ncells])
-    #pragma acc enter data create(ss.bl.yz[:ncells])
-    #pragma acc enter data create(ss.bl.xx[:ncells])
-    #pragma acc enter data create(ss.bl.xy[:ncells])
-    #pragma acc enter data create(ss.bl.yy[:ncells])
-    #pragma acc enter data create(ss.br.zz[:ncells])
-    #pragma acc enter data create(ss.br.xz[:ncells])
-    #pragma acc enter data create(ss.br.yz[:ncells])
-    #pragma acc enter data create(ss.br.xx[:ncells])
-    #pragma acc enter data create(ss.br.xy[:ncells])
-    #pragma acc enter data create(ss.br.yy[:ncells])
-
-    #pragma acc enter data create(rrho[:ncells])
-
-#endif /* end of pragma _OPENACC */
-
     POP_RANGE
 };
 
@@ -291,77 +217,6 @@ void free_memory_shot( coeff_t *c,
                        real    **rho)
 {
     PUSH_RANGE
-
-#if defined(_OPENACC)
-    #pragma acc wait
-
-    #pragma acc exit data delete(c->c11)
-    #pragma acc exit data delete(c->c12)
-    #pragma acc exit data delete(c->c13)
-    #pragma acc exit data delete(c->c14)
-    #pragma acc exit data delete(c->c15)
-    #pragma acc exit data delete(c->c16)
-    #pragma acc exit data delete(c->c22)
-    #pragma acc exit data delete(c->c23)
-    #pragma acc exit data delete(c->c24)
-    #pragma acc exit data delete(c->c25)
-    #pragma acc exit data delete(c->c26)
-    #pragma acc exit data delete(c->c33)
-    #pragma acc exit data delete(c->c34)
-    #pragma acc exit data delete(c->c35)
-    #pragma acc exit data delete(c->c36)
-    #pragma acc exit data delete(c->c44)
-    #pragma acc exit data delete(c->c45)
-    #pragma acc exit data delete(c->c46)
-    #pragma acc exit data delete(c->c55)
-    #pragma acc exit data delete(c->c56)
-    #pragma acc exit data delete(c->c66)
-    #pragma acc exit data delete(c)
-
-    #pragma acc exit data delete(v->tl.u)
-    #pragma acc exit data delete(v->tl.v)
-    #pragma acc exit data delete(v->tl.w)
-    #pragma acc exit data delete(v->tr.u)
-    #pragma acc exit data delete(v->tr.v)
-    #pragma acc exit data delete(v->tr.w)
-    #pragma acc exit data delete(v->bl.u)
-    #pragma acc exit data delete(v->bl.v)
-    #pragma acc exit data delete(v->bl.w)
-    #pragma acc exit data delete(v->br.u)
-    #pragma acc exit data delete(v->br.v)
-    #pragma acc exit data delete(v->br.w)
-
-
-    #pragma acc exit data delete(s->tl.zz)
-    #pragma acc exit data delete(s->tl.xz)
-    #pragma acc exit data delete(s->tl.yz)
-    #pragma acc exit data delete(s->tl.xx)
-    #pragma acc exit data delete(s->tl.xy)
-    #pragma acc exit data delete(s->tl.yy)
-    #pragma acc exit data delete(s->tr.zz)
-    #pragma acc exit data delete(s->tr.xz)
-    #pragma acc exit data delete(s->tr.yz)
-    #pragma acc exit data delete(s->tr.xx)
-    #pragma acc exit data delete(s->tr.xy)
-    #pragma acc exit data delete(s->tr.yy)
-    #pragma acc exit data delete(s->bl.zz)
-    #pragma acc exit data delete(s->bl.xz)
-    #pragma acc exit data delete(s->bl.yz)
-    #pragma acc exit data delete(s->bl.xx)
-    #pragma acc exit data delete(s->bl.xy)
-    #pragma acc exit data delete(s->bl.yy)
-    #pragma acc exit data delete(s->br.zz)
-    #pragma acc exit data delete(s->br.xz)
-    #pragma acc exit data delete(s->br.yz)
-    #pragma acc exit data delete(s->br.xx)
-    #pragma acc exit data delete(s->br.xy)
-    #pragma acc exit data delete(s->br.yy)
-    #pragma acc exit data delete(s)
-
-    const real* rrho  = *rho;
-    #pragma acc exit data delete(rrho)
-
-#endif /* end pragma _OPENACC */
 
     /* deallocate coefficients */
     __free( (void*) c->c11 );
@@ -620,29 +475,6 @@ void load_local_velocity_model ( const real    waveletFreq,
     print_stats("\tOuter time %lf seconds (%lf MiB/s)", tend_outer, iospeed_outer);
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 
-#if defined(_OPENACC)
-    const real* vtlu = v->tl.u;
-    const real* vtlv = v->tl.v;
-    const real* vtlw = v->tl.w;
-
-    const real* vtru = v->tr.u;
-    const real* vtrv = v->tr.v;
-    const real* vtrw = v->tr.w;
-
-    const real* vblu = v->bl.u;
-    const real* vblv = v->bl.v;
-    const real* vblw = v->bl.w;
-
-    const real* vbru = v->br.u;
-    const real* vbrv = v->br.v;
-    const real* vbrw = v->br.w;
-
-    #pragma acc update device(vtlu[0:cellsInVolume], vtlv[0:cellsInVolume], vtlw[0:cellsInVolume]) \
-                       device(vtru[0:cellsInVolume], vtrv[0:cellsInVolume], vtrw[0:cellsInVolume]) \
-                       device(vblu[0:cellsInVolume], vblv[0:cellsInVolume], vblw[0:cellsInVolume]) \
-                       device(vbru[0:cellsInVolume], vbrv[0:cellsInVolume], vbrw[0:cellsInVolume]) \
-                       async(H2D)
-#endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
     POP_RANGE
@@ -801,13 +633,6 @@ void read_snapshot(char *folder,
     print_stats("\tDifference %lf seconds", tend_outer - tend_inner);
 #endif
 
-#if defined(_OPENACC)
-    #pragma acc update device(v->tr.u[0:cellsInVolume], v->tr.v[0:cellsInVolume], v->tr.w[0:cellsInVolume]) \
-                       device(v->tl.u[0:cellsInVolume], v->tl.v[0:cellsInVolume], v->tl.w[0:cellsInVolume]) \
-                       device(v->br.u[0:cellsInVolume], v->br.v[0:cellsInVolume], v->br.w[0:cellsInVolume]) \
-                       device(v->bl.u[0:cellsInVolume], v->bl.v[0:cellsInVolume], v->bl.w[0:cellsInVolume]) \
-                       async(H2D)
-#endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
     POP_RANGE
@@ -856,7 +681,7 @@ void propagate_shot(time_d        direction,
 
         /* wait read_snapshot H2D copies */
 #if defined(_OPENACC)
-        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+        #pragma acc wait if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
 #endif
 
         /* ------------------------------------------------------------------------------ */
@@ -871,8 +696,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx,
-                            ONE_L);
+                            dimmz, dimmx);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
@@ -882,8 +706,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
-                            ONE_R);
+                            dimmz, dimmx);
 
 #if defined(USE_MPI)
         /* Boundary exchange for velocity values */
@@ -900,11 +723,10 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 + 2*HALO,
                             nyf - 2*HALO,
-                            dimmz, dimmx,
-                            TWO);
+                            dimmz, dimmx);
 
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO)
+        #pragma acc wait
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -920,8 +742,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
-                          dimmz, dimmx,
-                          ONE_L);
+                          dimmz, dimmx);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
@@ -931,8 +752,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           nyf - 2*HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
-                          ONE_R);
+                          dimmz, dimmx);
 
 #if defined(USE_MPI)
         /* Boundary exchange for stress values */
@@ -949,11 +769,10 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 + 2*HALO,
                           nyf - 2*HALO,
-                          dimmz, dimmx,
-                          TWO);
+                          dimmz, dimmx);
 
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+        #pragma acc wait
 #endif
         tstress_total += (dtime() - tstress_start);
 
