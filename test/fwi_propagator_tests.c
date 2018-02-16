@@ -345,7 +345,7 @@ TEST(propagator, compute_component_vcell_TL)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     const real*    szptr = s_ref.bl.xz;
     const real*    sxptr = s_ref.tr.xx;
@@ -398,7 +398,7 @@ TEST(propagator, compute_component_vcell_TR)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     const real*    szptr = s_ref.br.xz;
     const real*    sxptr = s_ref.tl.xx;
@@ -452,7 +452,7 @@ TEST(propagator, compute_component_vcell_BR)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     const real*    szptr = s_ref.tr.xz;
     const real*    sxptr = s_ref.bl.xx;
@@ -505,7 +505,7 @@ TEST(propagator, compute_component_vcell_BL)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     const real*    szptr = s_ref.tl.xz;
     const real*    sxptr = s_ref.br.xx;
@@ -555,7 +555,7 @@ TEST(propagator, velocity_propagator)
     const integer  nxf = dimmx-HALO;
     const integer  ny0 = HALO;
     const integer  nyf = dimmy-HALO;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION
     {
@@ -579,7 +579,7 @@ TEST(propagator, velocity_propagator)
         velocity_propagator(v_cal, s_ref, c_ref, rho_ref,
                 dt, dzi, dxi, dyi,
                 nz0, nzf, nx0, nxf, ny0, nyf,
-                dimmz, dimmx, phase);
+                dimmz, dimmx);
     }
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( v_ref.bl.u, v_cal.bl.u, nelems );
@@ -794,7 +794,7 @@ TEST(propagator, compute_component_scell_TR)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
@@ -882,7 +882,7 @@ TEST(propagator, compute_component_scell_TL)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
@@ -970,7 +970,7 @@ TEST(propagator, compute_component_scell_BR)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
@@ -1060,7 +1060,7 @@ TEST(propagator, compute_component_scell_BL)
     const offset_t SZ = 0;
     const offset_t SX = 0;
     const offset_t SY = 0;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION -DON'T TOUCH-
     for (integer y = ny0; y < nyf; y++)
@@ -1145,7 +1145,7 @@ TEST(propagator, stress_propagator)
     const integer  nxf = dimmx-HALO;
     const integer  ny0 = HALO;
     const integer  nyf = dimmy-HALO;
-    const phase_t  phase = TWO;
+    const phase_t  phase = TR;
 
     // REFERENCE CALCULATION
     {
@@ -1161,7 +1161,7 @@ TEST(propagator, stress_propagator)
         stress_propagator(s_cal, v_ref, c_ref, rho_ref,
                 dt, dzi, dxi, dyi,
                 nz0, nzf, nx0, nxf, ny0, nyf,
-                dimmz, dimmx, phase);
+                dimmz, dimmx);
     }
 
     CUSTOM_ASSERT_EQUAL_FLOAT_ARRAY( s_ref.bl.xx, s_cal.bl.xx, nelems );
