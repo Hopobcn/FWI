@@ -27,7 +27,7 @@ endif (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 ###### GENERAL COMPILE FLAGS ##############
 set(DISABLE_C_GNU_WARNINGS "-Wno-unused-parameter")
 set(COMMON_C_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations ${DISABLE_C_GNU_WARNINGS}")
-set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wmissing-declarations")
+set(COMMON_CXX_GNU_FLAGS "-Wall -Wextra -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wundef -Wmissing-declarations")
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")

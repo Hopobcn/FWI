@@ -164,13 +164,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
 {
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -178,14 +172,12 @@ void compute_component_vcell_TL (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -205,7 +197,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
     #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
     {
         compute_component_vcell_TL_cuda(vptr, szptr, sxptr, syptr, rho,
-                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, 
+                dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
                 _SZ, _SX, _SY, dimmz, dimmx, stream);
     }
 #endif /* end USE_CUDA */
@@ -235,13 +227,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
 {
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -249,14 +235,12 @@ void compute_component_vcell_TR (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -306,13 +290,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
 {
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -320,22 +298,20 @@ void compute_component_vcell_BR (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
                 const real lrho = rho_BR(rho, z, x, y, dimmz, dimmx);
 
-                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx );
-                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx );
-                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx );
+                const real stx  = stencil_X( _SX, sxptr, dxi, z, x, y, dimmz, dimmx);
+                const real sty  = stencil_Y( _SY, syptr, dyi, z, x, y, dimmz, dimmx);
+                const real stz  = stencil_Z( _SZ, szptr, dzi, z, x, y, dimmz, dimmx);
 
                 vptr[IDX(z,x,y,dimmz,dimmx)] += (stx  + sty  + stz) * dt * lrho;
             }
@@ -377,13 +353,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
 {
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copyin(szptr[start:nelems], sxptr[start:nelems], syptr[start:nelems], rho[start:nelems]) \
-                        copy(vptr[start:nelems]) \
-                        async(phase) wait(H2D)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -391,14 +361,12 @@ void compute_component_vcell_BL (      real* restrict vptr,
     for(integer y=ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for(integer x=nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for(integer z=nz0; z < nzf; z++)
             {
@@ -439,8 +407,7 @@ void velocity_propagator(v_t           v,
                          const integer ny0,
                          const integer nyf,
                          const integer dimmz,
-                         const integer dimmx,
-                         const phase_t phase)
+                         const integer dimmx)
 {
 #if defined(DEBUG)
     fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
@@ -450,18 +417,18 @@ void velocity_propagator(v_t           v,
     #pragma forceinline recursive
 #endif
     {
-        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
+        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
+        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
+        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
+        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
+        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
+        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
+        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
+        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
+        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
+        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
+        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
+        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
     }
 };
 
@@ -522,8 +489,7 @@ void stress_propagator(s_t           s,
                        const integer ny0,
                        const integer nyf,
                        const integer dimmz,
-                       const integer dimmx,
-                       const phase_t phase )
+                       const integer dimmx)
 {
 #if defined(DEBUG)
     fprintf(stderr, "Integration limits of %s are (z "I"-"I",x "I"-"I",y "I"-"I")\n", __FUNCTION__, nz0,nzf,nx0,nxf,ny0,nyf);
@@ -533,10 +499,10 @@ void stress_propagator(s_t           s,
     #pragma forceinline recursive
 #endif
     {
-        compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, phase);
-        compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, phase);
-        compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, phase);
+        compute_component_scell_BR ( s, v.tr, v.bl, v.br, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BR);
+        compute_component_scell_BL ( s, v.tl, v.br, v.bl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, forw_offset, dimmz, dimmx, BL);
+        compute_component_scell_TR ( s, v.br, v.tl, v.tr, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, forw_offset, dimmz, dimmx, TR);
+        compute_component_scell_TL ( s, v.bl, v.tr, v.tl, coeffs, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, back_offset, dimmz, dimmx, TL);
     }
 };
 
@@ -701,21 +667,16 @@ void compute_component_scell_TR (s_t             s,
 
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
-                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
-                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
-                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
-                        copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems]) \
-                        async(phase)
+    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                        present(vxu, vxv, vxw)  \
+                        present(vyu, vyv, vyw)  \
+                        present(vzu, vzv, vzw)  \
+                        present(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        present(cc22, cc23, cc24, cc25, cc26) \
+                        present(cc33, cc34, cc35, cc36) \
+                        present(cc44, cc45, cc46) \
+                        present(cc55, cc56) \
+                        present(cc66) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -723,14 +684,12 @@ void compute_component_scell_TR (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32)
-#elif defined(__INTEL_COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -860,21 +819,16 @@ void compute_component_scell_TL (s_t             s,
 
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
-                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
-                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
-                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
-                        copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems]) \
-                        async(phase)
+    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                        present(vxu, vxv, vxw)  \
+                        present(vyu, vyv, vyw)  \
+                        present(vzu, vzv, vzw)  \
+                        present(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        present(cc22, cc23, cc24, cc25, cc26) \
+                        present(cc33, cc34, cc35, cc36) \
+                        present(cc44, cc45, cc46) \
+                        present(cc55, cc56) \
+                        present(cc66) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -882,14 +836,12 @@ void compute_component_scell_TL (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -1020,21 +972,16 @@ void compute_component_scell_BR (s_t             s,
 
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
-                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
-                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
-                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
-                        copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems]) \
-                        async(phase)
+    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                        present(vxu, vxv, vxw)  \
+                        present(vyu, vyv, vyw)  \
+                        present(vzu, vzv, vzw)  \
+                        present(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        present(cc22, cc23, cc24, cc25, cc26) \
+                        present(cc33, cc34, cc35, cc36) \
+                        present(cc44, cc45, cc46) \
+                        present(cc55, cc56) \
+                        present(cc66) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -1042,14 +989,12 @@ void compute_component_scell_BR (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
@@ -1180,21 +1125,16 @@ void compute_component_scell_BL (s_t             s,
 
 #if !defined(USE_CUDA)
 #if defined(_OPENACC)
-    const integer start  = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (ny0 - HALO);
-    const integer end    = ((nzf-nz0) + 2*HALO) * ((nxf-nx0) + 2*HALO) * (nyf + HALO);
-    const integer nelems = end - start;
-
-    #pragma acc kernels copy(sxxptr[start:nelems], syyptr[start:nelems], szzptr[start:nelems], syzptr[start:nelems], sxzptr[start:nelems], sxyptr[start:nelems]) \
-                        copyin(vxu[start:nelems], vxv[start:nelems], vxw[start:nelems])  \
-                        copyin(vyu[start:nelems], vyv[start:nelems], vyw[start:nelems])  \
-                        copyin(vzu[start:nelems], vzv[start:nelems], vzw[start:nelems])  \
-                        copyin(cc11[start:nelems], cc12[start:nelems], cc13[start:nelems], cc14[start:nelems], cc15[start:nelems], cc16[start:nelems]) \
-                        copyin(cc22[start:nelems], cc23[start:nelems], cc24[start:nelems], cc25[start:nelems], cc26[start:nelems]) \
-                        copyin(cc33[start:nelems], cc34[start:nelems], cc35[start:nelems], cc36[start:nelems]) \
-                        copyin(cc44[start:nelems], cc45[start:nelems], cc46[start:nelems]) \
-                        copyin(cc55[start:nelems], cc56[start:nelems]) \
-                        copyin(cc66[start:nelems]) \
-                        async(phase)
+    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
+                        present(vxu, vxv, vxw)  \
+                        present(vyu, vyv, vyw)  \
+                        present(vzu, vzv, vzw)  \
+                        present(cc11, cc12, cc13, cc14, cc15, cc16) \
+                        present(cc22, cc23, cc24, cc25, cc26) \
+                        present(cc33, cc34, cc35, cc36) \
+                        present(cc44, cc45, cc46) \
+                        present(cc55, cc56) \
+                        present(cc66) async(phase)
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -1202,14 +1142,12 @@ void compute_component_scell_BL (s_t             s,
     for (integer y = ny0; y < nyf; y++)
     {
 #if defined(_OPENACC)
-        #pragma acc loop independent device_type(nvidia) gang worker(4)
+        #pragma acc loop independent
 #endif
         for (integer x = nx0; x < nxf; x++)
         {
 #if defined(_OPENACC)
-            #pragma acc loop independent device_type(nvidia) gang vector(32) 
-#elif defined(__INTEL__COMPILER)
-            #pragma simd
+            #pragma acc loop independent
 #endif
             for (integer z = nz0; z < nzf; z++ )
             {
