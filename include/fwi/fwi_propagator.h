@@ -75,7 +75,7 @@ typedef struct {
 #define ASSUMED_DISTANCE 16
 
 typedef enum {back_offset, forw_offset} offset_t;
-typedef enum {ONE_R, ONE_L, TWO, H2D, D2H} phase_t;
+typedef enum {TR, TL, BR, BL} phase_t;
 
 #if defined(_OPENACC) 
 #pragma acc routine seq
@@ -371,8 +371,7 @@ void velocity_propagator(v_t           v,
                          const integer ny0,
                          const integer nyf,
                          const integer dimmz,
-                         const integer dimmx,
-                         const phase_t phase);
+                         const integer dimmx);
 
 
 
@@ -425,8 +424,7 @@ void stress_propagator(s_t           s,
                        const integer ny0,
                        const integer nyf,
                        const integer dimmz,
-                       const integer dimmx,
-                       const phase_t phase );
+                       const integer dimmx);
 
 #if defined(_OPENACC)
 #pragma acc routine seq

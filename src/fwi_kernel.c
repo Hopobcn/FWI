@@ -640,8 +640,7 @@ void load_local_velocity_model ( const real    waveletFreq,
     #pragma acc update device(vtlu[0:cellsInVolume], vtlv[0:cellsInVolume], vtlw[0:cellsInVolume]) \
                        device(vtru[0:cellsInVolume], vtrv[0:cellsInVolume], vtrw[0:cellsInVolume]) \
                        device(vblu[0:cellsInVolume], vblv[0:cellsInVolume], vblw[0:cellsInVolume]) \
-                       device(vbru[0:cellsInVolume], vbrv[0:cellsInVolume], vbrw[0:cellsInVolume]) \
-                       async(H2D)
+                       device(vbru[0:cellsInVolume], vbrv[0:cellsInVolume], vbrw[0:cellsInVolume])
 #endif /* end of pragma _OPENACC */
 #endif /* end of pragma DDO_NOT_PERFORM_IO clause */
 
@@ -805,8 +804,7 @@ void read_snapshot(char *folder,
     #pragma acc update device(v->tr.u[0:cellsInVolume], v->tr.v[0:cellsInVolume], v->tr.w[0:cellsInVolume]) \
                        device(v->tl.u[0:cellsInVolume], v->tl.v[0:cellsInVolume], v->tl.w[0:cellsInVolume]) \
                        device(v->br.u[0:cellsInVolume], v->br.v[0:cellsInVolume], v->br.w[0:cellsInVolume]) \
-                       device(v->bl.u[0:cellsInVolume], v->bl.v[0:cellsInVolume], v->bl.w[0:cellsInVolume]) \
-                       async(H2D)
+                       device(v->bl.u[0:cellsInVolume], v->bl.v[0:cellsInVolume], v->bl.w[0:cellsInVolume])
 #endif /* end pragma _OPENACC */
 #endif /* end pragma DO_NOT_PERFORM_IO */
 
@@ -856,7 +854,7 @@ void propagate_shot(time_d        direction,
 
         /* wait read_snapshot H2D copies */
 #if defined(_OPENACC)
-        #pragma acc wait(H2D) if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
+        #pragma acc wait if ( (t%stacki == 0 && direction == BACKWARD) || t==0 )
 #endif
 
         /* ------------------------------------------------------------------------------ */
@@ -871,8 +869,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 +   HALO,
                             ny0 + 2*HALO,
-                            dimmz, dimmx,
-                            ONE_L);
+                            dimmz, dimmx);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         velocity_propagator(v, s, coeffs, rho, dt, dzi, dxi, dyi,
@@ -882,8 +879,7 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             nyf - 2*HALO,
                             nyf -   HALO,
-                            dimmz, dimmx,
-                            ONE_R);
+                            dimmz, dimmx);
 
 #if defined(USE_MPI)
         /* Boundary exchange for velocity values */
@@ -900,11 +896,10 @@ void propagate_shot(time_d        direction,
                             nxf -   HALO,
                             ny0 + 2*HALO,
                             nyf - 2*HALO,
-                            dimmz, dimmx,
-                            TWO);
+                            dimmz, dimmx);
 
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO)
+        #pragma acc wait
 #endif
         tvel_total += (dtime() - tvel_start);
 
@@ -920,8 +915,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 +   HALO,
                           ny0 + 2*HALO,
-                          dimmz, dimmx,
-                          ONE_L);
+                          dimmz, dimmx);
 
         /* Phase 1. Computation of the right-most planes of the domain */
         stress_propagator(s, v, coeffs, rho, dt, dzi, dxi, dyi,
@@ -931,8 +925,7 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           nyf - 2*HALO,
                           nyf -   HALO,
-                          dimmz, dimmx,
-                          ONE_R);
+                          dimmz, dimmx);
 
 #if defined(USE_MPI)
         /* Boundary exchange for stress values */
@@ -949,11 +942,10 @@ void propagate_shot(time_d        direction,
                           nxf -   HALO,
                           ny0 + 2*HALO,
                           nyf - 2*HALO,
-                          dimmz, dimmx,
-                          TWO);
+                          dimmz, dimmx);
 
 #if defined(_OPENACC)
-        #pragma acc wait(ONE_L, ONE_R, TWO, H2D, D2H)
+        #pragma acc wait
 #endif
         tstress_total += (dtime() - tstress_start);
 
