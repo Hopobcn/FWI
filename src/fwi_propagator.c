@@ -163,7 +163,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -215,7 +215,7 @@ void compute_component_vcell_TR (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -267,7 +267,7 @@ void compute_component_vcell_BR (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -319,7 +319,7 @@ void compute_component_vcell_BL (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) async(phase)
+    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -373,18 +373,18 @@ void velocity_propagator(v_t           v,
     #pragma forceinline recursive
 #endif
     {
-        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
-        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
-        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
-        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
-        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
-        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
-        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
-        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
-        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, TL);
-        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, TR);
-        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, BL);
-        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, BR);
+        compute_component_vcell_TL (v.tl.w, s.bl.zz, s.tr.xz, s.tl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_TR (v.tr.w, s.br.zz, s.tl.xz, s.tr.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BL (v.bl.w, s.tl.zz, s.br.xz, s.bl.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BR (v.br.w, s.tr.zz, s.bl.xz, s.br.yz, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_TL (v.tl.u, s.bl.xz, s.tr.xx, s.tl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_TR (v.tr.u, s.br.xz, s.tl.xx, s.tr.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BL (v.bl.u, s.tl.xz, s.br.xx, s.bl.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BR (v.br.u, s.tr.xz, s.bl.xx, s.br.xy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_TL (v.tl.v, s.bl.yz, s.tr.xy, s.tl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, back_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_TR (v.tr.v, s.br.yz, s.tl.xy, s.tr.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, back_offset, forw_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BL (v.bl.v, s.tl.yz, s.br.xy, s.bl.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, back_offset, back_offset, dimmz, dimmx, /* COMPLETEME */);
+        compute_component_vcell_BR (v.br.v, s.tr.yz, s.bl.xy, s.br.yy, rho, dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf, forw_offset, forw_offset, forw_offset, dimmz, dimmx, /* COMPLETEME */);
     }
 };
 
@@ -631,7 +631,7 @@ void compute_component_scell_TR (s_t             s,
                         present(cc33, cc34, cc35, cc36) \
                         present(cc44, cc45, cc46) \
                         present(cc55, cc56) \
-                        present(cc66) async(phase)
+                        present(cc66) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -764,7 +764,7 @@ void compute_component_scell_TL (s_t             s,
                         present(cc33, cc34, cc35, cc36) \
                         present(cc44, cc45, cc46) \
                         present(cc55, cc56) \
-                        present(cc66) async(phase)
+                        present(cc66) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -898,7 +898,7 @@ void compute_component_scell_BR (s_t             s,
                         present(cc33, cc34, cc35, cc36) \
                         present(cc44, cc45, cc46) \
                         present(cc55, cc56) \
-                        present(cc66) async(phase)
+                        present(cc66) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -1032,7 +1032,7 @@ void compute_component_scell_BL (s_t             s,
                         present(cc33, cc34, cc35, cc36) \
                         present(cc44, cc45, cc46) \
                         present(cc55, cc56) \
-                        present(cc66) async(phase)
+                        present(cc66) /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
