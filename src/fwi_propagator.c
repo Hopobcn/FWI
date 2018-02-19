@@ -192,9 +192,9 @@ void compute_component_vcell_TL (      real* restrict vptr,
         }
     }
 #else /* CUDA KERNELS ENABLED */
-    void* stream = acc_get_cuda_stream(phase);
+    void* stream = /* COMPLETEME */
 
-    #pragma acc host_data use_device(szptr, sxptr, syptr, rho, vptr)
+    #pragma acc /* COMPLETEME */(szptr, sxptr, syptr, rho, vptr)
     {
         compute_component_vcell_TL_cuda(vptr, szptr, sxptr, syptr, rho,
                 dt, dzi, dxi, dyi, nz0, nzf, nx0, nxf, ny0, nyf,
@@ -737,9 +737,9 @@ void compute_component_scell_TR (s_t             s,
         }
     }
 #else /* CUDA KERNELS ENABLED */
-    void* stream = acc_get_cuda_stream(phase);
+    void* stream = /* COMPLETEME */
 
-    #pragma acc host_data use_device(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
+    #pragma acc /* COMPLETEME */(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr, vxu, vxv, vxw, vyu, vyv, vyw, vzu, vzv, vzw, cc11, cc12, cc13, cc14, cc15, cc16, cc22, cc23, cc24, cc25, cc26, cc33, cc34, cc35, cc36, cc44, cc45, cc46, cc55, cc56, cc66)
     {
         compute_component_scell_TR_cuda(
             sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr,
