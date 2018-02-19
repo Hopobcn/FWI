@@ -163,7 +163,7 @@ void compute_component_vcell_TL (      real* restrict vptr,
                                  const phase_t        phase)
 {
 #if defined(_OPENACC)
-    #pragma acc kernels present(szptr, sxptr, syptr, rho, vptr)
+    #pragma acc kernels /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
@@ -622,16 +622,7 @@ void compute_component_scell_TR (s_t             s,
     const real* restrict cc66 = coeffs.c66;
     
 #if defined(_OPENACC)
-    #pragma acc kernels present(sxxptr, syyptr, szzptr, syzptr, sxzptr, sxyptr) \
-                        present(vxu, vxv, vxw)  \
-                        present(vyu, vyv, vyw)  \
-                        present(vzu, vzv, vzw)  \
-                        present(cc11, cc12, cc13, cc14, cc15, cc16) \
-                        present(cc22, cc23, cc24, cc25, cc26) \
-                        present(cc33, cc34, cc35, cc36) \
-                        present(cc44, cc45, cc46) \
-                        present(cc55, cc56) \
-                        present(cc66)
+    #pragma acc kernels /* COMPLETEME */
     #pragma acc loop independent
 #elif defined(_OPENMP)
     #pragma omp parallel for
