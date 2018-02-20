@@ -1,7 +1,11 @@
 `FWI` is a great candidate to take advantage of shuffle intrinsics and shared memory.
-OpenACC provides the directive `cache` to exploit shared memory, but there is nothing to exploit CUDA intra-warp intrinsics.
+OpenACC provides the directive `cache` to exploit shared memory, but it lacks a way to exploit CUDA intra-warp intrinsics.
 
-We provide a set of highly optimized kernels in `src/fwi_propagator.cu` file.
+In this step we provide a set of highly optimized kernels in `src/fwi_propagator.cu` file.
+Your task consists on adding the necessary glue code to get:
+ - The GPU device pointers managed by the OpenACC runtime
+ - The CUDA stream allocated by OpenACC
+
 We also provide the necessary modifications in `CMakeLists.txt` for compiling with `nvcc` and linking with `pgcc`.
 Just remember to pass `-DUSE_OPENACC=ON -DUSE_CUDA_KERNELS=ON` to cmake.
 

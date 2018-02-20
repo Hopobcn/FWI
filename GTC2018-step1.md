@@ -1,7 +1,7 @@
-In this step, you have to add compute regions around expensive loops in the application. 
+In the initial step, you have to express parallelism available around expensive loops in the application. 
 We assume you already have some OpenACC knowledge.
 
-In this lab we have used the **kernels** directive extensively but the **loop** directive could also been used.
+In this lab we have used the **kernels** directive extensively but the **loop** directive could also have been used.
 
 To reduce time, we will suppose we have profiled the mini-app and we got this results (see Appendix 0):
 
@@ -29,7 +29,7 @@ Time(%)      Time  Name
 ======== Percentage threshold: 1%
 ```
 We can see that `scell` and `vcell` functions dominate the execution time.
-`IDX` is the function that linearizes the (i,j,k) triplet into the linear index.
+`IDX` is the function that linearizes the 3D volume indexing (i,j,k) triplet into the linear index used in memory.
 Usually the compiler is smart enough to inline it, but in this execution it didn't.
 Since we know that `IDX` is only called inside `scell` and `vcell` functions, we can safely split the `IDX` execution time among `scell` and `vcell` functions.
 Therefore we can safely say that `scell` and `vcell` accounts for the 99% of the execution time of the application.
@@ -41,7 +41,7 @@ If we take a look at those functions in **src/fwi_propagator.c** we will arrive 
 
 
 
-In this first implementation we are going to use CUDA Unified Memory.
+We are going to use CUDA Unified Memory to reduce the initial porting complexity.
 For that purpose we already modified **CMakeLists.txt** to add the `managed` to the `-ta=tesla` openacc target:
 ```cmake
 set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,lineinfo,managed")
@@ -52,7 +52,7 @@ set(OpenACC_C_FLAGS "${OpenACC_C_FLAGS} -ta=tesla,cuda8.0,cc20,cc35,cc50,cc60,li
 > To facilitate your work we already implemented the majority of `openacc` pragmas leaving `vcell_TL` and `scell_TR` for you to implement.
 
 ##### In sumary:
-You have to add a `#pragma acc kernels` in the outer-most loop of `src/fwi_propagator.c:166` (`compute_component_vcell_TL`) and `src/fwi_propagator.c:634` (`compute_component_scell_TR`). 
+You have to add a `#pragma acc kernels` in the outer-most loop of `src/fwi_propagator.c:166` (`compute_component_vcell_TL`) and `src/fwi_propagator.c:624` (`compute_component_scell_TR`). 
 Example for `vcell_TL`:
 ```c
 #pragma acc kernels
@@ -121,6 +121,7 @@ compute_component_scell_TR:
 
 Oops! the compiler detects a dependence and prevents a parallelization (it generates a scalar kernel!). 
 Since we know that *vcell_TL* is embarrasingly parallel and there isn't a dependence we have to force the compiler to ignore those dependences and parallelize it.
+
 For that we have to add `#pragma acc loop independent` before each iteration level:
 ```c
 #pragma acc kernels
@@ -176,7 +177,7 @@ compute_component_scell_TR:
 [100%] Built target fwi-tests
 ```
 
-> Obs: Functions called from a parallel region (`== CUDA kernel`) should be declared a device function. For that OpenACC provides the `#pragma acc routine <type>` directive.
+> Obs: Functions called from a device parallel region should be declared a device function. For that OpenACC provides the `#pragma acc routine <type>` directive.
 To speed-up the hands-on lab we already provide the code with those pragmas.
 We encourage you to check `include/fwi/fwi_propagator.h` to see how it's done.
 

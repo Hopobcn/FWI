@@ -29,13 +29,20 @@ for(integer y=ny0; y < nyf; y++)
     }
 }
 ```
-We only support the `kernels` and `loop` directive with clauses `deviceptr`. 
-Any other combination is not supported.
-Also, we are restricted to only one GPU.
+OmpSs `target device(openacc)` tells the compiler that the following `omp task` is a task that have to be executed in a GPU.
 
-To build this example:
+#### Current Limitations:
+> At the moment, the user has to manually specify all the GPU pointers to the OpenACC parallel region using the `deviceptr` clause.
+That way the OpenACC will assume that you (in this case the OmpSs runtime) manages the GPU memory and won't attempt to allocate/copy/deallocate your GPU arrays.
+
+> Also, the clause `async` is already provided by the `mercurium` compiler (in OmpSs, the streams are managed by the runtime). 
+> So providing additional `async` clauses could brake compilation.
+
+> To avoid coherence issues, we are limited to only One GPU (the user have to provide `NX_ARGS="--gpus=1"` in every execution)
+
+#### Build the example:
 ```bash
 cd FWI-sol-ompss-acc
-make -i
+make
 NX_ARGS="--gpus=1" ./fwi data/fwi_params.txt data/fwi_frequencies.profile.txt
 ```
