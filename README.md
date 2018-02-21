@@ -16,6 +16,8 @@ large aftershocks. As the number of aftershocks sky-rockets after a large
 earthquake, the amount of data to analyse grows really fast.  Thus, it is
 mandatory to speed up the processing of all that information.
 
+# [GTC 2018 Instructions](GTC2018.md)
+
 ## Getting Started
 
 ### Prerequisites:
